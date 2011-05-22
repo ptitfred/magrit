@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ $# -eq 1 ]
+then
+	if [[ $(which magrit-$1) ]]
+	then
+		magrit-$1
+	else
+		echo "Magrit: commande magrit $1 inconnue."
+	fi
+fi
+
