@@ -1,0 +1,6 @@
+server/magrit-server/.classpath
+server/magrit-server/.project
+server/magrit-server/.settings
+server/magrit-server/key.pem
+server/magrit-server/key.ser
+server/magrit-server/target
