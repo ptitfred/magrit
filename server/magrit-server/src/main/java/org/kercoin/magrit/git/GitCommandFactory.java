@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.command.UnknownCommand;
+import org.kercoin.magrit.services.BuildQueueService;
 import org.kercoin.magrit.services.BuildStatusesService;
 
 import com.google.inject.Inject;
@@ -24,12 +25,15 @@ public class GitCommandFactory implements CommandFactory {
 
 	private Context ctx;
 	private BuildStatusesService buildStatusesService;
+	private BuildQueueService buildQueueService;
 	
 	@Inject
-	public GitCommandFactory(Context ctx, BuildStatusesService buildStatusesService) {
+	public GitCommandFactory(Context ctx, BuildStatusesService buildStatusesService,
+			BuildQueueService buildQueueService) {
 		super();
 		this.ctx = ctx;
 		this.buildStatusesService = buildStatusesService;
+		this.buildQueueService = buildQueueService;
 	}
 
 	@Override
@@ -40,7 +44,7 @@ public class GitCommandFactory implements CommandFactory {
 		try {
 			if (	command.startsWith("git-receive-pack ") ||
 					command.startsWith("git receive-pack ")) {
-				return new ReceivePackCommand(ctx, command);
+				return new ReceivePackCommand(ctx, command, buildQueueService);
 			}
 			if (	command.startsWith("magrit status ")) {
 				return new GetStatusCommand(ctx, command, buildStatusesService);

@@ -9,6 +9,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
+import org.kercoin.magrit.services.BuildQueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,12 +23,15 @@ public class ReceivePackCommand extends AbstractCommand implements PostReceiveHo
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private ReceivePack receivePack;
+
+	private BuildQueueService buildQueueService;
 	
-	public ReceivePackCommand(Context ctx, String command) throws IOException {
+	public ReceivePackCommand(Context ctx, String command, BuildQueueService buildQueueService) throws IOException {
 		super(ctx);
 		this.receivePack = new ReceivePack(parse(command));
 		this.receivePack.setBiDirectionalPipe(true);
 		this.receivePack.setTimeout(5);
+		this.buildQueueService = buildQueueService;
 	}
 
 	Repository parse(String command) throws IOException {
@@ -82,9 +86,10 @@ public class ReceivePackCommand extends AbstractCommand implements PostReceiveHo
 	}
 	
 	private void sendBuild(ReceivePack rp, ObjectId newId) {
-		String msg = String.format("Triggering build for commit %s.", newId.getName());
+		String msg = String.format("Triggering build for commit %s on repository %s.", newId.getName(), rp.getRepository().getDirectory());
 		rp.sendMessage(msg);
 		log.info(msg);
+		buildQueueService.enqueueBuild(rp.getRepository(), newId.getName());
 	}
 
 }
