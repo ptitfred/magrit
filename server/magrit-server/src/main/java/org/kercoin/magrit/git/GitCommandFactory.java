@@ -5,6 +5,10 @@ import java.io.IOException;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.command.UnknownCommand;
+import org.kercoin.magrit.services.BuildStatusesService;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * <p>
@@ -15,13 +19,17 @@ import org.apache.sshd.server.command.UnknownCommand;
  * @author ptitfred
  * @see ReceivePackCommand
  */
+@Singleton
 public class GitCommandFactory implements CommandFactory {
 
 	private Context ctx;
+	private BuildStatusesService buildStatusesService;
 	
-	public GitCommandFactory(Context ctx) {
+	@Inject
+	public GitCommandFactory(Context ctx, BuildStatusesService buildStatusesService) {
 		super();
 		this.ctx = ctx;
+		this.buildStatusesService = buildStatusesService;
 	}
 
 	@Override

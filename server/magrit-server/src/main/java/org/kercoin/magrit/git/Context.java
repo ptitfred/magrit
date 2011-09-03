@@ -2,6 +2,9 @@ package org.kercoin.magrit.git;
 
 import java.io.File;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class Context {
 	
 	private File repositoriesHomeDir;

@@ -12,11 +12,19 @@ import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
+import org.kercoin.magrit.MagritModule;
 import org.kercoin.magrit.git.Context;
 import org.kercoin.magrit.git.GitCommandFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class Server {
 	
+	protected final Logger log = LoggerFactory.getLogger(getClass());
+
 	private SshServer sshd;
 	private int port;
 
@@ -59,9 +67,9 @@ public class Server {
         });
         
 	}
-	
+
 	public void start() throws IOException {
-		System.out.println(String.format("Port used: %d", port));
+		log.info("Port used: {}", port);
 		sshd.start();
 	}
 
@@ -70,8 +78,10 @@ public class Server {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
+		Injector injector = Guice.createInjector(new MagritModule());
+		
 		int port = 2022;
-		Context ctx = new Context();
+		Context ctx = injector.getInstance(Context.class);
 		
 		if (args.length >= 1) {
 			port = Integer.parseInt(args[0]);
@@ -83,8 +93,8 @@ public class Server {
 			ctx.setRepositoriesHomeDir(new File("/tmp/magrit-tests"));
 		}
 		
-		Server server = new Server(port, new GitCommandFactory(ctx));
-		server.start();
-		
+	    GitCommandFactory factory = injector.getInstance(GitCommandFactory.class);
+	    new Server(port, factory).start();
 	}
+	
 }
