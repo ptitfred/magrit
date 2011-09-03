@@ -5,8 +5,8 @@ import java.io.IOException;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.command.UnknownCommand;
-import org.kercoin.magrit.services.BuildQueueService;
-import org.kercoin.magrit.services.BuildStatusesService;
+import org.kercoin.magrit.git.GetStatusCommand.GetStatusCommandProvider;
+import org.kercoin.magrit.git.ReceivePackCommand.ReceivePackCommandProvider;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -23,17 +23,15 @@ import com.google.inject.Singleton;
 @Singleton
 public class GitCommandFactory implements CommandFactory {
 
-	private Context ctx;
-	private BuildStatusesService buildStatusesService;
-	private BuildQueueService buildQueueService;
+	private ReceivePackCommandProvider receivePackCommandProvider;
+	private GetStatusCommandProvider getStatusCommandProvider;
 	
 	@Inject
-	public GitCommandFactory(Context ctx, BuildStatusesService buildStatusesService,
-			BuildQueueService buildQueueService) {
+	public GitCommandFactory(ReceivePackCommandProvider receivePackCommandProvider,
+			GetStatusCommandProvider getStatusCommandProvider) {
 		super();
-		this.ctx = ctx;
-		this.buildStatusesService = buildStatusesService;
-		this.buildQueueService = buildQueueService;
+		this.receivePackCommandProvider = receivePackCommandProvider;
+		this.getStatusCommandProvider = getStatusCommandProvider;
 	}
 
 	@Override
@@ -42,12 +40,12 @@ public class GitCommandFactory implements CommandFactory {
 			throw new IllegalArgumentException();
 		}
 		try {
-			if (	command.startsWith("git-receive-pack ") ||
-					command.startsWith("git receive-pack ")) {
-				return new ReceivePackCommand(ctx, command, buildQueueService);
+			if (command.startsWith("git-receive-pack ") ||
+				command.startsWith("git receive-pack ")) {
+				return receivePackCommandProvider.get().command(command);
 			}
-			if (	command.startsWith("magrit status ")) {
-				return new GetStatusCommand(ctx, command, buildStatusesService);
+			if (command.startsWith("magrit status ")) {
+				return getStatusCommandProvider.get().command(command);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

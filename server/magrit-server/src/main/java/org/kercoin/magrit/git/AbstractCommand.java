@@ -18,7 +18,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.kercoin.magrit.utils.LoggerInputStream;
 import org.kercoin.magrit.utils.LoggerOutputStream;
 
-public abstract class AbstractCommand implements Command, Runnable {
+public abstract class AbstractCommand<C extends AbstractCommand<C>> implements Command, Runnable {
 
 	protected InputStream in;
 	protected OutputStream out;
@@ -29,6 +29,8 @@ public abstract class AbstractCommand implements Command, Runnable {
 	public AbstractCommand(Context ctx) {
 		this.ctx = ctx;
 	}
+	
+	public abstract C command(String command) throws IOException;
 	
 	protected Repository createRepository(String repoPath) throws IOException {
 		if (repoPath.charAt(0) == '/') {

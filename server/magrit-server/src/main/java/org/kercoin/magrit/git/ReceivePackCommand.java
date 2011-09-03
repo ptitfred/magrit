@@ -13,25 +13,52 @@ import org.kercoin.magrit.services.BuildQueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+
 /**
  * <p>Wraps a JGit {@link ReceivePack} as a Mina SSHD {@link Command}.</p>
  * @author ptitfred
  * @see ReceivePack
  */
-public class ReceivePackCommand extends AbstractCommand implements PostReceiveHook {
+public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> implements PostReceiveHook {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
+	
+	@Singleton
+	public static class ReceivePackCommandProvider implements Provider<ReceivePackCommand> {
+
+		private final Context ctx;
+		private final BuildQueueService buildQueueService;
+		
+		@Inject
+		public ReceivePackCommandProvider(Context ctx, BuildQueueService buildQueueService) {
+			this.ctx = ctx;
+			this.buildQueueService = buildQueueService;
+		}
+		
+		@Override
+		public ReceivePackCommand get() {
+			return new ReceivePackCommand(ctx, buildQueueService);
+		}
+		
+	}
 
 	private ReceivePack receivePack;
 
 	private BuildQueueService buildQueueService;
 	
-	public ReceivePackCommand(Context ctx, String command, BuildQueueService buildQueueService) throws IOException {
+	public ReceivePackCommand(Context ctx, BuildQueueService buildQueueService) {
 		super(ctx);
+		this.buildQueueService = buildQueueService;
+	}
+	
+	public ReceivePackCommand command(String command) throws IOException {
 		this.receivePack = new ReceivePack(parse(command));
 		this.receivePack.setBiDirectionalPipe(true);
 		this.receivePack.setTimeout(5);
-		this.buildQueueService = buildQueueService;
+		return this;
 	}
 
 	Repository parse(String command) throws IOException {
