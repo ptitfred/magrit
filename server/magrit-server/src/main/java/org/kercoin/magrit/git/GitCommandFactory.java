@@ -34,13 +34,19 @@ public class GitCommandFactory implements CommandFactory {
 
 	@Override
 	public Command createCommand(String command) {
-		if (command != null && (command.startsWith("git-receive-pack ")||
-								 command.startsWith("git receive-pack "))) {
-			try {
+		if (command == null || command.length() == 0) {
+			throw new IllegalArgumentException();
+		}
+		try {
+			if (	command.startsWith("git-receive-pack ") ||
+					command.startsWith("git receive-pack ")) {
 				return new ReceivePackCommand(ctx, command);
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
+			if (	command.startsWith("magrit status ")) {
+				return new GetStatusCommand(ctx, command, buildStatusesService);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return new UnknownCommand(command);
 	}
