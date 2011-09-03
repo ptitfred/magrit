@@ -77,7 +77,7 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	public void run() {
 		BuildStatus status = buildStatusesService.getStatus(repo, sha1);
 		try {
-			out.write(status.toString().getBytes());
+			out.write(status.getCode());
 			out.write('\n');
 			out.flush();
 			callback.onExit(0);

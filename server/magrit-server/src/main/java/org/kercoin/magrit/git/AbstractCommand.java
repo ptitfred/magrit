@@ -8,13 +8,8 @@ import java.io.OutputStream;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.kercoin.magrit.utils.LoggerInputStream;
 import org.kercoin.magrit.utils.LoggerOutputStream;
 
@@ -42,13 +37,6 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 		return builder.build();
 	}
 	
-	protected RevCommit getCommit(Repository repo, String sha1)
-			throws MissingObjectException, IncorrectObjectTypeException,
-			AmbiguousObjectException, IOException {
-		RevWalk walk = new RevWalk(repo);
-		return walk.parseCommit(repo.resolve(sha1));
-	}
-
 	@Override
 	public void setInputStream(InputStream in) {
 		if (!(in instanceof LoggerInputStream)) {
