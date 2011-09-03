@@ -3,12 +3,16 @@ package org.kercoin.magrit.sshd;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.sshd.SshServer;
+import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.util.SecurityUtils;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.ForwardingFilter;
-import org.apache.sshd.server.PasswordAuthenticator;
+import org.apache.sshd.server.UserAuth;
+import org.apache.sshd.server.auth.UserAuthNone;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
@@ -33,20 +37,13 @@ public class Server {
 		sshd = SshServer.setUpDefaultServer();
 		
 		sshd.setPort(port);
+		sshd.setUserAuthFactories(createUserAuth());
         if (SecurityUtils.isBouncyCastleRegistered()) {
             sshd.setKeyPairProvider(new PEMGeneratorHostKeyProvider("key.pem"));
         } else {
             sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("key.ser"));
         }
 		sshd.setCommandFactory(factory);
-        sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
-            public boolean authenticate(String username, String password, ServerSession session) {
-            	// TODO implement true authentication
-                return username != null
-//                	&& username.equals(password)
-                	;
-            }
-        });
         
         sshd.setForwardingFilter(new ForwardingFilter() {
             public boolean canForwardAgent(ServerSession session) {
@@ -66,6 +63,12 @@ public class Server {
             }
         });
         
+	}
+
+	private List<NamedFactory<UserAuth>> createUserAuth() {
+		List<NamedFactory<UserAuth>> list = new ArrayList<NamedFactory<UserAuth>>();
+		list.add(new UserAuthNone.Factory());
+		return list;
 	}
 
 	public void start() throws IOException {
