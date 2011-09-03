@@ -75,17 +75,15 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	
 	@Override
 	public void run() {
-		// TODO read status in the follow-up database
+		BuildStatus status = buildStatusesService.getStatus(repo, sha1);
 		try {
-			RevCommit commit = getCommit(repo, sha1);
-		} catch (MissingObjectException e) {
-			e.printStackTrace();
-		} catch (IncorrectObjectTypeException e) {
-			e.printStackTrace();
-		} catch (AmbiguousObjectException e) {
-			e.printStackTrace();
+			out.write(status.toString().getBytes());
+			out.write('\n');
+			out.flush();
+			callback.onExit(0);
 		} catch (IOException e) {
 			e.printStackTrace();
+			callback.onExit(1);
 		}
 	}
 
