@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -99,6 +100,7 @@ public class BuildTask implements Callable<BuildResult> {
 			CommandLine cmdLine = CommandLine.parse(command);
 			DefaultExecutor executable = new DefaultExecutor();
 			executable.setWorkingDirectory(repository.getDirectory().getParentFile());
+			executable.setStreamHandler(new PumpStreamHandler(stdout));
 			
 			int exitCode = executable.execute(cmdLine);
 			
@@ -153,7 +155,7 @@ public class BuildTask implements Callable<BuildResult> {
 	
 	String findCommand() {
 		// TODO find the build command in the repository;
-		return "mvn -f server/magrit-server/pom.xml install";
+		return "mvn -f server/magrit-server/pom.xml clean install";
 	}
 	
 }
