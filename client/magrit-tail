@@ -1,0 +1,19 @@
+#!/bin/bash
+
+remote=$(git config --get magrit.remote)
+if [[ "$remote" == "" ]]; then
+	remote='magrit'
+fi
+
+ssh_url=$(git config --local remote.${remote}.url)
+
+ssh_url=${ssh_url:6}
+user=${ssh_url%@*}
+ssh_url=${ssh_url#*@}
+host=${ssh_url%:*}
+ssh_url=${ssh_url#*:}
+port=${ssh_url%/*}
+repo="/${ssh_url#*/}/"
+
+ssh -x -p $port $user@$host "magrit tail"
+
