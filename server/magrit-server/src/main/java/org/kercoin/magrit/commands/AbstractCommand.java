@@ -42,7 +42,7 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 		}
 		
 		RepositoryBuilder builder = new RepositoryBuilder();
-		builder.setGitDir(new File(ctx.getRepositoriesHomeDir(), repoPath));
+		builder.setGitDir(new File(ctx.configuration().getRepositoriesHomeDir(), repoPath));
 		return builder.build();
 	}
 	

@@ -1,26 +1,20 @@
 package org.kercoin.magrit;
 
-import java.io.File;
-
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 @Singleton
 public class Context {
 	
-	private File repositoriesHomeDir;
+	private final Configuration configuration = new Configuration();
 	
 	private Injector injector;
 
 	public Context() {
 	}
 
-	public File getRepositoriesHomeDir() {
-		return repositoriesHomeDir;
-	}
-
-	public void setRepositoriesHomeDir(File repositoriesHomeDir) {
-		this.repositoriesHomeDir = repositoriesHomeDir;
+	public Configuration configuration() {
+		return configuration;
 	}
 	
 	public Injector getInjector() {

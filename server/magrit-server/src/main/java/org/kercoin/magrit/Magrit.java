@@ -27,9 +27,9 @@ public final class Magrit {
 		}
 		
 		if (args.length >=2) {
-			ctx.setRepositoriesHomeDir(new File(args[1]));
+			ctx.configuration().setRepositoriesHomeDir(new File(args[1]));
 		} else {
-			ctx.setRepositoriesHomeDir(new File("/tmp/magrit-tests"));
+			ctx.configuration().setRepositoriesHomeDir(new File("/tmp/magrit-tests"));
 		}
 		
 	    MagritCommandFactory factory = injector.getInstance(MagritCommandFactory.class);
