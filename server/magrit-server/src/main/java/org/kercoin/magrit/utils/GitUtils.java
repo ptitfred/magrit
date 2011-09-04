@@ -1,4 +1,4 @@
-package org.kercoin.magrit.git;
+package org.kercoin.magrit.utils;
 
 import java.io.IOException;
 

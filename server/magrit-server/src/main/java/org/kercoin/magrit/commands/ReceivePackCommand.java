@@ -1,4 +1,4 @@
-package org.kercoin.magrit.git;
+package org.kercoin.magrit.commands;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -9,12 +9,12 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
+import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.BuildQueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -27,7 +27,7 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Singleton
-	public static class ReceivePackCommandProvider implements Provider<ReceivePackCommand> {
+	public static class ReceivePackCommandProvider implements CommandProvider<ReceivePackCommand> {
 
 		private final Context ctx;
 		private final BuildQueueService buildQueueService;
@@ -41,6 +41,13 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 		@Override
 		public ReceivePackCommand get() {
 			return new ReceivePackCommand(ctx, buildQueueService);
+		}
+
+		@Override
+		public boolean accept(String command) {
+			return
+				command.startsWith("git-receive-pack ") ||
+				command.startsWith("git receive-pack ");
 		}
 		
 	}
@@ -80,6 +87,11 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 	@Override
 	protected String getName() {
 		return "ReceivePackCommand";
+	}
+	
+	@Override
+	protected Class<ReceivePackCommand> getType() {
+		return ReceivePackCommand.class;
 	}
 	
 	@Override

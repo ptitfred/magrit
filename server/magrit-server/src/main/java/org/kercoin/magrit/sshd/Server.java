@@ -16,9 +16,9 @@ import org.apache.sshd.server.auth.UserAuthNone;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
+import org.kercoin.magrit.Context;
+import org.kercoin.magrit.MagritCommandFactory;
 import org.kercoin.magrit.MagritModule;
-import org.kercoin.magrit.git.Context;
-import org.kercoin.magrit.git.GitCommandFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,28 +76,4 @@ public class Server {
 		sshd.start();
 	}
 
-	/**
-	 * @param args
-	 * @throws IOException 
-	 */
-	public static void main(String[] args) throws IOException {
-		Injector injector = Guice.createInjector(new MagritModule());
-		
-		int port = 2022;
-		Context ctx = injector.getInstance(Context.class);
-		
-		if (args.length >= 1) {
-			port = Integer.parseInt(args[0]);
-		}
-		
-		if (args.length >=2) {
-			ctx.setRepositoriesHomeDir(new File(args[1]));
-		} else {
-			ctx.setRepositoriesHomeDir(new File("/tmp/magrit-tests"));
-		}
-		
-	    GitCommandFactory factory = injector.getInstance(GitCommandFactory.class);
-	    new Server(port, factory).start();
-	}
-	
 }

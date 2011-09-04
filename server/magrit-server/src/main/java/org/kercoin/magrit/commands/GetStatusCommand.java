@@ -1,15 +1,15 @@
-package org.kercoin.magrit.git;
+package org.kercoin.magrit.commands;
 
 import java.io.IOException;
 
 import org.eclipse.jgit.lib.Repository;
+import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.BuildStatus;
 import org.kercoin.magrit.services.BuildStatusesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 
@@ -18,7 +18,7 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Singleton
-	public static class GetStatusCommandProvider implements Provider<GetStatusCommand> {
+	public static class GetStatusCommandProvider implements CommandProvider<GetStatusCommand> {
 
 		private Context ctx;
 		private BuildStatusesService buildStatusesService;
@@ -34,6 +34,11 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 		@Override
 		public GetStatusCommand get() {
 			return new GetStatusCommand(this.ctx, this.buildStatusesService);
+		}
+
+		@Override
+		public boolean accept(String command) {
+			return command.startsWith("magrit status ");
 		}
 		
 	}
@@ -71,6 +76,11 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	@Override
 	protected String getName() {
 		return "GetStatus";
+	}
+	
+	@Override
+	protected Class<GetStatusCommand> getType() {
+		return GetStatusCommand.class;
 	}
 	
 	@Override

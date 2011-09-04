@@ -13,4 +13,14 @@ public class DummyBuildQueueService implements BuildQueueService {
 		log.info("New build on {} @ {}", repository.getDirectory(), sha1);
 	}
 
+	@Override
+	public void addCallback(BuildCallback callback) {
+		log.info("New callback registered");
+	}
+
+	@Override
+	public void removeCallback(BuildCallback callback) {
+		log.info("Callback removed");
+	}
+
 }
