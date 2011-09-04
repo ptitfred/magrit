@@ -69,11 +69,6 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 	}
 
 	Repository parse(String command) throws IOException {
-		if (!command.startsWith("git-receive-pack") &&
-			!command.startsWith("git receive-pack")) {
-			throw new IllegalArgumentException("Must be a git-receive-pack command.");
-		}
-		
 		String parts[] = command.substring(17).split(" ");
 		if (parts.length != 1) {
 			throw new IllegalArgumentException("Illegal git-receive-pack invokation ; the repository must be supplied");
