@@ -1,6 +1,11 @@
 #!/bin/bash
 
-ssh_url=$(git remote -v | grep magrit | grep push | cut -f2 | cut -d" " -f1)
+remote=$(git config --get magrit.remote)
+if [[ "$remote" == "" ]]; then
+	remote='magrit'
+fi
+
+ssh_url=$(git config --local remote.${remote}.url)
 
 ssh_url=${ssh_url:6}
 user=${ssh_url%@*}
