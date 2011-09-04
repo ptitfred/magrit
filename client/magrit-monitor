@@ -15,5 +15,5 @@ ssh_url=${ssh_url#*:}
 port=${ssh_url%/*}
 repo="/${ssh_url#*/}/"
 
-ssh -x -p $port $user@$host "magrit tail"
+ssh -x -p $port $user@$host "magrit monitor"
 
