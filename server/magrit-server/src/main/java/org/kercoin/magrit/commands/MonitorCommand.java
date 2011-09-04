@@ -14,64 +14,67 @@ import org.kercoin.magrit.services.BuildStatus;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-public class TailCommand extends AbstractCommand<TailCommand> implements BuildCallback {
+public class MonitorCommand extends AbstractCommand<MonitorCommand> implements BuildCallback {
 
 	@Singleton
-	public static class TailCommandProvider implements CommandProvider<TailCommand>, org.kercoin.magrit.commands.AbstractCommand.EndCallback<TailCommand> {
+	public static class MonitorCommandProvider implements CommandProvider<MonitorCommand>, org.kercoin.magrit.commands.AbstractCommand.EndCallback<MonitorCommand> {
 
 		private Context ctx;
 		
 		private BuildQueueService buildQueueService;
 		
 		@Inject
-		public TailCommandProvider(Context ctx, BuildQueueService buildQueueService) {
+		public MonitorCommandProvider(Context ctx, BuildQueueService buildQueueService) {
 			super();
 			this.ctx = ctx;
 			this.buildQueueService = buildQueueService;
 		}
 
 		@Override
-		public TailCommand get() {
-			TailCommand tailCommand = new TailCommand(this.ctx);
-			buildQueueService.addCallback(tailCommand);
-			tailCommand.addEndCallback(this);
-			return tailCommand;
+		public MonitorCommand get() {
+			MonitorCommand command = new MonitorCommand(this.ctx);
+			buildQueueService.addCallback(command);
+			command.addEndCallback(this);
+			return command;
 		}
 
 		@Override
-		public void onEnd(TailCommand command) {
+		public void onEnd(MonitorCommand command) {
 			buildQueueService.removeCallback(command);
 		}
 
 		@Override
 		public boolean accept(String command) {
-			return "magrit tail".equals(command) ||
-				command.startsWith("magrit tail ");
+			return "magrit monitor".equals(command);
 		}
 		
 	}
 	
 	@Override
 	protected String getName() {
-		return "TailCommand";
+		return "MonitorCommand";
 	}
 
 	@Override
-	protected Class<TailCommand> getType() {
-		return TailCommand.class;
+	protected Class<MonitorCommand> getType() {
+		return MonitorCommand.class;
 	}
 	
-	public TailCommand(Context ctx) {
+	public MonitorCommand(Context ctx) {
 		super(ctx);
 	}
 
 	@Override
 	public void run() {
-		
+		printOut.println("-- In Progress builds --");
+		// TODO read previous statuses and log them
+		printOut.println("  none");
+		printOut.println("-- Live updates :");
+		printOut.flush();
 	}
 	
 	@Override
-	public TailCommand command(String command) throws IOException {
+	public MonitorCommand command(String command) throws IOException {
 		return this;
 	}
 

@@ -7,7 +7,7 @@ import org.kercoin.magrit.Context;
 import org.kercoin.magrit.commands.AbstractCommand.CommandProvider;
 import org.kercoin.magrit.commands.GetStatusCommand.GetStatusCommandProvider;
 import org.kercoin.magrit.commands.ReceivePackCommand.ReceivePackCommandProvider;
-import org.kercoin.magrit.commands.TailCommand.TailCommandProvider;
+import org.kercoin.magrit.commands.MonitorCommand.MonitorCommandProvider;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -28,7 +28,7 @@ public class CommandsProvider implements Provider<Collection<CommandProvider<?>>
 		Collection<CommandProvider<?>> commands = new ArrayList<CommandProvider<?>>();
 		bind(commands, ReceivePackCommandProvider.class);
 		bind(commands, GetStatusCommandProvider.class);
-		bind(commands, TailCommandProvider.class);
+		bind(commands, MonitorCommandProvider.class);
 		return commands;
 	}
 

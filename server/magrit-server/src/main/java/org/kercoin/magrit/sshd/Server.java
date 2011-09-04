@@ -1,6 +1,5 @@
 package org.kercoin.magrit.sshd;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -16,14 +15,8 @@ import org.apache.sshd.server.auth.UserAuthNone;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.MagritCommandFactory;
-import org.kercoin.magrit.MagritModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 public class Server {
 	
