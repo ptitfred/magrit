@@ -1,3 +1,9 @@
 #!/bin/bash
 
+remote=$(git config --get magrit.remote)
+if [[ "$remote" == "" ]]; then
+	remote="magrit"
+fi
+
+git push $remote HEAD
 
