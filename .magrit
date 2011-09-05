@@ -1,0 +1,1 @@
+mvn -f server/magrit-server/pom.xml clean install
