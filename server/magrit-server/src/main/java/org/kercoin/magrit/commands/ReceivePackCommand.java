@@ -123,7 +123,12 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 		String msg = String.format("Triggering build for commit %s on repository %s.", newId.getName(), rp.getRepository().getDirectory());
 		rp.sendMessage(msg);
 		log.info(msg);
-		buildQueueService.enqueueBuild(rp.getRepository(), newId.getName());
+		try {
+			buildQueueService.enqueueBuild(rp.getRepository(), newId.getName());
+		} catch (Exception e) {
+			log.error("Unable to send build", e);
+			e.printStackTrace();
+		}
 	}
 
 }

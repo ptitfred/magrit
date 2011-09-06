@@ -10,6 +10,7 @@ import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.BuildCallback;
 import org.kercoin.magrit.services.BuildQueueService;
 import org.kercoin.magrit.services.BuildStatus;
+import org.kercoin.magrit.utils.Pair;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -32,7 +33,7 @@ public class MonitorCommand extends AbstractCommand<MonitorCommand> implements B
 
 		@Override
 		public MonitorCommand get() {
-			MonitorCommand command = new MonitorCommand(this.ctx);
+			MonitorCommand command = new MonitorCommand(this.ctx, buildQueueService);
 			buildQueueService.addCallback(command);
 			command.addEndCallback(this);
 			return command;
@@ -60,15 +61,24 @@ public class MonitorCommand extends AbstractCommand<MonitorCommand> implements B
 		return MonitorCommand.class;
 	}
 	
-	public MonitorCommand(Context ctx) {
+	private final BuildQueueService buildQueueService;
+	
+	public MonitorCommand(Context ctx, BuildQueueService buildQueueService) {
 		super(ctx);
+		this.buildQueueService = buildQueueService;
 	}
 
 	@Override
 	public void run() {
 		printOut.println("-- In Progress builds --");
 		// TODO read previous statuses and log them
-		printOut.println("  none");
+		if (buildQueueService.getCurrentTasks().size() > 0) {
+			for (Pair<Repository, String> build : buildQueueService.getCurrentTasks()) {
+				printOut.println(String.format("  %s %s", build.getT().getDirectory(), build.getU()));
+			}
+		} else {
+			printOut.println("  none");
+		}
 		printOut.println("-- Live updates :");
 		printOut.flush();
 	}
@@ -86,16 +96,24 @@ public class MonitorCommand extends AbstractCommand<MonitorCommand> implements B
 		printOut = new PrintStream(out);
 	}
 	
+	private String now() {
+		return new Date().toString();
+	}
+	
+	@Override
+	public void buildScheduled(Repository repo, String sha1) {
+		synchronized(out) {
+			printOut.println(String.format("%s - Build scheduled on %s @ %s", now(), repo, sha1));
+			printOut.flush();
+		}
+	}
+	
 	@Override
 	public void buildStarted(Repository repo, String sha1) {
 		synchronized(out) {
 			printOut.println(String.format("%s - Build started on %s @ %s", now(), repo, sha1));
 			printOut.flush();
 		}
-	}
-
-	private String now() {
-		return new Date().toString();
 	}
 
 	@Override
