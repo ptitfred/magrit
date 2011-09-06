@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 
 import com.google.inject.Inject;
@@ -24,13 +25,14 @@ import com.google.inject.Singleton;
 @Singleton
 public class BuildQueueServiceImpl implements BuildQueueService {
 
+	private final Context context;
+	private final GitUtils gitUtils;
+	
 	private final ExecutorService executorService;
 
-	private Map<Pair<Repository, String>, BuildTask> pendings;
-	private Map<Pair<Repository, String>, BuildTask> workplace;
+	private final Map<Pair<Repository, String>, BuildTask> pendings;
+	private final Map<Pair<Repository, String>, BuildTask> workplace;
 
-	private Context context;
-	
 	class PingBackExecutorService extends ThreadPoolExecutor {
 		public PingBackExecutorService() {
 			super(1, 1, 0L, TimeUnit.MILLISECONDS,
@@ -55,8 +57,9 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 	}
 
 	@Inject
-	public BuildQueueServiceImpl(Context context) {
+	public BuildQueueServiceImpl(Context context, GitUtils gitUtils) {
 		this.context = context;
+		this.gitUtils = gitUtils;
 		this.workplace = new ConcurrentHashMap<Pair<Repository,String>, BuildTask>();
 		this.pendings = new ConcurrentHashMap<Pair<Repository, String>, BuildTask>();
 		this.executorService = new PingBackExecutorService();
@@ -65,7 +68,7 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 	@Override
 	public Future<BuildResult> enqueueBuild(Repository repository, String sha1) throws Exception {
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		BuildTask task = new BuildTask(repository, target);
+		BuildTask task = new BuildTask(this.gitUtils, repository, target);
 		pendings.put(target, task);
 		fireScheduled(target);
 		return executorService.submit(task);

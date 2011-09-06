@@ -1,5 +1,6 @@
 package org.kercoin.magrit.utils;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jgit.errors.AmbiguousObjectException;
@@ -14,10 +15,24 @@ import com.google.inject.Singleton;
 @Singleton
 public class GitUtils {
 
-	public RevCommit getCommit(Repository repo, String sha1)
+	private static final String REF_SPEC_PATTERN = "+refs/heads/*:refs/remotes/%s/*";
+
+	public void addRemote(Repository toConfigure, String name, Repository remoteRepo) throws IOException {
+		final String refSpec = String.format(REF_SPEC_PATTERN, name);
+		File dest = remoteRepo.getDirectory();
+		if (!remoteRepo.isBare()) {
+			dest = dest.getParentFile();
+		}
+		toConfigure.getConfig().setString("remote", name, "fetch", refSpec );
+		toConfigure.getConfig().setString("remote", name, "url", dest.getAbsolutePath());
+		// write down configuration in .git/config
+		toConfigure.getConfig().save();
+	}
+
+	public RevCommit getCommit(Repository repo, String revstr)
 			throws MissingObjectException, IncorrectObjectTypeException,
 			AmbiguousObjectException, IOException {
 		RevWalk walk = new RevWalk(repo);
-		return walk.parseCommit(repo.resolve(sha1));
+		return walk.parseCommit(repo.resolve(revstr));
 	}
 }

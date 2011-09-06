@@ -19,6 +19,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,12 +28,15 @@ public class BuildTask implements Callable<BuildResult> {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
+	private final GitUtils gitUtils;
+	
 	private Repository remote;
 	private Pair<Repository,String> target;
 	private Repository repository;
 	private RevCommit commit;
 
-	public BuildTask(Repository remote, Pair<Repository,String> target) {
+	public BuildTask(GitUtils gitUtils, Repository remote, Pair<Repository,String> target) {
+		this.gitUtils = gitUtils;
 		this.remote = remote;
 		this.target = target;
 		this.repository = target.getT();
@@ -71,7 +75,7 @@ public class BuildTask implements Callable<BuildResult> {
 		try {
 			commit = walk.parseCommit(commitId);
 		} catch (MissingObjectException e) {
-			addRemote("magrit", this.remote);
+			gitUtils.addRemote(this.repository, "magrit", this.remote);
 			Git.wrap(this.repository).fetch().setRemote("magrit").call();
 			commit = walk.parseCommit(commitId);
 		}
@@ -117,12 +121,6 @@ public class BuildTask implements Callable<BuildResult> {
 		buildResult.setLog(stdout.toByteArray());
 
 		return buildResult;
-	}
-
-	private void addRemote(String name, Repository remoteRepo) throws IOException {
-		this.repository.getConfig().setString("remote", name, "fetch", "+refs/heads/*:refs/remotes/magrit/*");
-		this.repository.getConfig().setString("remote", name, "url", remoteRepo.getDirectory().getAbsolutePath());
-		this.repository.getConfig().save();
 	}
 
 	private void lock() throws IOException {
