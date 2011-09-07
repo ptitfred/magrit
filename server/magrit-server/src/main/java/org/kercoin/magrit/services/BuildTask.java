@@ -15,10 +15,13 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectInserter;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.kercoin.magrit.utils.CommitterIdentity;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.slf4j.Logger;
@@ -26,17 +29,24 @@ import org.slf4j.LoggerFactory;
 
 public class BuildTask implements Callable<BuildResult> {
 
+	private static final char NL = '\n';
+
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final GitUtils gitUtils;
+	private final CommitterIdentity authorIdentity;
+	private final TimeService timeService;
 	
 	private Repository remote;
 	private Pair<Repository,String> target;
 	private Repository repository;
 	private RevCommit commit;
 
-	public BuildTask(GitUtils gitUtils, Repository remote, Pair<Repository,String> target) {
+	public BuildTask(GitUtils gitUtils, CommitterIdentity authorIdentity,
+			TimeService timeService, Repository remote, Pair<Repository,String> target) {
 		this.gitUtils = gitUtils;
+		this.authorIdentity = authorIdentity;
+		this.timeService = timeService;
 		this.remote = remote;
 		this.target = target;
 		this.repository = target.getT();
@@ -88,39 +98,81 @@ public class BuildTask implements Callable<BuildResult> {
 
 		String sha1 = commit.getName();
 
-		BuildResult buildResult = new BuildResult();
-		buildResult.setStartDate(new Date());
-
-		PrintStream printOut = new PrintStream(stdout);
-		String branchName = "magrit/build/" + sha1;
-		printOut.println(String.format("Checking out sha1 %s as %s", sha1, branchName));
+		BuildResult buildResult = new BuildResult(this.target.getU());
 		try {
-			Git.wrap(repository).checkout()
-			.setCreateBranch(true)
-			.setName(branchName)
-			.setStartPoint(commit).call();
-		} catch (RefAlreadyExistsException e) {
-			// It's ok!
+			buildResult.setStartDate(new Date());
+
+			PrintStream printOut = new PrintStream(stdout);
+			String branchName = "magrit/build/" + sha1;
+			printOut.println(String.format("Checking out sha1 %s as %s", sha1, branchName));
+			try {
+				Git.wrap(repository).checkout()
+				.setCreateBranch(true)
+				.setName(branchName)
+				.setStartPoint(commit).call();
+			} catch (RefAlreadyExistsException e) {
+				// It's ok!
+			}
+
+			String command = findCommand();
+			printOut.println(String.format("Starting build with command '%s'", command));
+
+			CommandLine cmdLine = CommandLine.parse(command);
+			DefaultExecutor executable = new DefaultExecutor();
+			executable.setWorkingDirectory(repository.getDirectory().getParentFile());
+			executable.setStreamHandler(new PumpStreamHandler(stdout));
+
+			int exitCode = executable.execute(cmdLine);
+
+			new DefaultExecutor().execute(CommandLine.parse("notify-send 'Magrit' 'Build ended'"));
+
+			buildResult.setEndDate(new Date());
+			buildResult.setSuccess(exitCode == 0);
+			buildResult.setExitCode(exitCode);
+			buildResult.setLog(stdout.toByteArray());
+
+			return buildResult;
+		} finally {
+			writeToRepository(buildResult);
 		}
+	}
 
-		String command = findCommand();
-		printOut.println(String.format("Starting build with command '%s'", command));
-
-		CommandLine cmdLine = CommandLine.parse(command);
-		DefaultExecutor executable = new DefaultExecutor();
-		executable.setWorkingDirectory(repository.getDirectory().getParentFile());
-		executable.setStreamHandler(new PumpStreamHandler(stdout));
-
-		int exitCode = executable.execute(cmdLine);
-
-		new DefaultExecutor().execute(CommandLine.parse("notify-send 'Magrit' 'Build ended'"));
-
-		buildResult.setEndDate(new Date());
-		buildResult.setSuccess(exitCode == 0);
-		buildResult.setExitCode(exitCode);
-		buildResult.setLog(stdout.toByteArray());
-
-		return buildResult;
+	void writeToRepository(BuildResult buildResult) {
+		ObjectInserter db = null;
+		try {
+			db = remote.getObjectDatabase().newInserter();
+			ObjectId logSha1 = db.insert(Constants.OBJ_BLOB, buildResult.getLog());
+			StringBuilder content = new StringBuilder();
+			content.append("build ").append(buildResult.getCommitSha1()).append(NL);
+			content.append("log ").append(logSha1.name()).append(NL);
+			content.append("return-code ").append(buildResult.getExitCode()).append(NL);
+			content.append("author ").append(this.authorIdentity.toString()).append(NL);
+			Pair<Long,Integer> time = timeService.now();
+			content.append("when ").append(time.getT()).append(" ").append(timeService.offsetToString(time.getU())).append(NL);
+			ObjectId resultBlobId = db.insert(Constants.OBJ_BLOB, content.toString().getBytes("UTF-8"));
+			
+			StringBuilder note = new StringBuilder();
+			note.append("magrit:built-by ").append(resultBlobId.name());
+			wrap(remote)
+					.notesAdd()
+					.setMessage(note.toString())
+					.setObjectId(
+							gitUtils.getCommit(remote,
+									buildResult.getCommitSha1()))
+					.call();
+			
+			db.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (db != null) {
+				db.release();
+			}
+		}
+	}
+	
+	Git wrap(Repository repo) {
+		return Git.wrap(repo);
 	}
 
 	private void lock() throws IOException {
