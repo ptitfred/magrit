@@ -1,12 +1,10 @@
 package org.kercoin.magrit.utils;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.DSAPublicKeySpec;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.Scanner;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -69,13 +67,4 @@ public class AuthorizedKeysDecoder {
         return new BigInteger(bigIntBytes);
     }
 
-    public static void main(String[] args) throws Exception {
-        AuthorizedKeysDecoder decoder = new AuthorizedKeysDecoder();
-        File file = new File("authorized_keys");
-        Scanner scanner = new Scanner(file).useDelimiter("\n");
-        while (scanner.hasNext()) {
-            System.out.println(decoder.decodePublicKey(scanner.next()));
-        }
-        scanner.close();
-    }
 }

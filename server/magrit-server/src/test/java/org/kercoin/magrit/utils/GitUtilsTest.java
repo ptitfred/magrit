@@ -4,12 +4,10 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -20,6 +18,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import tests.FilesUtils;
 
 public class GitUtilsTest {
 
@@ -117,48 +117,18 @@ public class GitUtilsTest {
 	public void testShow() throws Exception {
 		assertThat(gitUtils.show(test, "HEAD:README")).isEqualTo("Readme\n");
 		assertThat(gitUtils.show(test, "HEAD^:README")).isEmpty();
+		assertThat(gitUtils.show(test, "HEAD:unknown")).isNull();
 	}
 	
 	@Test
 	public void testAddRemote() throws Exception {
 		gitUtils.addRemote(clone, "copy", test);
 		Git.wrap(clone).fetch().setRemote("copy").call();
-		assertThat(tail(new File(clone.getWorkTree(), ".git/config"), 3)).isEqualTo(
+		assertThat(FilesUtils.tail(new File(clone.getWorkTree(), ".git/config"), 3)).isEqualTo(
 				"[remote \"copy\"]\n" +
 			    "\tfetch = +refs/heads/*:refs/remotes/copy/*\n" +
 			    "\turl = /home/ptitfred/git/magrit/server/magrit-server/target/tmp/repos/test\n"
 			    );
 	}
 	
-	static String tail(File file, int lines) {
-		String[] linesBuffer = new String[lines];
-		int pos = 0;
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-			String buffer;
-			while ((buffer = br.readLine())!=null) {
-				linesBuffer[pos++] = buffer;
-				if (pos == lines) {
-					pos=0;
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br!=null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		StringBuffer accu = new StringBuffer();
-		for (int i=pos; i<pos+lines; i++) {
-			accu.append(linesBuffer[i%lines]).append('\n');
-		}
-		return accu.toString();
-	}
-
 }
