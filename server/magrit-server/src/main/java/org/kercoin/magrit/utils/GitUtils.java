@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -34,5 +35,21 @@ public class GitUtils {
 			AmbiguousObjectException, IOException {
 		RevWalk walk = new RevWalk(repo);
 		return walk.parseCommit(repo.resolve(revstr));
+	}
+
+	public byte[] showBytes(Repository repository, String revstr) throws AmbiguousObjectException, IOException {
+		ObjectId ref = repository.resolve(revstr);
+		if (ref == null) {
+			return null;
+		}
+		return repository.getObjectDatabase().newReader().open(ref).getBytes();
+	}
+	
+	public String show(Repository repository, String revstr) throws AmbiguousObjectException, IOException {
+		byte[] bytes = showBytes(repository, revstr);
+		if (bytes == null) {
+			return null;
+		}
+		return new String(bytes, "UTF-8");
 	}
 }

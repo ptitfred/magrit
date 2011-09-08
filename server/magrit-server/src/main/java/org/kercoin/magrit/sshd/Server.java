@@ -10,32 +10,36 @@ import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.util.SecurityUtils;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.ForwardingFilter;
+import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.UserAuth;
-import org.apache.sshd.server.auth.UserAuthNone;
+import org.apache.sshd.server.auth.UserAuthPublicKey;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class Server {
 	
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private SshServer sshd;
-	private int port;
 
-	public Server(int port, CommandFactory factory) {
-		this.port = port;
+	@Inject
+	public Server(CommandFactory factory, PublickeyAuthenticator auth) {
 		sshd = SshServer.setUpDefaultServer();
 		
-		sshd.setPort(port);
-		sshd.setUserAuthFactories(createUserAuth());
         if (SecurityUtils.isBouncyCastleRegistered()) {
             sshd.setKeyPairProvider(new PEMGeneratorHostKeyProvider("key.pem"));
         } else {
             sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("key.ser"));
         }
+        setupUserAuth(auth);
+        
 		sshd.setCommandFactory(factory);
         
         sshd.setForwardingFilter(new ForwardingFilter() {
@@ -58,14 +62,17 @@ public class Server {
         
 	}
 
-	private List<NamedFactory<UserAuth>> createUserAuth() {
+	private void setupUserAuth(PublickeyAuthenticator auth) {
 		List<NamedFactory<UserAuth>> list = new ArrayList<NamedFactory<UserAuth>>();
-		list.add(new UserAuthNone.Factory());
-		return list;
+//		list.add(new UserAuthNone.Factory());
+		list.add(new UserAuthPublicKey.Factory());
+		sshd.setUserAuthFactories(list);
+		sshd.setPublickeyAuthenticator(auth);
 	}
 
-	public void start() throws IOException {
+	public void start(int port) throws IOException {
 		log.info("Port used: {}", port);
+		sshd.setPort(port);
 		sshd.start();
 	}
 
