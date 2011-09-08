@@ -34,7 +34,9 @@ public class GitUtils {
 			throws MissingObjectException, IncorrectObjectTypeException,
 			AmbiguousObjectException, IOException {
 		RevWalk walk = new RevWalk(repo);
-		return walk.parseCommit(repo.resolve(revstr));
+		ObjectId ref = repo.resolve(revstr);
+		if (ref==null)throw new MissingObjectException(ref, revstr);
+		return walk.parseCommit(ref);
 	}
 
 	public byte[] showBytes(Repository repository, String revstr) throws AmbiguousObjectException, IOException {
