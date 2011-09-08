@@ -6,8 +6,8 @@ import java.util.Collection;
 import org.kercoin.magrit.Context;
 import org.kercoin.magrit.commands.AbstractCommand.CommandProvider;
 import org.kercoin.magrit.commands.GetStatusCommand.GetStatusCommandProvider;
-import org.kercoin.magrit.commands.ReceivePackCommand.ReceivePackCommandProvider;
 import org.kercoin.magrit.commands.MonitorCommand.MonitorCommandProvider;
+import org.kercoin.magrit.commands.ReceivePackCommand.ReceivePackCommandProvider;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

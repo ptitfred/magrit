@@ -155,11 +155,7 @@ public class BuildTask implements Callable<BuildResult> {
 	}
 	
 	String findCommand() throws AmbiguousObjectException, IOException {
-		ObjectId ref = repository.resolve(this.target.getU() + ":" + ".magrit");
-		if (ref != null) {
-			return new String(repository.getObjectDatabase().newReader().open(ref).getBytes(), "UTF-8");
-		}
-		return null;
+		return gitUtils.show(this.repository, this.target.getU() + ":" + ".magrit");
 	}
 	
 }
