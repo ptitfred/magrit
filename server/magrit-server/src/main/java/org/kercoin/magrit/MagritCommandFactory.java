@@ -1,7 +1,6 @@
 package org.kercoin.magrit;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -25,7 +24,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class MagritCommandFactory implements CommandFactory {
 
-	private Collection<AbstractCommand.CommandProvider<?>> commands;
+	private Iterable<AbstractCommand.CommandProvider<?>> commands;
 	
 	@Inject
 	public MagritCommandFactory(CommandsProvider commandsProvider) {
