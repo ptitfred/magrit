@@ -4,6 +4,8 @@ import java.util.Date;
 
 public class BuildResult {
 
+	private final String sha1;
+	
 	private boolean success;
 
 	private byte[] log;
@@ -12,6 +14,12 @@ public class BuildResult {
 	private Date endDate;
 
 	private int exitCode;
+	
+	public BuildResult(String sha1) {
+		this.sha1 = sha1;
+		success = false;
+		exitCode = -1;
+	}
 
 	public void setSuccess(boolean success) {
 		this.success = success;
@@ -58,6 +66,10 @@ public class BuildResult {
 	
 	public int getExitCode() {
 		return exitCode;
+	}
+
+	public String getCommitSha1() {
+		return sha1;
 	}
 
 }
