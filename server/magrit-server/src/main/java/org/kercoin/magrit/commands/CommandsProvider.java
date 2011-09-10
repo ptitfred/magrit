@@ -14,7 +14,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
-public class CommandsProvider implements Provider<Collection<CommandProvider<?>>>{
+public class CommandsProvider implements Provider<Iterable<CommandProvider<?>>>{
 
 	private Context ctx;
 	
@@ -24,7 +24,7 @@ public class CommandsProvider implements Provider<Collection<CommandProvider<?>>
 	}
 	
 	@Override
-	public Collection<CommandProvider<?>> get() {
+	public Iterable<CommandProvider<?>> get() {
 		Collection<CommandProvider<?>> commands = new ArrayList<CommandProvider<?>>();
 		bind(commands, ReceivePackCommandProvider.class);
 		bind(commands, GetStatusCommandProvider.class);
