@@ -51,8 +51,8 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 		
 		@Override
 		protected void afterExecute(Runnable r, Throwable t) {
-			if (r instanceof BuildTask) {
-				fireEnded(((BuildTask) r).getTarget());
+			if (r instanceof FutureTask<?>) {
+//				fireEnded(((BuildTask) r).getTarget());
 			}
 			super.afterExecute(r, t);
 		}
