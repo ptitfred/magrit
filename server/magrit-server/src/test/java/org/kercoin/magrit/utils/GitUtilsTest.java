@@ -32,7 +32,11 @@ public class GitUtilsTest {
 		assert where.exists();
 		assert where.isDirectory();
 		assert where.canWrite();
-		assert where.list().length == 0;
+		
+		if (where.list().length > 0) {
+			where.delete();
+			where.mkdir();
+		}
 		
 		final int BUFFER = 2048;
 		try {
@@ -127,7 +131,7 @@ public class GitUtilsTest {
 		assertThat(FilesUtils.tail(new File(clone.getWorkTree(), ".git/config"), 3)).isEqualTo(
 				"[remote \"copy\"]\n" +
 			    "\tfetch = +refs/heads/*:refs/remotes/copy/*\n" +
-			    "\turl = /home/ptitfred/git/magrit/server/magrit-server/target/tmp/repos/test\n"
+			    "\turl = "+test.getDirectory().getParentFile().getAbsolutePath()+"\n"
 			    );
 	}
 	
