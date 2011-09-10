@@ -6,6 +6,8 @@ import org.kercoin.magrit.services.BuildQueueService;
 import org.kercoin.magrit.services.BuildQueueServiceImpl;
 import org.kercoin.magrit.services.BuildStatusesService;
 import org.kercoin.magrit.services.DummyBuildStatusesService;
+import org.kercoin.magrit.services.DummyUserIdentityService;
+import org.kercoin.magrit.services.UserIdentityService;
 import org.kercoin.magrit.sshd.GitPublickeyAuthenticator;
 import org.kercoin.magrit.services.SimpleTimeService;
 import org.kercoin.magrit.services.TimeService;
@@ -21,6 +23,7 @@ public class MagritModule extends AbstractModule {
 		bind(BuildQueueService.class).to(BuildQueueServiceImpl.class);
 		bind(PublickeyAuthenticator.class).to(GitPublickeyAuthenticator.class);
 		bind(CommandFactory.class).to(MagritCommandFactory.class);
+		bind(UserIdentityService.class).to(DummyUserIdentityService.class);
 	}
 
 }

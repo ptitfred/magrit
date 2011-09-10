@@ -22,9 +22,9 @@ import org.eclipse.jgit.lib.ObjectInserter;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.kercoin.magrit.utils.CommitterIdentity;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
+import org.kercoin.magrit.utils.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class BuildTask implements Callable<BuildResult> {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final GitUtils gitUtils;
-	private final CommitterIdentity authorIdentity;
+	private final UserIdentity user;
 	private final TimeService timeService;
 	
 	private Repository remote;
@@ -43,10 +43,10 @@ public class BuildTask implements Callable<BuildResult> {
 	private Repository repository;
 	private RevCommit commit;
 
-	public BuildTask(GitUtils gitUtils, CommitterIdentity authorIdentity,
+	public BuildTask(GitUtils gitUtils, UserIdentity user,
 			TimeService timeService, Repository remote, Pair<Repository,String> target) {
 		this.gitUtils = gitUtils;
-		this.authorIdentity = authorIdentity;
+		this.user = user;
 		this.timeService = timeService;
 		this.remote = remote;
 		this.target = target;
@@ -164,7 +164,7 @@ public class BuildTask implements Callable<BuildResult> {
 			content.append("build ").append(buildResult.getCommitSha1()).append(NL);
 			content.append("log ").append(logSha1.name()).append(NL);
 			content.append("return-code ").append(buildResult.getExitCode()).append(NL);
-			content.append("author ").append(this.authorIdentity.toString()).append(NL);
+			content.append("author ").append(this.user.toString()).append(NL);
 			Pair<Long,Integer> time = timeService.now();
 			content.append("when ").append(time.getT()).append(" ").append(timeService.offsetToString(time.getU())).append(NL);
 			ObjectId resultBlobId = db.insert(Constants.OBJ_BLOB, content.toString().getBytes("UTF-8"));
