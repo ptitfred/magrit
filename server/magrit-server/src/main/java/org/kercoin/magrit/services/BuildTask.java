@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -123,17 +124,34 @@ public class BuildTask implements Callable<BuildResult> {
 			executable.setStreamHandler(new PumpStreamHandler(stdout));
 
 			int exitCode = executable.execute(cmdLine);
-
-			new DefaultExecutor().execute(CommandLine.parse("notify-send 'Magrit' 'Build ended'"));
-
-			buildResult.setEndDate(new Date());
-			buildResult.setSuccess(exitCode == 0);
-			buildResult.setExitCode(exitCode);
-			buildResult.setLog(stdout.toByteArray());
-
+			endOfTreatment(buildResult, exitCode, true);
+			return buildResult;
+		} catch (ExecuteException ex) {
+			endOfTreatment(buildResult, ex.getExitValue(), false);
 			return buildResult;
 		} finally {
+			buildResult.setLog(stdout.toByteArray());
 			writeToRepository(buildResult);
+		}
+	}
+	
+	void endOfTreatment(BuildResult buildResult, int exitCode, boolean success) {
+		buildResult.setEndDate(new Date());
+		buildResult.setSuccess(success);
+		buildResult.setExitCode(exitCode);
+		
+		try {
+			String message = "";
+			if (success) {
+				message = String.format("notify-send 'Magrit' 'Build successful %s'", exitCode);
+			} else {
+				message = String.format("notify-send 'Magrit' 'Build failed %s'", exitCode);
+			}
+			new DefaultExecutor().execute(CommandLine.parse(message));
+		} catch (ExecuteException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
