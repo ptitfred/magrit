@@ -21,7 +21,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.kercoin.magrit.utils.CommitterIdentity;
+import org.kercoin.magrit.utils.UserIdentity;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.mockito.Answers;
@@ -37,7 +37,7 @@ public class BuildTaskTest {
 	BuildTask buildTask;
 	
 	@Mock GitUtils gitUtils;
-	CommitterIdentity committerIdentity;
+	UserIdentity committerIdentity;
 
 	@Mock(answer=Answers.RETURNS_DEEP_STUBS)
 	Repository remote;
@@ -61,7 +61,7 @@ public class BuildTaskTest {
 	@Before
 	public void setUp() throws Exception {
 		initMocks(this);
-		committerIdentity = new CommitterIdentity("user@example.org", "Mister Example");
+		committerIdentity = new UserIdentity("user@example.org", "Mister Example");
 		Pair<Repository, String> target = new Pair<Repository, String>(buildRepo, SHA1);
 		buildTask = Mockito.spy(new BuildTask(gitUtils, committerIdentity, timeService, remote, target));
 		given(buildTask.wrap(remote)).willReturn(gitWrapper);

@@ -29,6 +29,7 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 	protected OutputStream err;
 	protected ExitCallback callback;
 	protected final Context ctx;
+	protected Environment env;
 
 	public AbstractCommand(Context ctx) {
 		this.ctx = ctx;
@@ -82,6 +83,7 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 
 	@Override
 	public void start(Environment env) throws IOException {
+		this.env = env;
 		new Thread(this, getName()).start();
 	}
 	

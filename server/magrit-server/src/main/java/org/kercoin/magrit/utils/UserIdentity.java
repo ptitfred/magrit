@@ -1,11 +1,11 @@
 package org.kercoin.magrit.utils;
 
-public class CommitterIdentity {
+public class UserIdentity {
 	private final String email;
 	private final String name;
 	private final String toString;
 
-	public CommitterIdentity(String email, String name) {
+	public UserIdentity(String email, String name) {
 		super();
 		this.email = email;
 		this.name = name;
@@ -42,7 +42,7 @@ public class CommitterIdentity {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CommitterIdentity other = (CommitterIdentity) obj;
+		UserIdentity other = (UserIdentity) obj;
 		if (toString == null) {
 			if (other.toString != null)
 				return false;

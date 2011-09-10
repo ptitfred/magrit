@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.utils.CommitterIdentity;
+import org.kercoin.magrit.utils.UserIdentity;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 
@@ -69,9 +70,9 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 	}
 
 	@Override
-	public Future<BuildResult> enqueueBuild(Repository repository, String sha1) throws Exception {
+	public Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository, String sha1) throws Exception {
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		BuildTask task = new BuildTask(this.gitUtils, new CommitterIdentity("unknown@localhost", "John Doe"), timeService, repository, target);
+		BuildTask task = new BuildTask(this.gitUtils, committer, timeService, repository, target);
 		pendings.put(target, task);
 		fireScheduled(target);
 		return executorService.submit(task);
