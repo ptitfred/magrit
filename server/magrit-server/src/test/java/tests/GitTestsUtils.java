@@ -13,6 +13,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.util.FileUtils;
 import org.kercoin.magrit.utils.GitUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A very different place from {@link GitUtils} for git utilities ; to be used by unit tests
@@ -21,6 +23,8 @@ import org.kercoin.magrit.utils.GitUtils;
  */
 public final class GitTestsUtils {
 
+	protected static final Logger log = LoggerFactory.getLogger(GitTestsUtils.class);
+	
 	public static Repository inflate(File archive, File where) throws Exception {
 		assert archive.exists();
 		assert archive.isFile();
@@ -47,30 +51,35 @@ public final class GitTestsUtils {
 			while ((entry = zin.getNextEntry()) != null) {
 				File output = new File(where, entry.getName());
 				output.getParentFile().mkdirs();
-				FileOutputStream fos = new FileOutputStream(
-						output.getAbsolutePath()
-						);
-				BufferedOutputStream dest = new BufferedOutputStream(fos,
-						BUFFER);
-	
-				int count;
-				byte data[] = new byte[BUFFER];
-				while ((count = zin.read(data, 0, BUFFER)) != -1) {
-					dest.write(data, 0, count);
-					
+				if (!entry.isDirectory()) {
+
+					FileOutputStream fos = new FileOutputStream(
+							output.getAbsolutePath()
+							);
+					BufferedOutputStream dest = new BufferedOutputStream(fos,
+							BUFFER);
+
+					int count;
+					byte data[] = new byte[BUFFER];
+					while ((count = zin.read(data, 0, BUFFER)) != -1) {
+						dest.write(data, 0, count);
+
+					}
+
+					dest.flush();
+					dest.close();
 				}
-	
-				dest.flush();
-				dest.close();
 			}
 	
 			zin.close();
 	
 		} catch (IOException e) {
+			log.error("Error while inflating repository from " + archive.getPath(), e);
 		}
 		try {
 			return Git.open(where).getRepository();
 		} catch (IOException e) {
+			log.error("Error while opening repository " + where.getPath(), e);
 		}
 		return null;
 	}
