@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.ExecuteResultHandler;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -143,9 +144,9 @@ public class BuildTask implements Callable<BuildResult> {
 		try {
 			String message = "";
 			if (success) {
-				message = String.format("notify-send 'Magrit' 'Build successful %s'", exitCode);
+				message = String.format("notify-send \"Magrit\" \"Build successful\"", exitCode);
 			} else {
-				message = String.format("notify-send 'Magrit' 'Build failed %s'", exitCode);
+				message = String.format("notify-send \"Magrit\" \"Build failed %s\"", exitCode);
 			}
 			new DefaultExecutor().execute(CommandLine.parse(message));
 		} catch (ExecuteException e) {
