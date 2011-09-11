@@ -3,11 +3,9 @@ package org.kercoin.magrit.utils;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -50,14 +48,9 @@ public class GitUtilsTest {
 		assertThat(gitUtils.getCommit(test, "46568aa0ac7a12c9e4fa9194b9e2a65d4a132a2c").getFullMessage()).isEqualTo("C1\n");
 	}
 	
-	@Test(expected=NullPointerException.class)
+	@Test
 	public void testGetCommit_notFound() throws Exception {
-		try {
-		gitUtils.getCommit(test, "46568aa0ac7a12c9e4fa9194b9e2a65d4a132a2c^");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		Assert.fail("Should have thrown a NullPointerException");
+		assertThat(gitUtils.getCommit(test, "46568aa0ac7a12c9e4fa9194b9e2a65d4a132a2c^")).isNull();
 	}
 
 	@Test

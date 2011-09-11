@@ -35,7 +35,7 @@ public class GitUtils {
 			AmbiguousObjectException, IOException {
 		RevWalk walk = new RevWalk(repo);
 		ObjectId ref = repo.resolve(revstr);
-		if (ref==null)throw new MissingObjectException(ref, revstr);
+		if (ref==null) return null;
 		return walk.parseCommit(ref);
 	}
 

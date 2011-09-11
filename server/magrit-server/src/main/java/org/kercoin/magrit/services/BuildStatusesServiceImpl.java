@@ -10,8 +10,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -21,6 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+/**
+ * Thead-safe
+ * @author ptitfred
+ *
+ */
 public class BuildStatusesServiceImpl implements BuildStatusesService {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -44,21 +47,12 @@ public class BuildStatusesServiceImpl implements BuildStatusesService {
 		log.info("Checking status for {} @ {}", repository.getDirectory(), sha1);
 		try {
 			RevCommit commit = gitUtils.getCommit(repository, sha1);
-			// le commit est connu dans la base, il est au moins NEW
 			
 			if (commit == null) {
 				return Arrays.asList(BuildStatus.UNKNOWN);
 			}
 			Note note = Git.wrap(repository).notesShow().setObjectId(commit).call();
-			String noteContent = gitUtils.show(repository, note.getData().name());
-			
-			return readStatuses(repository, noteContent);
-		} catch (MissingObjectException e) {
-			return Arrays.asList(BuildStatus.UNKNOWN);
-		} catch (IncorrectObjectTypeException e) {
-			e.printStackTrace();
-		} catch (AmbiguousObjectException e) {
-			e.printStackTrace();
+			return readStatuses(repository, note.getData().name());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -66,8 +60,10 @@ public class BuildStatusesServiceImpl implements BuildStatusesService {
 		return Arrays.asList(BuildStatus.UNKNOWN);
 	}
 
-	private List<BuildStatus> readStatuses(Repository repository, String s) {
+	private List<BuildStatus> readStatuses(Repository repository, String noteSha1) throws IOException {
 		List<BuildStatus> list = new ArrayList<BuildStatus>();
+		
+		String s = gitUtils.show(repository, noteSha1);
 		
 		Pattern pattern = Pattern.compile("magrit:built-by [0-9a-f]{40}");
 		
@@ -102,7 +98,6 @@ public class BuildStatusesServiceImpl implements BuildStatusesService {
 		}
 		
 		return BuildStatus.UNKNOWN;
-		
 	}
 
 }
