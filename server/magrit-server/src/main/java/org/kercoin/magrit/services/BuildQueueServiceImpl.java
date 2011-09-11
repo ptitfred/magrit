@@ -118,7 +118,7 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 	void fireEnded(Pair<Repository, String> e) {
 		workplace.remove(e);
 		for (BuildCallback callback : callbacks) {
-			callback.buildEnded(e.getT(), e.getU(), BuildStatus.CLEAN);
+			callback.buildEnded(e.getT(), e.getU(), BuildStatus.OK);
 		}
 	}
 
