@@ -28,4 +28,10 @@ A noter que ce n'est qu'une proposition, vous pouvez choisir de ne garder que
 la compilation comme condition d'acceptation. Le nombre de build ayant réussi
 est également un paramètre que chaque équipe devra déterminer.
 
+Participer
+----------
+
+Si vous souhaitez participer, sachez que je suis à la recherche de béta testeurs.
+Pour vous manifester, vous pouvez répondre à ce formulaire :
+https://docs.google.com/spreadsheet/viewform?formkey=dEV1RXp5T2M5b2VWT0ZqdFNjSzA2SWc6MQ
 
