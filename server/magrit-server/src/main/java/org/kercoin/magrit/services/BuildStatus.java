@@ -1,7 +1,12 @@
 package org.kercoin.magrit.services;
 
 public enum BuildStatus {
-	NEW('N'), CLEAN('C'), UNKNOWN('?');
+	RUNNING('R'),
+	ERROR('E'),
+	OK('O'),
+	INTERRUPTED('I'),
+	LOCAL('L'),
+	UNKNOWN('?');
 	
 	private char code;
 	

@@ -1,6 +1,7 @@
 package org.kercoin.magrit.commands;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.Context;
@@ -85,9 +86,11 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	
 	@Override
 	public void run() {
-		BuildStatus status = buildStatusesService.getStatus(repo, sha1);
+		List<BuildStatus> statuses = buildStatusesService.getStatus(repo, sha1);
 		try {
-			out.write(status.getCode());
+			for(BuildStatus status : statuses) {
+				out.write(status.getCode());
+			}
 			out.write('\n');
 			out.flush();
 			callback.onExit(0);
