@@ -11,7 +11,9 @@ import java.util.zip.ZipInputStream;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.util.FileUtils;
+import org.kercoin.magrit.Context;
 import org.kercoin.magrit.utils.GitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +84,12 @@ public final class GitTestsUtils {
 			log.error("Error while opening repository " + where.getPath(), e);
 		}
 		return null;
+	}
+
+	public static Repository open(Context context, String repoPath) throws IOException {
+		RepositoryBuilder builder = new RepositoryBuilder();
+		builder.setGitDir(new File(context.configuration().getRepositoriesHomeDir(), repoPath));
+		return builder.build();
 	}
 	
 }

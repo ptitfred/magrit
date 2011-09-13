@@ -4,7 +4,9 @@ if [ $# -ge 1 ]
 then
 	if [[ $(which magrit-$1) ]]
 	then
-		magrit-$1 $2
+		command=$1
+		shift 1
+		magrit-$command "$@"
 	else
 		echo "Magrit: commande magrit $1 inconnue."
 	fi

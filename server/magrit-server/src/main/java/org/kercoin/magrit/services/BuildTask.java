@@ -11,7 +11,6 @@ import java.util.concurrent.Callable;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.exec.ExecuteResultHandler;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -21,6 +20,7 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectInserter;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.kercoin.magrit.utils.GitUtils;
@@ -170,14 +170,23 @@ public class BuildTask implements Callable<BuildResult> {
 			content.append("when ").append(time.getT()).append(" ").append(timeService.offsetToString(time.getU())).append(NL);
 			ObjectId resultBlobId = db.insert(Constants.OBJ_BLOB, content.toString().getBytes("UTF-8"));
 			
-			StringBuilder note = new StringBuilder();
-			note.append("magrit:built-by ").append(resultBlobId.name());
+			StringBuilder noteContent = new StringBuilder();
+			noteContent.append("magrit:built-by ").append(resultBlobId.name());
+
+			RevCommit commitId = gitUtils.getCommit(remote,
+					buildResult.getCommitSha1());
+			Note note = wrap(remote)
+					.notesShow()
+					.setObjectId(commitId).call();
+			if (note != null) {
+				String previousNoteContent = gitUtils.show(remote, note.getData().name());
+				noteContent.append(NL).append(NL).append(previousNoteContent);
+			}
 			wrap(remote)
 					.notesAdd()
-					.setMessage(note.toString())
+					.setMessage(noteContent.toString())
 					.setObjectId(
-							gitUtils.getCommit(remote,
-									buildResult.getCommitSha1()))
+							commitId)
 					.call();
 			
 			db.flush();

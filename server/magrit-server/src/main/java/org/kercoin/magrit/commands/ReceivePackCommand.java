@@ -1,19 +1,11 @@
 package org.kercoin.magrit.commands;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import org.apache.sshd.server.Command;
-import org.apache.sshd.server.Environment;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.transport.PostReceiveHook;
-import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.BuildQueueService;
-import org.kercoin.magrit.services.UserIdentityService;
-import org.kercoin.magrit.utils.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +17,7 @@ import com.google.inject.Singleton;
  * @author ptitfred
  * @see ReceivePack
  */
-public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> implements PostReceiveHook {
+public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -33,19 +25,15 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 	public static class ReceivePackCommandProvider implements CommandProvider<ReceivePackCommand> {
 
 		private final Context ctx;
-		private final BuildQueueService buildQueueService;
-		private final UserIdentityService userService;
 		
 		@Inject
-		public ReceivePackCommandProvider(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
+		public ReceivePackCommandProvider(Context ctx) {
 			this.ctx = ctx;
-			this.buildQueueService = buildQueueService;
-			this.userService = userService;
 		}
 		
 		@Override
 		public ReceivePackCommand get() {
-			return new ReceivePackCommand(ctx, buildQueueService, userService);
+			return new ReceivePackCommand(ctx);
 		}
 
 		@Override
@@ -59,16 +47,8 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 
 	private ReceivePack receivePack;
 
-	private BuildQueueService buildQueueService;
-
-	private UserIdentity committer;
-	
-	private UserIdentityService userService;
-	
-	public ReceivePackCommand(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
+	public ReceivePackCommand(Context ctx) {
 		super(ctx);
-		this.buildQueueService = buildQueueService;
-		this.userService = userService;
 	}
 	
 	public ReceivePackCommand command(String command) throws IOException {
@@ -90,11 +70,6 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 	}
 		
 	@Override
-	protected String getName() {
-		return "ReceivePackCommand";
-	}
-	
-	@Override
 	protected Class<ReceivePackCommand> getType() {
 		return ReceivePackCommand.class;
 	}
@@ -108,9 +83,6 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 	@Override
 	public void run() {
 		try {
-			String userId = env.getEnv().get(Environment.ENV_USER);
-			this.committer = userService.find(userId);
-			receivePack.setPostReceiveHook(this);
 			receivePack.receive(in, out, err);
 			callback.onExit(0);
 		} catch (java.io.InterruptedIOException iioe) {
@@ -120,26 +92,6 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> impl
 			e.printStackTrace();
 			receivePack.sendError(e.getMessage());
 			callback.onExit(1, e.getMessage());
-		}
-	}
-
-	@Override
-	public void onPostReceive(ReceivePack rp,
-			Collection<ReceiveCommand> commands) {
-		for (ReceiveCommand cmd : commands) {
-			sendBuild(rp, cmd.getNewId());
-		}
-	}
-	
-	private void sendBuild(ReceivePack rp, ObjectId newId) {
-		String msg = String.format("Triggering build for commit %s on repository %s by %s.", newId.getName(), rp.getRepository().getDirectory(), committer);
-		rp.sendMessage(msg);
-		log.info(msg);
-		try {
-			buildQueueService.enqueueBuild(committer, rp.getRepository(), newId.getName());
-		} catch (Exception e) {
-			log.error("Unable to send build", e);
-			e.printStackTrace();
 		}
 	}
 

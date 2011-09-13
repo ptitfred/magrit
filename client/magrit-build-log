@@ -15,7 +15,7 @@ ssh_url=${ssh_url#*:}
 port=${ssh_url%/*}
 repo="/${ssh_url#*/}/"
 
-for sha1 in $(git log --no-merges --format=%H $1); do
+for sha1 in $(git log --format=%H $1); do
 	buildStatus=$(ssh -x -p $port $user@$host "magrit status $repo $sha1")
 	log=$(git log -1 --oneline $sha1)
 	len=${#log}

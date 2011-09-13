@@ -8,7 +8,7 @@ import org.kercoin.magrit.utils.UserIdentity;
 import org.kercoin.magrit.utils.Pair;
 
 public interface BuildQueueService {
-	Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository, String sha1) throws Exception;
+	Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository, String sha1, boolean force) throws Exception;
 	
 	void addCallback(BuildCallback callback);
 
