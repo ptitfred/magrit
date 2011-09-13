@@ -6,6 +6,7 @@ public enum BuildStatus {
 	OK('O'),
 	INTERRUPTED('I'),
 	LOCAL('L'),
+	NEW('N'),
 	UNKNOWN('?');
 	
 	private char code;

@@ -54,7 +54,7 @@ public class BuildStatusesServiceImpl implements BuildStatusesService {
 			Note note = Git.wrap(repository).notesShow().setObjectId(commit).call();
 			if (note == null) {
 				// TODO check with the build queue to test if the build is currently running
-				return Arrays.asList(BuildStatus.UNKNOWN);
+				return Arrays.asList(BuildStatus.NEW);
 			}
 			return readStatuses(repository, note.getData().name());
 		} catch (IOException e) {

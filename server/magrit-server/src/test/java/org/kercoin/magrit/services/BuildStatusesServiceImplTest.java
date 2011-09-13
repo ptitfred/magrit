@@ -64,7 +64,7 @@ public class BuildStatusesServiceImplTest {
 	@Test
 	public void testGetStatus_withoutBuild() {
 		check();
-		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(BuildStatus.UNKNOWN);
+		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(BuildStatus.NEW);
 	}
 
 	private void check() {
