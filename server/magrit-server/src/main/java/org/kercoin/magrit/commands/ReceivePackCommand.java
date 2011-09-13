@@ -66,7 +66,11 @@ public class ReceivePackCommand extends AbstractCommand<ReceivePackCommand> {
 		
 		String repoPath = parts[0].substring(1, parts[0].length()-1);
 		
-		return createRepository(repoPath);
+		Repository repo = createRepository(repoPath);
+		if (!repo.getDirectory().exists()) {
+			repo.create(true);
+		}
+		return repo;
 	}
 		
 	@Override

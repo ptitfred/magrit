@@ -40,9 +40,9 @@ public class BuildCommandTest {
 	@SuppressWarnings("serial")
 	@Before
 	public void createBuildCommand() throws Exception {
-		ctx = new Context();
 		gitUtils = new GitUtils();
-		buildCommand = new BuildCommand(ctx, gitUtils, buildQueueService, userService);
+		ctx = new Context(gitUtils);
+		buildCommand = new BuildCommand(ctx, buildQueueService, userService);
 		given(env.getEnv()).willReturn(new HashMap<String, String>() {{put(Environment.ENV_USER, "ptitfred");}});
 		buildCommand.env = env;
 		buildCommand.callback = exitCallback;

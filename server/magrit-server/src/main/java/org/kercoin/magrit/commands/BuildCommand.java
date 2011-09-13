@@ -9,7 +9,6 @@ import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.BuildQueueService;
 import org.kercoin.magrit.services.UserIdentityService;
-import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,21 +24,19 @@ public class BuildCommand extends AbstractCommand<BuildCommand> {
 	public static class BuildCommandProvider implements CommandProvider<BuildCommand> {
 
 		private final Context ctx;
-		private final GitUtils gitUtils;
 		private final BuildQueueService buildQueueService;
 		private final UserIdentityService userService;
 		
 		@Inject
-		public BuildCommandProvider(Context ctx, GitUtils gitUtils, BuildQueueService buildQueueService, UserIdentityService userService) {
+		public BuildCommandProvider(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
 			this.ctx = ctx;
-			this.gitUtils = gitUtils;
 			this.buildQueueService = buildQueueService;
 			this.userService = userService;
 		}
 		
 		@Override
 		public BuildCommand get() {
-			return new BuildCommand(ctx, gitUtils, buildQueueService, userService);
+			return new BuildCommand(ctx, buildQueueService, userService);
 		}
 
 		@Override
@@ -49,23 +46,17 @@ public class BuildCommand extends AbstractCommand<BuildCommand> {
 		
 	}
 	
-	private final GitUtils gitUtils;
+	private final BuildQueueService buildQueueService;
+	private final UserIdentityService userService;
 	
-	private BuildQueueService buildQueueService;
-
 	private UserIdentity committer;
 	
-	private UserIdentityService userService;
-
-	private boolean force;
-
-	private String sha1;
-
 	private Repository repo;
+	private String sha1;
+	private boolean force;
 	
-	public BuildCommand(Context ctx, GitUtils gitUtils, BuildQueueService buildQueueService, UserIdentityService userService) {
+	public BuildCommand(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
 		super(ctx);
-		this.gitUtils = gitUtils;
 		this.buildQueueService = buildQueueService;
 		this.userService = userService;
 	}

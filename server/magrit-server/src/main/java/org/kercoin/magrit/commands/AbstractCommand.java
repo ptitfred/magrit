@@ -11,8 +11,8 @@ import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.LoggerInputStream;
 import org.kercoin.magrit.utils.LoggerOutputStream;
 
@@ -29,10 +29,12 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 	protected OutputStream err;
 	protected ExitCallback callback;
 	protected final Context ctx;
+	protected final GitUtils gitUtils;
 	protected Environment env;
 
 	public AbstractCommand(Context ctx) {
 		this.ctx = ctx;
+		this.gitUtils = ctx.getGitUtils();
 	}
 	
 	public abstract C command(String command) throws Exception;
@@ -41,10 +43,11 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 		if (repoPath.charAt(0) == '/') {
 			repoPath = repoPath.substring(1);
 		}
-		
-		RepositoryBuilder builder = new RepositoryBuilder();
-		builder.setGitDir(new File(ctx.configuration().getRepositoriesHomeDir(), repoPath));
-		return builder.build();
+		return gitUtils.createRepository(
+				new File(	ctx.configuration().getRepositoriesHomeDir(),
+							repoPath
+						 )
+			);
 	}
 	
 	private boolean logStreams = false;
