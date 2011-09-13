@@ -15,7 +15,12 @@ ssh_url=${ssh_url#*:}
 port=${ssh_url%/*}
 repo="/${ssh_url#*/}/"
 
-commit=$(git rev-parse HEAD)
+revstr="HEAD"
+if [ $# -gt 0 ]; then
+	revstr=$1
+fi
+
+commit=$(git rev-parse $revstr)
 
 status=$(ssh -x -p $port $user@$host "magrit status $repo $commit")
 
