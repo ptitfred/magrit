@@ -1,10 +1,17 @@
-#!/bin/bash
+#!/bin/bash -e
 
 remote=$(git config --get magrit.remote)
 if [[ "$remote" == "" ]]; then
 	remote="magrit"
 fi
 
-git push --force $remote HEAD
-magrit build send HEAD
+revstr="HEAD"
+if [ $# -gt 0 ]; then
+	revstr="$1"
+fi
+
+commit=$(git rev-parse --verify "$revstr")
+
+git push --force $remote $revstr
+magrit build send $commit
 
