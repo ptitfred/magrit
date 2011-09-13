@@ -35,7 +35,7 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 		this.ctx = ctx;
 	}
 	
-	public abstract C command(String command) throws IOException;
+	public abstract C command(String command) throws Exception;
 	
 	protected Repository createRepository(String repoPath) throws IOException {
 		if (repoPath.charAt(0) == '/') {
@@ -87,7 +87,9 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 		new Thread(this, getName()).start();
 	}
 	
-	protected abstract String getName();
+	protected String getName() {
+		return getType().getSimpleName();
+	}
 	
 	public static interface EndCallback<C> {
 		void onEnd(C command);

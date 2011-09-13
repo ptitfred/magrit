@@ -6,6 +6,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.kercoin.magrit.commands.BuildCommand;
 import org.kercoin.magrit.commands.CommandsProvider;
 import org.kercoin.magrit.commands.GetStatusCommand;
 import org.kercoin.magrit.commands.MonitorCommand;
@@ -34,6 +35,10 @@ public class MagritCommandFactoryTest {
 	@Test
 	public void testCreateCommand_nominal_ReceivePackCommand() {
 		assertCommand("git receive-pack /r1", 	ReceivePackCommand.class);
+	}
+	
+	public void testCreateCommand_nominal_BuildCommand() {
+		assertCommand("magrit build start /r1 HEAD", BuildCommand.class);
 	}
 	
 	@Test
