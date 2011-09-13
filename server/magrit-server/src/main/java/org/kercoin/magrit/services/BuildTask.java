@@ -180,7 +180,7 @@ public class BuildTask implements Callable<BuildResult> {
 					.setObjectId(commitId).call();
 			if (note != null) {
 				String previousNoteContent = gitUtils.show(remote, note.getData().name());
-				noteContent.append('\n').append('\n').append(previousNoteContent);
+				noteContent.append(NL).append(NL).append(previousNoteContent);
 			}
 			wrap(remote)
 					.notesAdd()
