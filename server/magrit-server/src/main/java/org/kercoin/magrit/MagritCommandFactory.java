@@ -1,12 +1,11 @@
 package org.kercoin.magrit;
 
-import java.io.IOException;
-
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.command.UnknownCommand;
 import org.kercoin.magrit.commands.AbstractCommand;
 import org.kercoin.magrit.commands.CommandsProvider;
+import org.kercoin.magrit.commands.SyntaxErrorCommand;
 import org.kercoin.magrit.commands.ReceivePackCommand;
 
 import com.google.inject.Inject;
@@ -43,8 +42,8 @@ public class MagritCommandFactory implements CommandFactory {
 					return cp.get().command(command);
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			return new SyntaxErrorCommand(e);
 		}
 		return new UnknownCommand(command);
 	}
