@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# magrit build send (--force) ~sha1
+
+if [ $1 = "send" ]; then
+	shift 1
+	force=""
+	if [ "$1" = "--force" ]; then
+		force="--force"
+		shift 1
+	fi
+	if [ $# -gt 0 ]; then
+		revstr=$1
+	else
+		revstr="HEAD"
+	fi
+	
+	remote=$(git config --get magrit.remote)
+	if [[ "$remote" == "" ]]; then
+		remote='magrit'
+	fi
+
+	ssh_url=$(git config --local remote.${remote}.url)
+
+	ssh_url=${ssh_url:6}
+	user=${ssh_url%@*}
+	ssh_url=${ssh_url#*@}
+	host=${ssh_url%:*}
+	ssh_url=${ssh_url#*:}
+	port=${ssh_url%/*}
+	repo="/${ssh_url#*/}/"
+
+	sha1=$(git rev-parse $revstr)
+	command="magrit build send $force $repo $sha1"
+	# echo $command
+
+	echo "ssh -x -p $port $user@$host $command"
+	ssh -x -p $port $user@$host $command
+fi
+

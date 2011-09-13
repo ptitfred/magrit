@@ -6,4 +6,5 @@ if [[ "$remote" == "" ]]; then
 fi
 
 git push $remote HEAD
+magrit build send HEAD
 
