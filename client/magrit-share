@@ -5,6 +5,6 @@ if [[ "$remote" == "" ]]; then
 	remote="magrit"
 fi
 
-git push $remote HEAD
+git push --force $remote HEAD
 magrit build send HEAD
 
