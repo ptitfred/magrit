@@ -1,1 +1,1 @@
-mvn -f server/pom.xml clean install
+mvn clean install
