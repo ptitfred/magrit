@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.BuildStatus;
 import org.kercoin.magrit.services.BuildStatusesService;
+import org.kercoin.magrit.utils.GitUtils;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -34,7 +35,7 @@ public class GetStatusCommandTest {
 	public void setUp() {
 		initMocks(this);
 
-		ctx = Mockito.spy(new Context());
+		ctx = Mockito.spy(new Context(new GitUtils()));
 		command = new GetStatusCommand(ctx, buildStatusesService);
 		out = new ByteArrayOutputStream();
 		command.setOutputStream(out);

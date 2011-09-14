@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # magrit build send (--force) ~sha1
 
@@ -30,7 +30,7 @@ if [ $1 = "send" ]; then
 	port=${ssh_url%/*}
 	repo="/${ssh_url#*/}/"
 
-	sha1=$(git rev-parse $revstr)
+	sha1=$(git rev-parse --verify $revstr)
 	command="magrit build send $force $repo $sha1"
 	# echo $command
 

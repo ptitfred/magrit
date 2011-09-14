@@ -207,7 +207,9 @@ public class BuildTask implements Callable<BuildResult> {
 		File lockFile = getLockFile();
 		
 		if (lockFile.exists()) {
-			throw new IllegalStateException(String.format("Can't start a build on this repository %s, a build is already running here...", repository.getDirectory()));
+			String msg = String.format("Can't start a build on this repository %s, a build is already running here...", repository.getDirectory());
+			log.error(msg);
+			throw new IllegalStateException(msg);
 		}
 		
 		lockFile.createNewFile();

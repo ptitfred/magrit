@@ -9,6 +9,7 @@ import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 
@@ -61,5 +62,11 @@ public class GitUtils {
 			return false;
 		}
 		return Pattern.compile("[0-9a-z]{40}").matcher(candidate).matches();
+	}
+
+	public Repository createRepository(File fullPath) throws IOException {
+		RepositoryBuilder builder = new RepositoryBuilder();
+		builder.setGitDir(fullPath);
+		return builder.build();
 	}
 }
