@@ -9,3 +9,9 @@ server/.settings
 server/key.pem
 server/key.ser
 server/target
+
+installer/.classpath
+installer/.project
+installer/.settings
+installer/target
+
