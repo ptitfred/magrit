@@ -12,10 +12,13 @@ import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.ForwardingFilter;
 import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.UserAuth;
+import org.apache.sshd.server.auth.UserAuthNone;
 import org.apache.sshd.server.auth.UserAuthPublicKey;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
+import org.kercoin.magrit.Configuration;
+import org.kercoin.magrit.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +31,9 @@ public class Server {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private SshServer sshd;
-
+	
 	@Inject
-	public Server(CommandFactory factory, PublickeyAuthenticator auth) {
+	public Server(final Context ctx, CommandFactory factory) {
 		sshd = SshServer.setUpDefaultServer();
 		
         if (SecurityUtils.isBouncyCastleRegistered()) {
@@ -38,10 +41,19 @@ public class Server {
         } else {
             sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("key.ser"));
         }
+        
+        PublickeyAuthenticator auth = null;
+        if (ctx.configuration().getAuthentication() == Configuration.Authentication.SSH_PUBLIC_KEYS) {
+        	auth = ctx.getInjector().getInstance(PublickeyAuthenticator.class);
+        }
         setupUserAuth(auth);
         
 		sshd.setCommandFactory(factory);
-        
+
+		if (!ctx.configuration().isRemoteAllowed()) {
+			sshd.setSessionFactory(new LocalOnlySessionFactory());
+		}
+		
         sshd.setForwardingFilter(new ForwardingFilter() {
             public boolean canForwardAgent(ServerSession session) {
                 return false;
@@ -64,14 +76,16 @@ public class Server {
 
 	private void setupUserAuth(PublickeyAuthenticator auth) {
 		List<NamedFactory<UserAuth>> list = new ArrayList<NamedFactory<UserAuth>>();
-//		list.add(new UserAuthNone.Factory());
-		list.add(new UserAuthPublicKey.Factory());
+		if (auth != null) {
+			list.add(new UserAuthPublicKey.Factory());
+			sshd.setPublickeyAuthenticator(auth);
+		} else {
+			list.add(new UserAuthNone.Factory());
+		}
 		sshd.setUserAuthFactories(list);
-		sshd.setPublickeyAuthenticator(auth);
 	}
 
 	public void start(int port) throws IOException {
-		log.info("Port used: {}", port);
 		sshd.setPort(port);
 		sshd.start();
 	}

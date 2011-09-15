@@ -1,8 +1,10 @@
 package org.kercoin.magrit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 import static tests.MyAssertions.assertThat;
 
+import java.net.BindException;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -11,6 +13,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.cli.ParseException;
 import org.junit.Before;
 import org.junit.Test;
+import org.kercoin.magrit.Configuration.Authentication;
 
 public class MagritTest {
 
@@ -31,7 +34,9 @@ public class MagritTest {
 			.onPort(2022) //
 			.hasHomeDir(System.getProperty("java.io.tmpdir") + "/magrit/repos") //
 			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
-			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys") //
+			.hasAuthentication(Authentication.SSH_PUBLIC_KEYS) //
+			.isRemoteAllowed(false);
 	}
 
 	@Test
@@ -45,9 +50,37 @@ public class MagritTest {
 			.hasHomeDir(System.getProperty("java.io.tmpdir") + "/magrit/repos") //
 			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
 			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+	}
+	
+	@Test
+	public void testConfigure_auth() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--authentication none"));
 
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.hasAuthentication(Authentication.NONE);
+	}
+	
+	@Test
+	public void testConfigure_auth_junk() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--authentication what-ever-unsupported"));
+
+		// then ----------------------------------
+		assertThat(cfg()).hasAuthentication(Authentication.NONE);
 	}
 
+	@Test
+	public void testConfigure_remote() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--remote"));
+
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.isRemoteAllowed(true);
+	}
+	
 	@Test
 	public void testConfigure_standardLayout() throws Exception {
 		// when ----------------------------------
@@ -157,5 +190,28 @@ public class MagritTest {
 		}
 		return args.toArray(new String[0]);
 	}
+
+	@Test(expected=BindException.class)
+	public void testTryBind() throws Exception {
+		int port = 22222;
+		ServerSocket ss = new ServerSocket(port);
+		try {
+			magrit.tryBind(port);
+		} finally {
+			ss.close();
+		}
+	}
+	
+	@Test
+	public void testTryBind_releasePortAfterTry() throws Exception {
+		int port = 22222;
+		magrit.tryBind(port);
+		try {
+			magrit.tryBind(port);
+		} catch (BindException e) {
+			fail("Magrit.tryBind(int) didn't release the TCP port.");
+		}
+	}
+	
 	
 }

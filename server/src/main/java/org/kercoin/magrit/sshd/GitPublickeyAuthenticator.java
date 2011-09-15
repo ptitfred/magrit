@@ -44,7 +44,7 @@ public class GitPublickeyAuthenticator implements PublickeyAuthenticator {
 		try {
 			open();
 			PublicKey targetKey = readKeyFromRepository(username);
-			return areEqual(targetKey, authKey);
+			return targetKey != null && areEqual(targetKey, authKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -72,6 +72,9 @@ public class GitPublickeyAuthenticator implements PublickeyAuthenticator {
 	private PublicKey readKeyFromRepository(String username) throws AmbiguousObjectException, Exception {
 		String revstr = String.format("HEAD:keys/%s.pub", username);
 		String encoded = gitUtils.show(datasource, revstr);
+		if (encoded == null)
+			return null;
+
 		return new AuthorizedKeysDecoder().decodePublicKey(encoded);
 	}
 

@@ -4,6 +4,7 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import org.fest.assertions.GenericAssert;
 import org.kercoin.magrit.Configuration;
+import org.kercoin.magrit.Configuration.Authentication;
 
 public class ConfigurationAssert extends GenericAssert<ConfigurationAssert, Configuration> {
 
@@ -29,6 +30,16 @@ public class ConfigurationAssert extends GenericAssert<ConfigurationAssert, Conf
 
 	public ConfigurationAssert hasPublickeyDir(String absolutePath) {
 		assertThat(actual.getPublickeyRepositoryDir().getAbsolutePath()).isEqualTo(absolutePath);
+		return this;
+	}
+
+	public ConfigurationAssert hasAuthentication(Authentication expected) {
+		assertThat(actual.getAuthentication()).isEqualTo(expected);
+		return this;
+	}
+	
+	public ConfigurationAssert isRemoteAllowed(boolean expected) {
+		assertThat(actual.isRemoteAllowed()).isEqualTo(expected);
 		return this;
 	}
 
