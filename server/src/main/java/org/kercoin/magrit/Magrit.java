@@ -127,6 +127,16 @@ public final class Magrit {
 
 	private void launch() throws IOException {
 		Configuration cfg = ctx.configuration();
+		log.info("--------------------------------------------------------------------");
+		log.info("Port used  : {}", cfg.getSshPort());
+		log.info("Listening  : {}", cfg.isRemoteAllowed() ? "everybody":"localhost");
+		log.info("Authent    : {}", cfg.getAuthentication().external());
+		if (cfg.getAuthentication() == Authentication.SSH_PUBLIC_KEYS) {
+		log.info("  Keys dir : {}", cfg.getPublickeyRepositoryDir());
+		}
+		log.info("Home dir   : {}", cfg.getRepositoriesHomeDir());
+		log.info("Work dir   : {}", cfg.getWorkHomeDir());
+		log.info("--------------------------------------------------------------------");
 		try {
 			tryBind(cfg.getSshPort());
 			log.info("Starting...");
