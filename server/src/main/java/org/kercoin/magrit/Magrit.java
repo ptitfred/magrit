@@ -2,6 +2,9 @@ package org.kercoin.magrit;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.BindException;
+import java.net.ServerSocket;
+import java.util.Date;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -10,6 +13,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.kercoin.magrit.Configuration.Authentication;
 import org.kercoin.magrit.sshd.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -105,9 +110,31 @@ public final class Magrit {
 	Context getCtx() {
 		return ctx;
 	}
+	
+	void tryBind(int port) throws IOException {
+		ServerSocket ss = null;
+		try {
+			ss = new ServerSocket(port);
+		} finally {
+			if (ss!= null && ss.isBound()) {
+				ss.close();
+			}
+		}
+		
+	}
+	
+	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private void launch() throws IOException {
-		guice.getInstance(Server.class).start(ctx.configuration().getSshPort());
+		Configuration cfg = ctx.configuration();
+		try {
+			tryBind(cfg.getSshPort());
+			log.info("Starting...");
+			guice.getInstance(Server.class).start(cfg.getSshPort());
+			log.info("R E A D Y - {}", new Date());
+		} catch (BindException be) {
+			log.error("Port {} already bound, aborting...", cfg.getSshPort());
+		}
 	}
 	
 	public static void main(String[] args) throws Exception {
