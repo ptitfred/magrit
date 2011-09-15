@@ -8,6 +8,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.kercoin.magrit.Configuration.Authentication;
 import org.kercoin.magrit.sshd.Server;
 
 import com.google.inject.Guice;
@@ -62,6 +63,18 @@ public final class Magrit {
 			ctx.configuration().setPublickeysRepositoryDir(new File(cmdLine.getOptionValue("keys")));
 		}
 		
+		if (cmdLine.hasOption("authentication")) {
+			Authentication authentication = Authentication.NONE;
+			String authValue = cmdLine.getOptionValue("authentication");
+			for (Authentication auth : Authentication.values()) {
+				if (auth.external().equals(authValue)) {
+					authentication = auth;
+					break;
+				}
+			}
+			ctx.configuration().setAuthentication(authentication);
+		}
+		
 		ctx.configuration().setRemoteAllowed(cmdLine.hasOption("remote"));
 
 	}
@@ -75,12 +88,15 @@ public final class Magrit {
 		opts.addOption("w", "work", true, //
 				"directory where to create work directories (for builds)");
 		opts.addOption("k", "keys", true, //
-				"non-bare Git repository containing SSH public keys for authentication");
+				"non-bare Git repository containing SSH public keys for authentication." +
+				"Useless if and only if authentication=ssh-public-keys");
 		opts.addOption("s", "standard", true, //
 				"directory where to apply the standard " + //
 				"layout for bare repositories, " + //
 				"work directories and public keys, " + //
 				"all put in the supplied directory");
+		opts.addOption("a", "authentication", true, //
+				"authentication provider : ssh-public-keys or none");
 		opts.addOption("r", "remote", false, //
 				"allows the Magrit instance to be accessed by non-local client");
 		return opts;

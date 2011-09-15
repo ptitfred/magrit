@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.cli.ParseException;
 import org.junit.Before;
 import org.junit.Test;
+import org.kercoin.magrit.Configuration.Authentication;
 
 public class MagritTest {
 
@@ -32,6 +33,7 @@ public class MagritTest {
 			.hasHomeDir(System.getProperty("java.io.tmpdir") + "/magrit/repos") //
 			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
 			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys") //
+			.hasAuthentication(Authentication.SSH_PUBLIC_KEYS) //
 			.isRemoteAllowed(false);
 	}
 
@@ -46,7 +48,25 @@ public class MagritTest {
 			.hasHomeDir(System.getProperty("java.io.tmpdir") + "/magrit/repos") //
 			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
 			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+	}
+	
+	@Test
+	public void testConfigure_auth() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--authentication none"));
 
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.hasAuthentication(Authentication.NONE);
+	}
+	
+	@Test
+	public void testConfigure_auth_junk() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--authentication what-ever-unsupported"));
+
+		// then ----------------------------------
+		assertThat(cfg()).hasAuthentication(Authentication.NONE);
 	}
 
 	@Test

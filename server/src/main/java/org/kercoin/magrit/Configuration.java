@@ -14,8 +14,17 @@ public class Configuration {
 	
 	private File workHomeDir = new File(DEFAULT_BASE_DIR, "builds");
 
+	private Authentication authentication = Authentication.SSH_PUBLIC_KEYS;
+
 	private boolean remoteAllowed;
 	
+	public static enum Authentication {
+		SSH_PUBLIC_KEYS { public String external() { return "ssh-public-keys"; } },
+		NONE { public String external() { return "none"; } };
+		
+		public abstract String external();
+	}
+
 	public int getSshPort() {
 		return sshPort;
 	}
@@ -23,7 +32,15 @@ public class Configuration {
 	public void setSshPort(int sshPort) {
 		this.sshPort = sshPort;
 	}
-
+	
+	public Authentication getAuthentication() {
+		return authentication;
+	}
+	
+	public void setAuthentication(Authentication authentication) {
+		this.authentication = authentication;
+	}
+	
 	public File getRepositoriesHomeDir() {
 		return repositoriesHomeDir;
 	}
