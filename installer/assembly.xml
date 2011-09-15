@@ -1,0 +1,35 @@
+<assembly>
+	<id>packed</id>
+	<!--id>packed</id-->
+
+	<formats>
+		<format>jar</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<useProjectArtifact>true</useProjectArtifact>
+			<unpack>true</unpack>
+			<scope>runtime</scope>
+		</dependencySet>
+	</dependencySets>
+
+	<fileSets>
+		<fileSet>
+			<directory>../client/target</directory>
+			<outputDirectory>/META-INF/packs/</outputDirectory>
+			<includes>
+				<include>magrit-cli-*.zip</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>../server/target</directory>
+			<outputDirectory>/META-INF/packs/</outputDirectory>
+			<includes>
+				<include>magrit-server-*-jar-with-dependencies.jar</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>
+

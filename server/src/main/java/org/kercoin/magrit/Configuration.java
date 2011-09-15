@@ -45,5 +45,11 @@ public class Configuration {
 	public void setPublickeysRepositoryDir(File publickeysRepositoryDir) {
 		this.publickeysRepositoryDir = publickeysRepositoryDir;
 	}
+
+	public void applyStandardLayout(String dir) {
+		repositoriesHomeDir = new File(dir, "bares");
+		workHomeDir = new File(dir, "builds");
+		publickeysRepositoryDir = new File(dir, "keys");
+	}
 	
 }

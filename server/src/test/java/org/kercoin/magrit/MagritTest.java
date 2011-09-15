@@ -1,0 +1,161 @@
+package org.kercoin.magrit;
+
+import static org.junit.Assert.*;
+import static tests.MyAssertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
+import org.apache.commons.cli.ParseException;
+import org.junit.Before;
+import org.junit.Test;
+
+public class MagritTest {
+
+	Magrit magrit;
+	
+	@Before
+	public void setup() {
+		magrit = new Magrit();
+	}
+	
+	@Test
+	public void testConfigure_defaults() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split(""));
+		
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.onPort(2022) //
+			.hasHomeDir(System.getProperty("java.io.tmpdir") + "/magrit/repos") //
+			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
+			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+	}
+
+	@Test
+	public void testConfigure_port() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--port 1234"));
+		
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.onPort(1234) //
+			.hasHomeDir(System.getProperty("java.io.tmpdir") + "/magrit/repos") //
+			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
+			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+
+	}
+
+	@Test
+	public void testConfigure_standardLayout() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--port 5678 --standard /path/to"));
+
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.onPort(5678) //
+			.hasHomeDir("/path/to/bares") //
+			.hasWorkDir("/path/to/builds") //
+			.hasPublickeyDir("/path/to/keys");
+	}
+	
+	@Test
+	public void testConfigure_standardLayout_overriden() throws Exception {
+		// given ---------------------------------
+		String[] cmds = { //
+				// test de prédominance: le standard layout ne s'impose pas aux autres 
+				"--port 5678 --work /tmp/magrit-builds --standard /path/to", //
+				"--port 5678 --standard /path/to --work /tmp/magrit-builds" //
+				};
+		for	(String cmd : cmds) {
+			// when ----------------------------------
+			magrit.configure(split(cmd));
+
+			// then ----------------------------------
+			assertThat(cfg()) //
+				.onPort(5678) //
+				.hasHomeDir("/path/to/bares") //
+				.hasWorkDir("/tmp/magrit-builds") //
+				.hasPublickeyDir("/path/to/keys");
+
+		}
+	}
+	
+	@Test
+	public void testConfigure_port_repoDir() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--port 1234 --bares /path/to/repos"));
+		
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.onPort(1234) //
+			.hasHomeDir("/path/to/repos") //
+			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
+			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+	}
+
+	@Test
+	public void testConfigure_port_repoDir_workDir() throws Exception {
+		String[] cmdLines = {"-p 1234  -b /path/to/repos -w /path/to/buildspace", "--port=1234  --bares=/path/to/repos --work /path/to/buildspace"};
+		for (String cmd : cmdLines) {
+			// when ----------------------------------
+			magrit.configure(split(cmd));
+
+			// then ----------------------------------
+			assertThat(cfg()) //
+				.onPort(1234) //
+				.hasHomeDir("/path/to/repos") //
+				.hasWorkDir("/path/to/buildspace") //
+				.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+		}
+	}
+
+	@Test
+	public void testConfigure_port_repoDir_workDir_publicKeys() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--port 1234 \r\n" +
+				"--bares /path/to/repos \n" +
+				"--work /path/to/buildspace \r" +
+				"--keys /path/to/publickeys"));
+
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.onPort(1234) //
+			.hasHomeDir("/path/to/repos") //
+			.hasWorkDir("/path/to/buildspace") //
+			.hasPublickeyDir("/path/to/publickeys");
+	}
+	
+	@Test(expected=ParseException.class)
+	public void testConfigure_port_illegal_nonNumeric() throws Exception {
+		magrit.configure(split("--port xxxxx"));
+	}
+
+	@Test
+	public void testConfigure_port_illegal_nonAllowed() throws Exception {
+		int[] values = { -1, 0, 1024};
+		for (int port : values) {
+			try {
+				magrit.configure(split("--port " + port));
+				fail("Should have thrown a ParseException");
+			} catch (ParseException e) {}
+		}
+	}
+
+	private Configuration cfg() {
+		return magrit.getCtx().configuration();
+	}
+	
+	static String[] split(String cmdLine) {
+		Scanner s = new Scanner(cmdLine);
+		s.useDelimiter(Pattern.compile("\\s+"));
+		List<String> args = new ArrayList<String>();
+		while(s.hasNext()) {
+			args.add(s.next());
+		}
+		return args.toArray(new String[0]);
+	}
+	
+}

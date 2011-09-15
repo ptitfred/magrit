@@ -1,0 +1,277 @@
+package org.kercoin.magrit;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.InputMismatchException;
+import java.util.Properties;
+import java.util.Scanner;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+public class Installer {
+
+	static enum Profile {
+		QUICKTEST, INSTALL, UNKNOWN
+	}
+
+	private static final int BUFFER_SIZE = 2048;
+	
+	private Installer() {
+		
+	}
+	
+	private final File TEMP = new File(System.getProperty("java.io.tmpdir"));
+	private final String FILE_SEP = System.getProperty("file.separator");
+	
+    private final Scanner in = new Scanner(System.in);
+	
+	private Profile profile = Profile.UNKNOWN;
+	
+	private void go() {
+		try {
+			try {
+				greetings();
+			} catch (InterruptedException e) {}
+			grabConfiguration();
+			install();
+		} catch(ExitException ee) {
+			p(ee.getMessage());
+		}
+	}
+
+	private void greetings() throws InterruptedException {
+		banner("Welcome to the MAGRIT INSTALLER", "Version: beta");
+
+		p("This will install Magrit in your system for a clean developer experience.");
+		nl();
+		
+		p("Install Magrit will:");
+		p(" - register some shell scripts in PATH");
+		p(" - install an executable as a system service");
+		p(" - configure this service");
+		nl();
+		
+		p("HOWEVER");
+		p("If you just want to give a try to Magrit, you can quick test it :-)");
+		p("This will install Magrit and all working/temporary files in " + TEMP.getAbsolutePath() + FILE_SEP + "magrit-quick.");
+
+		Thread.sleep(1000);
+		nl();
+
+		p("So...");
+		Thread.sleep(1000);
+		nl();
+	}
+
+	private void grabConfiguration() {
+		int i = ask("Do you want to 1) TRY or to 2) INSTALL ? (1/2)", 1, 2);
+		if (i == 1) {
+			profile = Profile.QUICKTEST;
+		} else if (i == 2) {
+			profile = Profile.INSTALL;
+		}
+		nl();
+	}
+	
+	private void install() {
+		switch(profile) {
+		case INSTALL:
+			banner("INSTALL");
+			throw new ExitException("Not yet available :-(");
+		case QUICKTEST:
+			banner("QUICKTEST setup");
+			quicktestSetup();
+			break;
+		}
+	}
+	
+	private void write(InputStream inputStream, File destDir, String name)
+			throws FileNotFoundException, IOException {
+		OutputStream outputStream = new FileOutputStream(new File(destDir, name));
+		try {
+			byte[] buffer = new byte[BUFFER_SIZE];
+			int read = 0;
+			while ((read = inputStream.read(buffer, 0, BUFFER_SIZE)) != -1) {
+				outputStream.write(buffer, 0, read);
+			}
+		} finally {
+			outputStream.close();
+			inputStream.close();
+		}
+	}
+
+	private void quicktestSetup() {
+		try {
+			final File magritDir = new File(TEMP, "magrit-quick");
+			p("Setup sandbox: " + magritDir.getAbsolutePath());
+
+			// mkdir -p /tmp/magrit-quick/{bares,builds,keys}
+			String[] dirs = {"bares", "builds", "keys"};
+			for (String path : dirs) {
+				File dir = new File(magritDir, path);
+				dir.mkdirs();
+			}
+			
+			Properties p = new Properties();
+			InputStream packageResource = getClass().getClassLoader().getResourceAsStream("META-INF/packs/content.properties");
+			if (packageResource == null) throw new ExitException("Unable to read package content, aborting... :-/");
+			p.load(packageResource);
+
+			p("Installing server...");
+			InputStream magritResource = getClass().getClassLoader().getResourceAsStream("META-INF/packs/" + p.getProperty("server.archive"));
+			if (magritResource == null) throw new ExitException("The installer archive seems corrupted or incomplete, aborting... :-(");
+			write(magritResource, magritDir, p.getProperty("server.archive"));
+			
+			p("Installing CLI...");
+			InputStream scriptsResource = getClass().getClassLoader().getResourceAsStream("META-INF/packs/" + p.getProperty("shell-scripts.archive"));
+			if (scriptsResource == null) throw new ExitException("The installer archive seems corrupted or incomplete, aborting... :-(");
+			write(scriptsResource, magritDir, p.getProperty("shell-scripts.archive"));
+			
+			// unzip /tmp/magrit-quick/scripts.zip -d bin
+			File scriptsDirectory = new File(magritDir, "scripts");
+			inflate(new File(magritDir, p.getProperty("shell-scripts.archive")), scriptsDirectory);
+			
+			File setupScript = new File(magritDir, "setup.sh");
+			if (!setupScript.createNewFile()) {
+				throw new ExitException("The finalization script couldn't have been created, aborting... :'(");
+			}
+			PrintWriter pw = new PrintWriter(new FileWriter(setupScript));
+			pw.println("chmod +x " + scriptsDirectory.getAbsolutePath() + "/*");
+			pw.println("export PATH=\"" + scriptsDirectory.getAbsolutePath() + System.getProperty("path.separator") + "$PATH\"");
+			pw.println();
+			pw.close();
+			
+			banner("Quick install completed");
+			nl();
+			p("In order to use Magrit, please execute");
+			p("  .  " + magritDir.getAbsolutePath() + "/setup.sh" );
+			p("  java -jar " + magritDir.getAbsolutePath() + "/" + p.getProperty("server.archive") + " --standard " + magritDir.getAbsolutePath());
+			
+		} catch (Exception e) {
+			throw new ExitException(e.getMessage(), e);
+		}
+	}
+	
+	public static void inflate(File archive, File where) {
+		if (where.exists() && !where.isDirectory()) {
+			throw new ExitException("Can't unzip file here because this isn't a directory: " + where.getAbsolutePath());
+		}
+		if (!where.exists()) {
+			if (!where.mkdir()) {
+				throw new ExitException("Couldn't create directory " + where.getAbsolutePath());
+			}
+		}
+		if (where.list().length > 0) {
+			throw new ExitException("Can't unzip file here: " + where.getAbsolutePath());
+		}
+		
+		try {
+			ZipInputStream zin = new ZipInputStream(new BufferedInputStream(
+					new FileInputStream(archive)));
+	
+			ZipEntry entry;
+			while ((entry = zin.getNextEntry()) != null) {
+				File output = new File(where, entry.getName());
+				output.getParentFile().mkdirs();
+				if (!entry.isDirectory()) {
+
+					FileOutputStream fos = new FileOutputStream(
+							output.getAbsolutePath()
+							);
+					BufferedOutputStream dest = new BufferedOutputStream(fos,
+							BUFFER_SIZE);
+
+					int count;
+					byte data[] = new byte[BUFFER_SIZE];
+					while ((count = zin.read(data, 0, BUFFER_SIZE)) != -1) {
+						dest.write(data, 0, count);
+					}
+
+					dest.flush();
+					dest.close();
+				}
+			}
+	
+			zin.close();
+		} catch (IOException e) {
+			throw new ExitException(e.getMessage(), e);
+		}
+	}
+
+	private int ask(String question, int... validValues) {
+		int i=Integer.MIN_VALUE;
+		int tries=0;
+		p(question);
+		while (tries++<3) {
+			try {
+				System.out.print("> ");
+				i = in.nextInt();
+				if (in(i, validValues)) return i;
+			} catch (InputMismatchException e) {
+				p("Incorrect answer.");
+				in.next();
+			}
+		}
+		throw new ExitException("I give up!");
+	}
+	
+	@SuppressWarnings("serial")
+	static class ExitException extends RuntimeException {
+		ExitException(String message) {super(message);}
+		ExitException(String message, Throwable cause) {super(message, cause);}
+	}
+	
+	private boolean in(int actual, int... validValues) {
+		if (validValues==null || validValues.length ==0) return false;
+		for (int valid : validValues) {
+			if (actual == valid) return true;
+		}
+		return false;
+	}
+	
+	public static void main(String[] args) {
+		new Installer().go();
+	}
+
+	// ---------------------------------------------------------
+
+	private static void banner(String... texts) {
+		p("+-" + HEADER + "-+");
+		for (String text : texts) {
+			String padded = text.substring(0, Math.min(text.length(), WIDTH));
+			p("| " + padded + FILLER.substring(padded.length()) + " |");
+		}
+		p("+-" + HEADER + "-+");
+	}
+
+	private static void p(String text) {
+		System.out.println(text);
+	}
+	
+	private static void nl() {
+		System.out.println();
+	}
+	
+	private final static int WIDTH = 40;
+	
+	private final static String HEADER = mkstr(WIDTH, '-');
+	private final static String FILLER = mkstr(WIDTH, ' ');
+	
+	private static String mkstr(int width, char c) {
+		char[] bheader = new char[width];
+		Arrays.fill(bheader, c);
+		String header = new String(bheader);
+		return header;
+	}
+
+}
