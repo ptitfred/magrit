@@ -32,4 +32,9 @@ public class ConfigurationAssert extends GenericAssert<ConfigurationAssert, Conf
 		return this;
 	}
 
+	public ConfigurationAssert isRemoteAllowed(boolean expected) {
+		assertThat(actual.isRemoteAllowed()).isEqualTo(expected);
+		return this;
+	}
+
 }

@@ -31,7 +31,8 @@ public class MagritTest {
 			.onPort(2022) //
 			.hasHomeDir(System.getProperty("java.io.tmpdir") + "/magrit/repos") //
 			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
-			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys");
+			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys") //
+			.isRemoteAllowed(false);
 	}
 
 	@Test
@@ -48,6 +49,16 @@ public class MagritTest {
 
 	}
 
+	@Test
+	public void testConfigure_remote() throws Exception {
+		// when ----------------------------------
+		magrit.configure(split("--remote"));
+
+		// then ----------------------------------
+		assertThat(cfg()) //
+			.isRemoteAllowed(true);
+	}
+	
 	@Test
 	public void testConfigure_standardLayout() throws Exception {
 		// when ----------------------------------

@@ -61,6 +61,8 @@ public final class Magrit {
 		if (cmdLine.hasOption("keys")) {
 			ctx.configuration().setPublickeysRepositoryDir(new File(cmdLine.getOptionValue("keys")));
 		}
+		
+		ctx.configuration().setRemoteAllowed(cmdLine.hasOption("remote"));
 
 	}
 	
@@ -79,6 +81,8 @@ public final class Magrit {
 				"layout for bare repositories, " + //
 				"work directories and public keys, " + //
 				"all put in the supplied directory");
+		opts.addOption("r", "remote", false, //
+				"allows the Magrit instance to be accessed by non-local client");
 		return opts;
 	}
 

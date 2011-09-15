@@ -16,6 +16,7 @@ import org.apache.sshd.server.auth.UserAuthPublicKey;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
+import org.kercoin.magrit.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class Server {
 	private SshServer sshd;
 
 	@Inject
-	public Server(CommandFactory factory, PublickeyAuthenticator auth) {
+	public Server(final Context ctx, CommandFactory factory, PublickeyAuthenticator auth) {
 		sshd = SshServer.setUpDefaultServer();
 		
         if (SecurityUtils.isBouncyCastleRegistered()) {
@@ -41,7 +42,11 @@ public class Server {
         setupUserAuth(auth);
         
 		sshd.setCommandFactory(factory);
-        
+
+		if (!ctx.configuration().isRemoteAllowed()) {
+			sshd.setSessionFactory(new LocalOnlySessionFactory());
+		}
+		
         sshd.setForwardingFilter(new ForwardingFilter() {
             public boolean canForwardAgent(ServerSession session) {
                 return false;

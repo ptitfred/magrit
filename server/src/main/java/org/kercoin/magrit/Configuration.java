@@ -14,6 +14,8 @@ public class Configuration {
 	
 	private File workHomeDir = new File(DEFAULT_BASE_DIR, "builds");
 
+	private boolean remoteAllowed;
+	
 	public int getSshPort() {
 		return sshPort;
 	}
@@ -50,6 +52,14 @@ public class Configuration {
 		repositoriesHomeDir = new File(dir, "bares");
 		workHomeDir = new File(dir, "builds");
 		publickeysRepositoryDir = new File(dir, "keys");
+	}
+
+	public boolean isRemoteAllowed() {
+		return remoteAllowed;
+	}
+
+	public void setRemoteAllowed(boolean remoteAllowed) {
+		this.remoteAllowed = remoteAllowed;
 	}
 	
 }
