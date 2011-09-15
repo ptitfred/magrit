@@ -30,11 +30,9 @@ if [ $1 = "send" ]; then
 	port=${ssh_url%/*}
 	repo="/${ssh_url#*/}/"
 
-	sha1=$(git rev-parse --verify $revstr)
-	command="magrit build send $force $repo $sha1"
-	# echo $command
-
-	echo "ssh -x -p $port $user@$host $command"
-	ssh -x -p $port $user@$host $command
+	for sha1 in $(git log --format=%H $revstr); do
+		command="magrit build send $force $repo $sha1"
+		ssh -x -p $port $user@$host $command
+	done
 fi
 
