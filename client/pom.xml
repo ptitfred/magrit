@@ -3,12 +3,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.kercoin.magrit</groupId>
+	<parent>
+		<groupId>org.kercoin.magrit</groupId>
+		<artifactId>magrit</artifactId>
+		<version>mag1-SNAPSHOT</version>
+	</parent>
+	
 	<artifactId>magrit-cli</artifactId>
-	<version>1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>magrit-cli</name>
+	<description>Command Line Interface for Magrit ; Shell Scripts (Bash).</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
