@@ -155,7 +155,7 @@ public class Installer {
 			nl();
 			p("In order to use Magrit, please execute");
 			p("  .  " + magritDir.getAbsolutePath() + "/setup.sh" );
-			p("  java -jar " + magritDir.getAbsolutePath() + "/" + p.getProperty("server.archive") + " --standard " + magritDir.getAbsolutePath());
+			p("  java -jar " + magritDir.getAbsolutePath() + "/" + p.getProperty("server.archive") + " -a none -s " + magritDir.getAbsolutePath());
 			
 		} catch (Exception e) {
 			throw new ExitException(e.getMessage(), e);
