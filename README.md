@@ -28,6 +28,18 @@ A noter que ce n'est qu'une proposition, vous pouvez choisir de ne garder que
 la compilation comme condition d'acceptation. Le nombre de build ayant réussi
 est également un paramètre que chaque équipe devra déterminer.
 
+Captures d'écran:
+-----------------
+* Afficher l'état du commit courant :
+
+![magrit status](https://github.com/ptitfred/magrit/raw/resources/images/magrit-status.png)
+
+* Afficher l'état de l'historique :
+
+![magrit build-log](https://github.com/ptitfred/magrit/raw/resources/images/magrit-build-log.png)
+
+Accepte une plage de commit, exemple : origin/master..master, HEAD^^^..  etc.
+
 Participer
 ----------
 
