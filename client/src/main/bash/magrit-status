@@ -27,5 +27,4 @@ status=$(ssh -x -p $port $user@$host "magrit status $repo $commit")
 source utils
 
 echo "# $(git log --color=always -1 --oneline $commit)"
-echo "# $(_colorizeStatus $status)"
-
+echo "$(_colorizeStatus $status)"
