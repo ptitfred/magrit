@@ -2,6 +2,8 @@
 
 # magrit build send (--force) ~sha1
 
+source utils
+
 if [ $1 = "send" ]; then
 	shift 1
 	force=""
@@ -15,24 +17,14 @@ if [ $1 = "send" ]; then
 		revstr="HEAD"
 	fi
 	
-	remote=$(git config --get magrit.remote)
-	if [[ "$remote" == "" ]]; then
-		remote='magrit'
-	fi
-
-	ssh_url=$(git config --local remote.${remote}.url)
-
-	ssh_url=${ssh_url:6}
-	user=${ssh_url%@*}
-	ssh_url=${ssh_url#*@}
-	host=${ssh_url%:*}
-	ssh_url=${ssh_url#*:}
-	port=${ssh_url%/*}
-	repo="/${ssh_url#*/}/"
+	_getSsh
+	user=${_target[$_USER]}
+	host=${_target[$_HOST]}
+	port=${_target[$_PORT]}
+	repo=${_target[$_REPO]}
 
 	for sha1 in $(git log --format=%H $revstr); do
 		command="magrit build send $force $repo $sha1"
 		ssh -x -p $port $user@$host $command
 	done
 fi
-

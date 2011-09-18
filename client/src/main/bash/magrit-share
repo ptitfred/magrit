@@ -1,9 +1,8 @@
 #!/bin/bash -e
 
-remote=$(git config --get magrit.remote)
-if [[ "$remote" == "" ]]; then
-	remote="magrit"
-fi
+source utils
+
+remote=$(_getRemote)
 
 revstr="HEAD"
 if [ $# -gt 0 ]; then
