@@ -24,6 +24,8 @@ commit=$(git rev-parse $revstr)
 
 status=$(ssh -x -p $port $user@$host "magrit status $repo $commit")
 
-echo "# Commit $(git log -1 --oneline $commit)"
-echo "# ${status}"
+source utils
+
+echo "# $(git log --color=always -1 --oneline $commit)"
+echo "# $(_colorizeStatus $status)"
 

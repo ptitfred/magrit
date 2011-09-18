@@ -1,5 +1,7 @@
 #!/bin/bash -e 
 
+source utils
+
 remote=$(git config --get magrit.remote)
 if [[ "$remote" == "" ]]; then
 	remote='magrit'
@@ -17,8 +19,9 @@ repo="/${ssh_url#*/}/"
 
 for sha1 in $(git log --format=%H $1); do
 	buildStatus=$(ssh -x -p $port $user@$host "magrit status $repo $sha1")
-	log=$(git log -1 --oneline $sha1)
+	log=$(git log  --color=always -1 --oneline $sha1 -z)
 	len=${#log}
+	buildStatus=$(_colorizeStatus $buildStatus)
 	blanks="                                                            "
 	log="${log:0:60}${blanks:$len}"
 	echo -e "$log \t| $buildStatus"
