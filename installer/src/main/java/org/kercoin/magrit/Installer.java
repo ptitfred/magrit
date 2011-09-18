@@ -37,6 +37,28 @@ public class Installer {
 	
 	private Profile profile = Profile.UNKNOWN;
 	
+	private String getVersion() {
+		String file = "META-INF/maven/org.kercoin.magrit/magrit-installer/pom.properties";
+		InputStream is = null;
+		try {
+			is = getClass().getClassLoader().getResourceAsStream(file);
+			if (is == null) {
+				return "illegal";
+			}
+			Properties props = new Properties();
+			props.load(is);
+			return props.getProperty("version");
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "unknown";
+		} finally {
+			if (is != null) {
+				try { is.close(); } catch (IOException e) {}
+			}
+		}
+		
+	}
+	
 	private void go() {
 		try {
 			try {
@@ -50,7 +72,7 @@ public class Installer {
 	}
 
 	private void greetings() throws InterruptedException {
-		banner("Welcome to the MAGRIT INSTALLER", "Version: beta");
+		banner("Welcome to the MAGRIT INSTALLER", "Version: " + getVersion());
 
 		p("This will install Magrit in your system for a clean developer experience.");
 		nl();
