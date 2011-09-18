@@ -1,26 +1,33 @@
 #!/bin/bash -e 
 
-remote=$(git config --get magrit.remote)
-if [[ "$remote" == "" ]]; then
-	remote='magrit'
+source utils
+
+_getSsh
+user=${_target[$_USER]}
+host=${_target[$_HOST]}
+port=${_target[$_PORT]}
+repo=${_target[$_REPO]}
+
+logWidth=$(git config --get --int magrit.log.maxWidth || echo "60")
+if [ $logWidth -lt 40 ]; then
+	logWidth=40
+elif [ $logWidth -gt 100 ]; then
+	logWidth=100
 fi
 
-ssh_url=$(git config --local remote.${remote}.url)
-
-ssh_url=${ssh_url:6}
-user=${ssh_url%@*}
-ssh_url=${ssh_url#*@}
-host=${ssh_url%:*}
-ssh_url=${ssh_url#*:}
-port=${ssh_url%/*}
-repo="/${ssh_url#*/}/"
+blanks=$(for i in $(seq $logWidth); do echo -n ' '; done)
 
 for sha1 in $(git log --format=%H $1); do
 	buildStatus=$(ssh -x -p $port $user@$host "magrit status $repo $sha1")
-	log=$(git log -1 --oneline $sha1)
+	log=$(git log  --color=always -1 --oneline $sha1 -z)
 	len=${#log}
-	blanks="                                                            "
-	log="${log:0:60}${blanks:$len}"
-	echo -e "$log \t| $buildStatus"
+	buildStatus=$(_colorizeStatus $buildStatus)
+	log="${log:0:$logWidth}${blanks:$len}"
+	lineEnd=" "
+	if [ $len -ge $logWidth ]
+	then
+		lineEnd="\u2026"
+	fi
+	echo -e "$log$lineEnd | $buildStatus"
 done
 

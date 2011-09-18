@@ -1,19 +1,12 @@
 #!/bin/bash -e
 
-remote=$(git config --get magrit.remote)
-if [[ "$remote" == "" ]]; then
-	remote='magrit'
-fi
+source utils
 
-ssh_url=$(git config --local remote.${remote}.url)
-
-ssh_url=${ssh_url:6}
-user=${ssh_url%@*}
-ssh_url=${ssh_url#*@}
-host=${ssh_url%:*}
-ssh_url=${ssh_url#*:}
-port=${ssh_url%/*}
-repo="/${ssh_url#*/}/"
+_getSsh
+user=${_target[$_USER]}
+host=${_target[$_HOST]}
+port=${_target[$_PORT]}
+repo=${_target[$_REPO]}
 
 revstr="HEAD"
 if [ $# -gt 0 ]; then
@@ -24,6 +17,5 @@ commit=$(git rev-parse $revstr)
 
 status=$(ssh -x -p $port $user@$host "magrit status $repo $commit")
 
-echo "# Commit $(git log -1 --oneline $commit)"
-echo "# ${status}"
-
+echo "# $(git log --color=always -1 --oneline $commit)"
+echo "$(_colorizeStatus $status)"

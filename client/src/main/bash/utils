@@ -1,0 +1,58 @@
+function _getRemote {
+	remote=$(git config --get magrit.remote)
+	if [[ "$remote" == "" ]]; then
+		remote='magrit'
+	fi
+	echo $remote
+}
+
+_USER=0
+_HOST=1
+_PORT=2
+_REPO=3
+
+_target[_USER]=""
+_target[_HOST]=""
+_target[_PORT]=""
+_target[_REPO]=""
+function _getSsh {
+	remote=$(_getRemote)
+	
+	ssh_url=$(git config --local remote.${remote}.url)
+	
+	ssh_url=${ssh_url:6}
+	user=${ssh_url%@*}
+	ssh_url=${ssh_url#*@}
+	host=${ssh_url%:*}
+	ssh_url=${ssh_url#*:}
+	port=${ssh_url%/*}
+	repo="/${ssh_url#*/}/"
+	
+	_target[$_USER]=$user
+	_target[$_HOST]=$host
+	_target[$_PORT]=$port
+	_target[$_REPO]=$repo
+}
+
+function _color {
+	#echo $1
+	echo -e "\x1b[${1}m"
+}
+
+error=$(_color "91")
+warning=$(_color "36")
+cool=$(_color "92")
+clear=$(_color "0")
+
+# $1 is the text to colorize
+# $2 is the color code
+function _colorize {
+	echo $1 | sed -e "s/^/$(_color $2)/" -e "s/$/${clear}/"
+}
+
+function _colorizeStatus {
+	echo $1 | sed \
+		-e "s/O/${cool}O${clear}/g" \
+		-e "s/E/${error}E${clear}/g" \
+		-e "s/?/${warning}?${clear}/g"
+}
