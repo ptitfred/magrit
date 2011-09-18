@@ -14,7 +14,7 @@ if [ $1 = "send" ]; then
 	if [ $# -gt 0 ]; then
 		revstr=$1
 	else
-		revstr="HEAD"
+		revstr="-1 HEAD"
 	fi
 	
 	_getSsh
