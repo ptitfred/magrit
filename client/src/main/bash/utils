@@ -44,15 +44,35 @@ warning=$(_color "36")
 cool=$(_color "92")
 clear=$(_color "0")
 
+_color=$(git config --get color.ui)
+if [ $_color = "auto" ]; then
+	_color=1
+	_colorAction=always
+elif [ $_color = "always" ]; then
+	_color=1
+	_colorAction=always
+else
+	_color=0
+	_colorAction=never
+fi
+
 # $1 is the text to colorize
 # $2 is the color code
 function _colorize {
-	echo $1 | sed -e "s/^/$(_color $2)/" -e "s/$/${clear}/"
+	if [ $color -eq 1 ]; then
+		echo $1 | sed -e "s/^/$(_color $2)/" -e "s/$/${clear}/"
+	else
+		echo $1
+	fi
 }
 
 function _colorizeStatus {
-	echo $1 | sed \
-		-e "s/O/${cool}O${clear}/g" \
-		-e "s/E/${error}E${clear}/g" \
-		-e "s/?/${warning}?${clear}/g"
+	if [ $_color -eq 1 ]; then
+		echo $1 | sed \
+			-e "s/O/${cool}O${clear}/g" \
+			-e "s/E/${error}E${clear}/g" \
+			-e "s/?/${warning}?${clear}/g"
+	else
+		echo $1
+	fi
 }
