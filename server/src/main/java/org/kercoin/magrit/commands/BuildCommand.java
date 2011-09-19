@@ -153,10 +153,17 @@ public class BuildCommand extends AbstractCommand<BuildCommand> {
 	}
 
 	private void sendBuild(ObjectId newId) {
-		String msg = String.format("Triggering build for commit %s on repository %s by %s.", newId.getName(), repo.getDirectory(), committer);
-		log.info(msg);
 		try {
-			buildQueueService.enqueueBuild(committer, repo, newId.getName(), force);
+			if (buildQueueService.enqueueBuild(committer, repo, newId.getName(), force) != null) {
+				String msg = String.format("Triggering build for commit %s on repository %s by %s.", newId.getName(), repo.getDirectory(), committer);
+				log.info(msg);
+				this.out.write('1');
+			} else {
+				String msg = String.format("Asked to build the commit %s on repository %s by %s but was skipped", newId.getName(), repo.getDirectory(), committer);
+				log.info(msg);
+				this.out.write('0');
+			}
+			this.out.flush();
 		} catch (Exception e) {
 			log.error("Unable to send build", e);
 			e.printStackTrace();

@@ -96,10 +96,10 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 		final EnumSet<BuildStatus> aggreg = EnumSet.copyOf(statuses);
 		if (aggreg.size()==1) {
 			if (aggreg.contains(BuildStatus.UNKNOWN)) {
-				return true;
+				return false;
 			}
 			if (aggreg.contains(BuildStatus.LOCAL)) {
-				return false;
+				return true;
 			}
 		} 
 		if (aggreg.contains(BuildStatus.RUNNING)) {
