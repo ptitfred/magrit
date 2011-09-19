@@ -59,7 +59,7 @@ fi
 # $1 is the text to colorize
 # $2 is the color code
 function _colorize {
-	if [ $color -eq 1 ]; then
+	if [ $_color -eq 1 ]; then
 		echo $1 | sed -e "s/^/$(_color $2)/" -e "s/$/${clear}/"
 	else
 		echo $1
@@ -75,4 +75,32 @@ function _colorizeStatus {
 	else
 		echo $1
 	fi
+}
+
+_logWidth=$(git config --get --int magrit.log.maxWidth || echo "60")
+let "_logWidth += 8"
+MIN=20
+MAX=100
+if [ $_logWidth -lt $MIN ]; then
+	_logWidth=$MIN
+elif [ $_logWidth -gt $MAX ]; then
+	_logWidth=$MAX
+fi
+
+if [ $_color -eq 1 ]; then
+	let "_logWidth += 8"
+fi
+
+_logBlanks=$(for i in $(seq $_logWidth); do echo -n ' '; done)
+
+function _ellipsis {
+	text="$1"
+	len=${#text}
+	text="${text:0:$_logWidth}${_logBlanks:$len}"
+	lineEnd=" "
+	if [ $len -ge $_logWidth ]
+	then
+		lineEnd="\u2026"
+	fi
+	echo -e "$text$lineEnd"
 }
