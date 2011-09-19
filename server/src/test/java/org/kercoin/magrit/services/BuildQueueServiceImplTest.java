@@ -109,7 +109,7 @@ public class BuildQueueServiceImplTest {
 		assertThat(
 				enqueue(false,
 						Arrays.asList(BuildStatus.LOCAL))
-				).isNull();
+				).isNotNull();
 	}
 
 	@Test
@@ -117,7 +117,7 @@ public class BuildQueueServiceImplTest {
 		assertThat(
 				enqueue(false,
 						Arrays.asList(BuildStatus.UNKNOWN))
-				).isNotNull();
+				).isNull();
 	}
 
 	@Test
