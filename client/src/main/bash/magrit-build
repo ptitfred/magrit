@@ -26,10 +26,15 @@ if [ $1 = "send" ]; then
 	for sha1 in $(git log --format=%H $revstr); do
 		command="magrit build send $force $repo $sha1"
 		status=$(ssh -x -p $port $user@$host $command)
-		if [ $status -eq 1 ]; then
-			echo -e "build ask for $(git log --color=$_colorAction --oneline -1 $sha1 | cut -d" " -f1)"
-		else
-			echo -e "build skipped by server, use --force if you really want it!"
+		
+		log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
+		
+		statusText=$(_colorize "Submitted" 92)
+		if [ $status -eq 0 ]; then
+			statusText=$(_colorize "Skipped" 37)
 		fi
+		
+		echo -e "$(_ellipsis "$log") | $statusText"
+		
 	done
 fi

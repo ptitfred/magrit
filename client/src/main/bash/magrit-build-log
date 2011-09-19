@@ -8,33 +8,12 @@ host=${_target[$_HOST]}
 port=${_target[$_PORT]}
 repo=${_target[$_REPO]}
 
-logWidth=$(git config --get --int magrit.log.maxWidth || echo "60")
-let "logWidth += 8"
-MIN=20
-MAX=100
-if [ $logWidth -lt $MIN ]; then
-	logWidth=$MIN
-elif [ $logWidth -gt $MAX ]; then
-	logWidth=$MAX
-fi
-
-if [ $_color -eq 1 ]; then
-	let "logWidth += 8"
-fi
-
-blanks=$(for i in $(seq $logWidth); do echo -n ' '; done)
-
 for sha1 in $(git log --format=%H $1); do
+	log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
+
 	buildStatus=$(ssh -x -p $port $user@$host "magrit status $repo $sha1")
-	log=$(git log  --color=$_colorAction -1 --oneline $sha1 -z)
-	len=${#log}
 	buildStatus=$(_colorizeStatus $buildStatus)
-	log="${log:0:$logWidth}${blanks:$len}"
-	lineEnd=" "
-	if [ $len -ge $logWidth ]
-	then
-		lineEnd="\u2026"
-	fi
-	echo -e "$log$lineEnd | $buildStatus"
+	
+	echo -e "$(_ellipsis "$log") | $buildStatus"
 done
 
