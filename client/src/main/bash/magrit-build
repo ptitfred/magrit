@@ -25,6 +25,7 @@ if [ $1 = "send" ]; then
 
 	for sha1 in $(git log --format=%H $revstr); do
 		command="magrit build send $force $repo $sha1"
+		#echo -e "ask build for $(_colorize $sha1 31)"
 		ssh -x -p $port $user@$host $command
 	done
 fi

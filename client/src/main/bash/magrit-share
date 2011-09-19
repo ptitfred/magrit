@@ -12,5 +12,5 @@ fi
 commit=$(git rev-parse --verify "$revstr")
 
 git push --force $remote $revstr
-magrit build send $commit
+magrit build send "-1 $commit"
 
