@@ -1,0 +1,33 @@
+#!/bin/bash -e
+
+source utils
+
+_getSsh
+
+force=""
+if [ "$1" = "--force" ]; then
+	force="--force"
+	shift 1
+fi
+if [ $# -gt 0 ]; then
+	revstr=$1
+else
+	revstr="-1 HEAD"
+fi
+
+repo=${_target[$_REPO]}
+
+for sha1 in $(git log --format=%H $revstr); do
+	command="magrit send-build $force $repo $sha1"
+	status=$(_sendSshCommand $command)
+	
+	log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
+	
+	statusText=$(_colorize "Submitted" 92)
+	if [ $status -eq 0 ]; then
+		statusText=$(_colorize "Skipped" 37)
+	fi
+	
+	echo -e "$(_ellipsis "$log") | $statusText"
+	
+done
