@@ -4,10 +4,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
 
+import org.eclipse.jgit.util.io.NullOutputStream;
+
 public class LoggerOutputStream extends java.io.OutputStream {
 	private OutputStream delegate;
 	private StringWriter logs = new StringWriter();
 
+	public LoggerOutputStream() {
+		this(NullOutputStream.INSTANCE);
+	}
+	
 	public LoggerOutputStream(OutputStream delegate) {
 		super();
 		this.delegate = delegate;

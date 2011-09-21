@@ -16,32 +16,32 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-public class BuildCommand extends AbstractCommand<BuildCommand> {
+public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Singleton
-	public static class BuildCommandProvider implements CommandProvider<BuildCommand> {
+	public static class SendBuildCommandProvider implements CommandProvider<SendBuildCommand> {
 
 		private final Context ctx;
 		private final BuildQueueService buildQueueService;
 		private final UserIdentityService userService;
 		
 		@Inject
-		public BuildCommandProvider(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
+		public SendBuildCommandProvider(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
 			this.ctx = ctx;
 			this.buildQueueService = buildQueueService;
 			this.userService = userService;
 		}
 		
 		@Override
-		public BuildCommand get() {
-			return new BuildCommand(ctx, buildQueueService, userService);
+		public SendBuildCommand get() {
+			return new SendBuildCommand(ctx, buildQueueService, userService);
 		}
 
 		@Override
 		public boolean accept(String command) {
-			return command.startsWith("magrit build ");
+			return command.startsWith("magrit send-build ");
 		}
 		
 	}
@@ -55,7 +55,7 @@ public class BuildCommand extends AbstractCommand<BuildCommand> {
 	private String sha1;
 	private boolean force;
 	
-	public BuildCommand(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
+	public SendBuildCommand(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
 		super(ctx);
 		this.buildQueueService = buildQueueService;
 		this.userService = userService;
@@ -75,15 +75,13 @@ public class BuildCommand extends AbstractCommand<BuildCommand> {
 	}
 
 	@Override
-	public BuildCommand command(String command) throws IOException {
+	public SendBuildCommand command(String command) throws IOException {
 		// magrit build send SHA1
 		// magrit build send --force SHA1
 		Scanner scanner = new Scanner(command);
 		scanner.useDelimiter("\\s{1,}");
 		check(scanner.next(), "magrit");
-		check(scanner.next(), "build");
-		check(command, scanner.hasNext());
-		check(scanner.next(), "send");
+		check(scanner.next(), "send-build");
 		check(command, scanner.hasNext());
 		String remainder = scanner.next();
 		boolean force = false;
@@ -105,12 +103,6 @@ public class BuildCommand extends AbstractCommand<BuildCommand> {
 		return this;
 	}
 
-	private void checkSha1(String sha1) {
-		if (!gitUtils.isSha1(sha1)) {
-			throw new IllegalArgumentException("Syntax: magrit build send <SHA1>");
-		}
-	}
-	
 	boolean isForce() {
 		return force;
 	}
@@ -135,21 +127,9 @@ public class BuildCommand extends AbstractCommand<BuildCommand> {
 		this.repo = repo;
 	}
 
-	private void check(String command, boolean hasNext) {
-		if (!hasNext) {
-			throw new IllegalArgumentException(String.format("Too many argument for command %s to be executed", command));
-		}
-	}
-
-	private void check(String tested, String ref) throws IllegalArgumentException {
-		if (!ref.equals(tested)) {
-			throw new IllegalArgumentException(String.format("Expected %s but was %s", ref, tested));
-		}
-	}
-
 	@Override
-	protected Class<BuildCommand> getType() {
-		return BuildCommand.class;
+	protected Class<SendBuildCommand> getType() {
+		return SendBuildCommand.class;
 	}
 
 	private void sendBuild(ObjectId newId) {

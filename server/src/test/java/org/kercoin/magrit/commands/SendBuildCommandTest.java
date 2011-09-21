@@ -23,9 +23,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BuildCommandTest {
+public class SendBuildCommandTest {
 
-	BuildCommand buildCommand;
+	SendBuildCommand buildCommand;
 
 	Context ctx;
 	GitUtils gitUtils;
@@ -42,16 +42,16 @@ public class BuildCommandTest {
 	public void createBuildCommand() throws Exception {
 		gitUtils = new GitUtils();
 		ctx = new Context(gitUtils);
-		buildCommand = new BuildCommand(ctx, buildQueueService, userService);
+		buildCommand = new SendBuildCommand(ctx, buildQueueService, userService);
 		given(env.getEnv()).willReturn(new HashMap<String, String>() {{put(Environment.ENV_USER, "ptitfred");}});
 		buildCommand.env = env;
 		buildCommand.callback = exitCallback;
 	}
 
 	@Test
-	public void testCommandString() throws IOException {
+	public void testSend() throws IOException {
 		// when
-		buildCommand.command("magrit build send /r1 0123401234012340123401234012340123401234");
+		buildCommand.command("magrit send-build /r1 0123401234012340123401234012340123401234");
 
 		// then
 		assertThat(buildCommand.isForce()).isFalse();
@@ -60,9 +60,9 @@ public class BuildCommandTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testCommandString_onlySha1() throws IOException {
+	public void testSend_onlySha1() throws IOException {
 		// when
-		buildCommand.command("magrit build send /r1 HEAD");
+		buildCommand.command("magrit send-build /r1 HEAD");
 
 		// then
 		assertThat(buildCommand.isForce()).isFalse();
@@ -71,9 +71,9 @@ public class BuildCommandTest {
 	}
 	
 	@Test
-	public void testCommandString_force() throws IOException {
+	public void testSend_force() throws IOException {
 		// when
-		buildCommand.command("magrit build send --force /r1 0123401234012340123401234012340123401234");
+		buildCommand.command("magrit send-build --force /r1 0123401234012340123401234012340123401234");
 
 		// then
 		assertThat(buildCommand.isForce()).isTrue();
