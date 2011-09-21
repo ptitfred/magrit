@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import org.kercoin.magrit.Context;
 import org.kercoin.magrit.commands.AbstractCommand.CommandProvider;
+import org.kercoin.magrit.commands.CatBuildCommand.CatBuildCommandProvider;
 import org.kercoin.magrit.commands.SendBuildCommand.SendBuildCommandProvider;
 import org.kercoin.magrit.commands.GetStatusCommand.GetStatusCommandProvider;
 import org.kercoin.magrit.commands.MonitorCommand.MonitorCommandProvider;
@@ -31,6 +32,7 @@ public class CommandsProvider implements Provider<Iterable<CommandProvider<?>>>{
 		bind(commands, GetStatusCommandProvider.class);
 		bind(commands, MonitorCommandProvider.class);
 		bind(commands, SendBuildCommandProvider.class);
+		bind(commands, CatBuildCommandProvider.class);
 		return commands;
 	}
 

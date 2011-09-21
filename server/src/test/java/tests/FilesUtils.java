@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.eclipse.jgit.util.FileUtils;
+
 public class FilesUtils {
 
 	public static String tail(File file, int lines) {
@@ -64,5 +66,13 @@ public class FilesUtils {
 			}
 		}
 		return sb.toString();
+	}
+
+	public static void recursiveDelete(File path) {
+		try {
+			FileUtils.delete(path, FileUtils.RECURSIVE);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

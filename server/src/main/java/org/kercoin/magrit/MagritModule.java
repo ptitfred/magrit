@@ -2,6 +2,8 @@ package org.kercoin.magrit;
 
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.PublickeyAuthenticator;
+import org.kercoin.magrit.services.BuildDAO;
+import org.kercoin.magrit.services.BuildDAOImpl;
 import org.kercoin.magrit.services.BuildQueueService;
 import org.kercoin.magrit.services.BuildQueueServiceImpl;
 import org.kercoin.magrit.services.BuildStatusesService;
@@ -24,6 +26,7 @@ public class MagritModule extends AbstractModule {
 		bind(PublickeyAuthenticator.class).to(GitPublickeyAuthenticator.class);
 		bind(CommandFactory.class).to(MagritCommandFactory.class);
 		bind(UserIdentityService.class).to(DummyUserIdentityService.class);
+		bind(BuildDAO.class).to(BuildDAOImpl.class);
 	}
 
 }

@@ -12,13 +12,19 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.GitUtilsTest;
+import org.mockito.runners.MockitoJUnitRunner;
 
+import tests.GuiceModulesHolder;
 
+@RunWith(MockitoJUnitRunner.class)
 public class BuildStatusesServiceImplTest {
 
 	BuildStatusesServiceImpl service;
+
+	BuildDAO dao;
 	
 	static Repository test;
 	
@@ -38,6 +44,7 @@ public class BuildStatusesServiceImplTest {
 	public static void tearDownClass() {
 		if (test != null) {
 			test.close();
+			tests.FilesUtils.recursiveDelete(test.getDirectory().getParentFile());
 			test = null;
 		}
 	}
@@ -45,7 +52,8 @@ public class BuildStatusesServiceImplTest {
 	@Before
 	public void setup() {
 		initMocks(this);
-		service = new BuildStatusesServiceImpl(new GitUtils());
+		dao = GuiceModulesHolder.MAGRIT_MODULE.getInstance(BuildDAO.class);
+		service = new BuildStatusesServiceImpl(new GitUtils(), dao);
 	}
 	
 	@Test

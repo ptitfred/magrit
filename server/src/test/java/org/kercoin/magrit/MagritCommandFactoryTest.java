@@ -6,6 +6,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.kercoin.magrit.commands.CatBuildCommand;
 import org.kercoin.magrit.commands.CommandsProvider;
 import org.kercoin.magrit.commands.GetStatusCommand;
 import org.kercoin.magrit.commands.MonitorCommand;
@@ -40,6 +41,11 @@ public class MagritCommandFactoryTest {
 	@Test
 	public void testCreateCommand_nominal_SendBuildCommand() {
 		assertCommand("magrit send-build /r1 1234512345123451234512345123451234512345", SendBuildCommand.class);
+	}
+	
+	@Test
+	public void testCreateCommand_nominal_CatBuildCommand() {
+		assertCommand("magrit cat-build /r1 1234512345123451234512345123451234512345", CatBuildCommand.class);
 	}
 	
 	@Test

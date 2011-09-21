@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.kercoin.magrit.Context;
 import org.kercoin.magrit.MagritModule;
 import org.kercoin.magrit.commands.AbstractCommand.CommandProvider;
+import org.kercoin.magrit.commands.CatBuildCommand.CatBuildCommandProvider;
 import org.kercoin.magrit.commands.GetStatusCommand.GetStatusCommandProvider;
 import org.kercoin.magrit.commands.MonitorCommand.MonitorCommandProvider;
 import org.kercoin.magrit.commands.ReceivePackCommand.ReceivePackCommandProvider;
@@ -50,9 +51,10 @@ public class CommandsProviderTest {
 		
 		// then
 		assertThat(types)
-			.hasSize(4)
+			.hasSize(5)
 			.contains(
 					SendBuildCommandProvider.class,
+					CatBuildCommandProvider.class,
 					ReceivePackCommandProvider.class,
 					GetStatusCommandProvider.class,
 					MonitorCommandProvider.class
