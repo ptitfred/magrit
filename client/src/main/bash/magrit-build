@@ -4,6 +4,8 @@
 
 source utils
 
+_getSsh
+
 if [ $1 = "send" ]; then
 	shift 1
 	force=""
@@ -17,7 +19,6 @@ if [ $1 = "send" ]; then
 		revstr="-1 HEAD"
 	fi
 	
-	_getSsh
 	repo=${_target[$_REPO]}
 
 	for sha1 in $(git log --format=%H $revstr); do
@@ -34,4 +35,18 @@ if [ $1 = "send" ]; then
 		echo -e "$(_ellipsis "$log") | $statusText"
 		
 	done
+elif [ $1 = "cat-log" ]; then
+	# magrit build cat-log <REVSTR>
+	shift 1
+	
+	if [ $# -gt 0 ]; then
+		revstr=$1
+	else
+		revstr="HEAD"
+	fi
+	
+	sha1=$(git rev-parse --verify $revstr)
+	command="magrit build cat-log $sha1"
+	_sendSshCommand $command
+	
 fi
