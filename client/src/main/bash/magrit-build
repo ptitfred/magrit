@@ -18,14 +18,11 @@ if [ $1 = "send" ]; then
 	fi
 	
 	_getSsh
-	user=${_target[$_USER]}
-	host=${_target[$_HOST]}
-	port=${_target[$_PORT]}
 	repo=${_target[$_REPO]}
 
 	for sha1 in $(git log --format=%H $revstr); do
 		command="magrit build send $force $repo $sha1"
-		status=$(ssh -x -p $port $user@$host $command)
+		status=$(_sendSshCommand $command)
 		
 		log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
 		
