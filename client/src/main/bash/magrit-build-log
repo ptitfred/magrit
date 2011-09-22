@@ -3,15 +3,12 @@
 source utils
 
 _getSsh
-user=${_target[$_USER]}
-host=${_target[$_HOST]}
-port=${_target[$_PORT]}
 repo=${_target[$_REPO]}
 
 for sha1 in $(git log --format=%H $1); do
 	log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
 
-	buildStatus=$(ssh -x -p $port $user@$host "magrit status $repo $sha1")
+	buildStatus=$(_sendSshCommand magrit status $repo $sha1)
 	buildStatus=$(_colorizeStatus $buildStatus)
 	
 	echo -e "$(_ellipsis "$log") | $buildStatus"

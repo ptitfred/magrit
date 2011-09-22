@@ -3,9 +3,6 @@
 source utils
 
 _getSsh
-user=${_target[$_USER]}
-host=${_target[$_HOST]}
-port=${_target[$_PORT]}
 repo=${_target[$_REPO]}
 
 revstr="HEAD"
@@ -15,7 +12,7 @@ fi
 
 commit=$(git rev-parse $revstr)
 
-status=$(ssh -x -p $port $user@$host "magrit status $repo $commit")
+status=$(_sendSshCommand magrit status $repo $commit)
 
 echo "# $(git log --color=$_colorAction -1 --oneline $commit)"
 echo "$(_colorizeStatus $status)"

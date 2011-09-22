@@ -4,37 +4,13 @@
 
 source utils
 
-if [ $1 = "send" ]; then
-	shift 1
-	force=""
-	if [ "$1" = "--force" ]; then
-		force="--force"
-		shift 1
-	fi
-	if [ $# -gt 0 ]; then
-		revstr=$1
-	else
-		revstr="-1 HEAD"
-	fi
-	
-	_getSsh
-	user=${_target[$_USER]}
-	host=${_target[$_HOST]}
-	port=${_target[$_PORT]}
-	repo=${_target[$_REPO]}
+_getSsh
 
-	for sha1 in $(git log --format=%H $revstr); do
-		command="magrit build send $force $repo $sha1"
-		status=$(ssh -x -p $port $user@$host $command)
-		
-		log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
-		
-		statusText=$(_colorize "Submitted" 92)
-		if [ $status -eq 0 ]; then
-			statusText=$(_colorize "Skipped" 37)
-		fi
-		
-		echo -e "$(_ellipsis "$log") | $statusText"
-		
-	done
+action=$1
+shift 1
+
+if [ $action = "send" ]; then
+	magrit send-build $*
+elif [ $action = "cat-log" ]; then
+	magrit cat-build $*
 fi

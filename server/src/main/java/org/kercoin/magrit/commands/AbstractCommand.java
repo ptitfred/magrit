@@ -120,4 +120,23 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 	
 	protected abstract Class<C> getType();
 
+	protected void checkSha1(String sha1) {
+		if (!gitUtils.isSha1(sha1)) {
+			throw new IllegalArgumentException(String.format("%s isn't a valid 40 bytes SHA1", sha1));
+		}
+	}
+
+	protected void check(String command, boolean hasNext) {
+		if (!hasNext) {
+			throw new IllegalArgumentException(String.format("Too few arguments for command %s to be executed", command));
+		}
+	}
+
+	protected void check(String tested, String ref)
+			throws IllegalArgumentException {
+				if (!ref.equals(tested)) {
+					throw new IllegalArgumentException(String.format("Expected %s but was %s", ref, tested));
+				}
+			}
+
 }
