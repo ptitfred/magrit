@@ -49,9 +49,55 @@
 							<goal>single</goal>
 						</goals>
 					</execution>
-				</executions>				
+				</executions>
 			</plugin>
 
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<instrumentation>
+						<ignores>
+							<ignore>tests.*</ignore>
+						</ignores>
+						<!-- <excludes> <exclude>com/example/dullcode/**/*.class</exclude> 
+							<exclude>com/example/**/*Test.class</exclude> </excludes> -->
+					</instrumentation>
+					<check>
+						<branchRate>85</branchRate>
+						<lineRate>70</lineRate>
+						<haltOnFailure>false</haltOnFailure>
+						<totalBranchRate>70</totalBranchRate>
+						<totalLineRate>50</totalLineRate>
+						<packageLineRate>85</packageLineRate>
+						<packageBranchRate>70</packageBranchRate>
+						<regexes>
+							<!-- <regex> <pattern>com.example.reallyimportant.*</pattern> <branchRate>90</branchRate> 
+								<lineRate>80</lineRate> </regex> <regex> <pattern>com.example.boringcode.*</pattern> 
+								<branchRate>40</branchRate> <lineRate>30</lineRate> </regex> -->
+						</regexes>
+					</check>
+
+				</configuration>
+				<executions>
+					<execution>
+						<id>control</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>clean</goal>
+							<goal>check</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>analyse</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cobertura</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -130,4 +176,20 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<formats>
+						<format>html</format>
+					</formats>
+				
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>
