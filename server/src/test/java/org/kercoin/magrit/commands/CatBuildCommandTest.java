@@ -42,7 +42,7 @@ public class CatBuildCommandTest {
 	@Before
 	public void createBuildCommand() throws Exception {
 		gitUtils = new GitUtils();
-		ctx = new Context(gitUtils);
+		ctx = new Context(gitUtils, null);
 		buildCommand = new CatBuildCommand(ctx, dao);
 		given(env.getEnv()).willReturn(
 				new HashMap<String, String>() {{put(Environment.ENV_USER, "ptitfred");}}

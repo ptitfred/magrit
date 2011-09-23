@@ -96,7 +96,7 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 	@Override
 	public void start(Environment env) throws IOException {
 		this.env = env;
-		new Thread(this, getName()).start();
+		ctx.getCommandRunnerPool().execute(this);
 	}
 	
 	protected String getName() {
