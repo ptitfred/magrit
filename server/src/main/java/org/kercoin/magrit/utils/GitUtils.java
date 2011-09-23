@@ -61,7 +61,7 @@ public class GitUtils {
 		if (candidate.length()!=40) {
 			return false;
 		}
-		return Pattern.compile("[0-9a-z]{40}").matcher(candidate).matches();
+		return Pattern.compile("[0-9a-f]{40}").matcher(candidate).matches();
 	}
 
 	public Repository createRepository(File fullPath) throws IOException {

@@ -40,9 +40,6 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 	public abstract C command(String command) throws Exception;
 	
 	protected Repository createRepository(String repoPath) throws IOException {
-		if (repoPath.charAt(0) == '/') {
-			repoPath = repoPath.substring(1);
-		}
 		return gitUtils.createRepository(
 				new File(	ctx.configuration().getRepositoriesHomeDir(),
 							repoPath
@@ -50,7 +47,7 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 			);
 	}
 	
-	private boolean logStreams = false;
+	boolean logStreams = false;
 	
 	@Override
 	public void setInputStream(InputStream in) {
@@ -60,7 +57,11 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 			this.in = in;
 		}
 	}
-
+	
+	protected InputStream getInputStream() {
+		return this.in;
+	}
+	
 	@Override
 	public void setOutputStream(OutputStream out) {
 		if (logStreams && !(out instanceof LoggerOutputStream)) {
@@ -70,6 +71,10 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 		}
 	}
 
+	protected OutputStream getOutputStream() {
+		return out;
+	}
+
 	@Override
 	public void setErrorStream(OutputStream err) {
 		if (logStreams && !(err instanceof LoggerOutputStream)) {
@@ -77,6 +82,10 @@ public abstract class AbstractCommand<C extends AbstractCommand<C>> implements C
 		} else {
 			this.err = err;
 		}
+	}
+	
+	protected OutputStream getErrorStream() {
+		return err;
 	}
 
 	@Override
