@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.utils;
 
 import org.kercoin.magrit.utils.Pair;
 

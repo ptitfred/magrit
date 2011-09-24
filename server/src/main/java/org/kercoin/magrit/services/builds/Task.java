@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.builds;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,13 +23,14 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.kercoin.magrit.utils.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BuildTask implements Callable<BuildResult> {
+public class Task implements Callable<BuildResult> {
 
 	private static final char NL = '\n';
 
@@ -44,7 +45,7 @@ public class BuildTask implements Callable<BuildResult> {
 	private Repository repository;
 	private RevCommit commit;
 
-	public BuildTask(GitUtils gitUtils, UserIdentity user,
+	public Task(GitUtils gitUtils, UserIdentity user,
 			TimeService timeService, Repository remote, Pair<Repository,String> target) {
 		this.gitUtils = gitUtils;
 		this.user = user;

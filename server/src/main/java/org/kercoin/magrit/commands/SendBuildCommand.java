@@ -7,8 +7,8 @@ import org.apache.sshd.server.Environment;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.BuildQueueService;
-import org.kercoin.magrit.services.UserIdentityService;
+import org.kercoin.magrit.services.builds.QueueService;
+import org.kercoin.magrit.services.utils.UserIdentityService;
 import org.kercoin.magrit.utils.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +24,11 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 	public static class SendBuildCommandProvider implements CommandProvider<SendBuildCommand> {
 
 		private final Context ctx;
-		private final BuildQueueService buildQueueService;
+		private final QueueService buildQueueService;
 		private final UserIdentityService userService;
 		
 		@Inject
-		public SendBuildCommandProvider(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
+		public SendBuildCommandProvider(Context ctx, QueueService buildQueueService, UserIdentityService userService) {
 			this.ctx = ctx;
 			this.buildQueueService = buildQueueService;
 			this.userService = userService;
@@ -46,7 +46,7 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 		
 	}
 	
-	private final BuildQueueService buildQueueService;
+	private final QueueService buildQueueService;
 	private final UserIdentityService userService;
 	
 	private UserIdentity committer;
@@ -55,7 +55,7 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 	private String sha1;
 	private boolean force;
 	
-	public SendBuildCommand(Context ctx, BuildQueueService buildQueueService, UserIdentityService userService) {
+	public SendBuildCommand(Context ctx, QueueService buildQueueService, UserIdentityService userService) {
 		super(ctx);
 		this.buildQueueService = buildQueueService;
 		this.userService = userService;

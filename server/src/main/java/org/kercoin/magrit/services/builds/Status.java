@@ -1,6 +1,6 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.builds;
 
-public enum BuildStatus {
+public enum Status {
 	RUNNING('R'),
 	ERROR('E'),
 	OK('O'),
@@ -11,7 +11,7 @@ public enum BuildStatus {
 	
 	private char code;
 	
-	private BuildStatus(char code) { this.code = code; }
+	private Status(char code) { this.code = code; }
 	
 	public char getCode() {
 		return code;

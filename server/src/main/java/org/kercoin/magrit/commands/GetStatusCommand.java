@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.BuildStatus;
-import org.kercoin.magrit.services.BuildStatusesService;
+import org.kercoin.magrit.services.builds.Status;
+import org.kercoin.magrit.services.builds.StatusesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +22,11 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	public static class GetStatusCommandProvider implements CommandProvider<GetStatusCommand> {
 
 		private Context ctx;
-		private BuildStatusesService buildStatusesService;
+		private StatusesService buildStatusesService;
 
 		@Inject
 		public GetStatusCommandProvider(Context ctx,
-				BuildStatusesService buildStatusesService) {
+				StatusesService buildStatusesService) {
 			super();
 			this.ctx = ctx;
 			this.buildStatusesService = buildStatusesService;
@@ -44,11 +44,11 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 		
 	}
 	
-	private BuildStatusesService buildStatusesService;
+	private StatusesService buildStatusesService;
 	private Repository repo;
 	private String sha1;
 	
-	public GetStatusCommand(Context ctx, BuildStatusesService buildStatusesService) {
+	public GetStatusCommand(Context ctx, StatusesService buildStatusesService) {
 		super(ctx);
 		this.buildStatusesService = buildStatusesService;
 	}
@@ -86,9 +86,9 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	
 	@Override
 	public void run() {
-		List<BuildStatus> statuses = buildStatusesService.getStatus(repo, sha1);
+		List<Status> statuses = buildStatusesService.getStatus(repo, sha1);
 		try {
-			for(BuildStatus status : statuses) {
+			for(Status status : statuses) {
 				out.write(status.getCode());
 			}
 			out.write('\n');

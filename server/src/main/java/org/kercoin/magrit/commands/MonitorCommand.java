@@ -7,25 +7,25 @@ import java.util.Date;
 
 import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.BuildCallback;
-import org.kercoin.magrit.services.BuildQueueService;
-import org.kercoin.magrit.services.BuildStatus;
+import org.kercoin.magrit.services.builds.BuildLifeCycleListener;
+import org.kercoin.magrit.services.builds.QueueService;
+import org.kercoin.magrit.services.builds.Status;
 import org.kercoin.magrit.utils.Pair;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-public class MonitorCommand extends AbstractCommand<MonitorCommand> implements BuildCallback {
+public class MonitorCommand extends AbstractCommand<MonitorCommand> implements BuildLifeCycleListener {
 
 	@Singleton
 	public static class MonitorCommandProvider implements CommandProvider<MonitorCommand>, org.kercoin.magrit.commands.AbstractCommand.EndCallback<MonitorCommand> {
 
 		private Context ctx;
 		
-		private BuildQueueService buildQueueService;
+		private QueueService buildQueueService;
 		
 		@Inject
-		public MonitorCommandProvider(Context ctx, BuildQueueService buildQueueService) {
+		public MonitorCommandProvider(Context ctx, QueueService buildQueueService) {
 			super();
 			this.ctx = ctx;
 			this.buildQueueService = buildQueueService;
@@ -61,9 +61,9 @@ public class MonitorCommand extends AbstractCommand<MonitorCommand> implements B
 		return MonitorCommand.class;
 	}
 	
-	private final BuildQueueService buildQueueService;
+	private final QueueService buildQueueService;
 	
-	public MonitorCommand(Context ctx, BuildQueueService buildQueueService) {
+	public MonitorCommand(Context ctx, QueueService buildQueueService) {
 		super(ctx);
 		this.buildQueueService = buildQueueService;
 	}
@@ -117,7 +117,7 @@ public class MonitorCommand extends AbstractCommand<MonitorCommand> implements B
 	}
 
 	@Override
-	public void buildEnded(Repository repo, String sha1, BuildStatus status) {
+	public void buildEnded(Repository repo, String sha1, Status status) {
 		synchronized(out) {
 			printOut.println(String.format("%s - Build ended %s on %s @ %s", now(), status, repo.getDirectory(), sha1));
 			printOut.flush();
