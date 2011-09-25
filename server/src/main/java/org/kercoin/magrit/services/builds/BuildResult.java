@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.builds;
 
 import java.util.Date;
 

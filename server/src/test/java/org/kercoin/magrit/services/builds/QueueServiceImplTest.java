@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.builds;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.UserIdentity;
 import org.mockito.Mock;
@@ -20,13 +21,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import tests.GitTestsUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BuildQueueServiceImplTest {
+public class QueueServiceImplTest {
 
-	BuildQueueServiceImpl buildQueueServiceImpl;
+	QueueServiceImpl buildQueueServiceImpl;
 	
 	Context context;
 	@Mock GitUtils gitUtils;
-	@Mock BuildStatusesService statusService;
+	@Mock StatusesService statusService;
 	@Mock TimeService timeService;
 	
 	Repository repo;
@@ -39,7 +40,7 @@ public class BuildQueueServiceImplTest {
 		repo = GitTestsUtils.open(context, "/r1");
 		committer = new UserIdentity("ptitfred@localhost", "ptitfred");
 		
-		buildQueueServiceImpl = new BuildQueueServiceImpl(context, gitUtils,
+		buildQueueServiceImpl = new QueueServiceImpl(context, gitUtils,
 				timeService, statusService);
 	}
 
@@ -52,7 +53,7 @@ public class BuildQueueServiceImplTest {
 		// given
 		String sha1 = "0123401234012340123401234012340123401234";
 		boolean force = true;
-		List<BuildStatus> statuses = Arrays.asList(BuildStatus.OK);
+		List<Status> statuses = Arrays.asList(Status.OK);
 		given(statusService.getStatus(repo, sha1)).willReturn(statuses);
 		
 		// when
@@ -63,7 +64,7 @@ public class BuildQueueServiceImplTest {
 		
 		assertThat(
 				enqueue(true,
-						Arrays.asList(BuildStatus.OK))
+						Arrays.asList(Status.OK))
 				).isNotNull();
 
 	}
@@ -72,7 +73,7 @@ public class BuildQueueServiceImplTest {
 	public void testEnqueueBuild_onOKs() throws Exception {
 		assertThat(
 				enqueue(false,
-						Arrays.asList(BuildStatus.OK))
+						Arrays.asList(Status.OK))
 				).isNull();
 	}
 
@@ -80,7 +81,7 @@ public class BuildQueueServiceImplTest {
 	public void testEnqueueBuild() throws Exception {
 		assertThat(
 				enqueue(false,
-						Arrays.<BuildStatus>asList())
+						Arrays.<Status>asList())
 				).isNotNull();
 	}
 
@@ -88,7 +89,7 @@ public class BuildQueueServiceImplTest {
 	public void testEnqueueBuild_errors() throws Exception {
 		assertThat(
 				enqueue(false,
-						Arrays.asList(BuildStatus.ERROR, BuildStatus.INTERRUPTED, BuildStatus.LOCAL))
+						Arrays.asList(Status.ERROR, Status.INTERRUPTED, Status.LOCAL))
 				).isNotNull();
 	}
 	
@@ -96,11 +97,11 @@ public class BuildQueueServiceImplTest {
 	public void testEnqueueBuild_running() throws Exception {
 		assertThat(
 				enqueue(false,
-						Arrays.asList(BuildStatus.ERROR, BuildStatus.INTERRUPTED, BuildStatus.RUNNING))
+						Arrays.asList(Status.ERROR, Status.INTERRUPTED, Status.RUNNING))
 				).isNull();
 		assertThat(
 				enqueue(false,
-						Arrays.asList(BuildStatus.RUNNING))
+						Arrays.asList(Status.RUNNING))
 				).isNull();
 	}
 
@@ -108,7 +109,7 @@ public class BuildQueueServiceImplTest {
 	public void testEnqueueBuild_local() throws Exception {
 		assertThat(
 				enqueue(false,
-						Arrays.asList(BuildStatus.LOCAL))
+						Arrays.asList(Status.LOCAL))
 				).isNotNull();
 	}
 
@@ -116,7 +117,7 @@ public class BuildQueueServiceImplTest {
 	public void testEnqueueBuild_unknown() throws Exception {
 		assertThat(
 				enqueue(false,
-						Arrays.asList(BuildStatus.UNKNOWN))
+						Arrays.asList(Status.UNKNOWN))
 				).isNull();
 	}
 
@@ -124,12 +125,12 @@ public class BuildQueueServiceImplTest {
 	public void testEnqueueBuild_force_running() throws Exception {
 		assertThat(
 				enqueue(true,
-						Arrays.asList(BuildStatus.ERROR, BuildStatus.INTERRUPTED, BuildStatus.RUNNING))
+						Arrays.asList(Status.ERROR, Status.INTERRUPTED, Status.RUNNING))
 				).isNotNull();
 	}
 
 	private Future<BuildResult> enqueue(boolean force,
-			List<BuildStatus> statuses) throws Exception {
+			List<Status> statuses) throws Exception {
 		// given
 		String sha1 = "0123401234012340123401234012340123401234";
 		given(statusService.getStatus(repo, sha1)).willReturn(statuses);

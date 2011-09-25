@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.builds;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.kercoin.magrit.utils.UserIdentity;
@@ -27,7 +28,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class BuildQueueServiceImpl implements BuildQueueService {
+public class QueueServiceImpl implements QueueService {
 
 	private final Context context;
 	private final GitUtils gitUtils;
@@ -35,9 +36,9 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 	
 	private final ExecutorService executorService;
 
-	private final Map<Pair<Repository, String>, BuildTask> pendings;
-	private final Map<Pair<Repository, String>, BuildTask> workplace;
-	private final BuildStatusesService statusService;
+	private final Map<Pair<Repository, String>, Task> pendings;
+	private final Map<Pair<Repository, String>, Task> workplace;
+	private final StatusesService statusService;
 
 	class PingBackExecutorService extends ThreadPoolExecutor {
 		public PingBackExecutorService() {
@@ -47,8 +48,8 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 
 		@Override
 		protected void beforeExecute(Thread t, Runnable r) {
-			if (r instanceof BuildTask) {
-				fireStarted(((BuildTask) r).getTarget());
+			if (r instanceof Task) {
+				fireStarted(((Task) r).getTarget());
 			}
 			super.beforeExecute(t, r);
 		}
@@ -63,12 +64,12 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 	}
 
 	@Inject
-	public BuildQueueServiceImpl(Context context, GitUtils gitUtils, TimeService timeService, BuildStatusesService statusService) {
+	public QueueServiceImpl(Context context, GitUtils gitUtils, TimeService timeService, StatusesService statusService) {
 		this.context = context;
 		this.gitUtils = gitUtils;
 		this.timeService = timeService;
-		this.workplace = new ConcurrentHashMap<Pair<Repository,String>, BuildTask>();
-		this.pendings = new ConcurrentHashMap<Pair<Repository, String>, BuildTask>();
+		this.workplace = new ConcurrentHashMap<Pair<Repository,String>, Task>();
+		this.pendings = new ConcurrentHashMap<Pair<Repository, String>, Task>();
 		this.executorService = new PingBackExecutorService();
 		this.statusService = statusService;
 	}
@@ -80,7 +81,7 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 		}
 		
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		BuildTask task = new BuildTask(this.gitUtils, committer, timeService, repository, target);
+		Task task = new Task(this.gitUtils, committer, timeService, repository, target);
 		pendings.put(target, task);
 		fireScheduled(target);
 		return executorService.submit(task);
@@ -89,23 +90,23 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 	private boolean shouldBuild(Repository repository, String sha1,
 			boolean force) {
 		if (force) return true;
-		List<BuildStatus> statuses = statusService.getStatus(repository, sha1);
+		List<Status> statuses = statusService.getStatus(repository, sha1);
 		if (statuses.isEmpty()) {
 			return true;
 		}
-		final EnumSet<BuildStatus> aggreg = EnumSet.copyOf(statuses);
+		final EnumSet<Status> aggreg = EnumSet.copyOf(statuses);
 		if (aggreg.size()==1) {
-			if (aggreg.contains(BuildStatus.UNKNOWN)) {
+			if (aggreg.contains(Status.UNKNOWN)) {
 				return false;
 			}
-			if (aggreg.contains(BuildStatus.LOCAL)) {
+			if (aggreg.contains(Status.LOCAL)) {
 				return true;
 			}
 		} 
-		if (aggreg.contains(BuildStatus.RUNNING)) {
+		if (aggreg.contains(Status.RUNNING)) {
 			return false;
 		}
-		return !aggreg.contains(BuildStatus.OK);
+		return !aggreg.contains(Status.OK);
 	}
 	
 	private Repository findBuildPlace(Repository repository) throws IOException {
@@ -122,35 +123,35 @@ public class BuildQueueServiceImpl implements BuildQueueService {
 		return workRepo;
 	}
 
-	private Set<BuildCallback> callbacks = new HashSet<BuildCallback>();
+	private Set<BuildLifeCycleListener> callbacks = new HashSet<BuildLifeCycleListener>();
 	
 	@Override
-	public void addCallback(BuildCallback callback) {
+	public void addCallback(BuildLifeCycleListener callback) {
 		callbacks.add(callback);
 	}
 
 	@Override
-	public void removeCallback(BuildCallback callback) {
+	public void removeCallback(BuildLifeCycleListener callback) {
 		callbacks.remove(callback);
 	}
 	
 	void fireScheduled(Pair<Repository, String> e) {
-		for (BuildCallback callback : callbacks) {
+		for (BuildLifeCycleListener callback : callbacks) {
 			callback.buildScheduled(e.getT(), e.getU());
 		}
 	}
 	
 	void fireStarted(Pair<Repository, String> e) {
 		workplace.put(e, pendings.remove(e));
-		for (BuildCallback callback : callbacks) {
+		for (BuildLifeCycleListener callback : callbacks) {
 			callback.buildStarted(e.getT(), e.getU());
 		}
 	}
 
 	void fireEnded(Pair<Repository, String> e) {
 		workplace.remove(e);
-		for (BuildCallback callback : callbacks) {
-			callback.buildEnded(e.getT(), e.getU(), BuildStatus.OK);
+		for (BuildLifeCycleListener callback : callbacks) {
+			callback.buildEnded(e.getT(), e.getU(), Status.OK);
 		}
 	}
 

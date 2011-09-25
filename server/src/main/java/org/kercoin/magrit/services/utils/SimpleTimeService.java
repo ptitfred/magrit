@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.utils;
 
 import java.util.Calendar;
 import java.util.TimeZone;

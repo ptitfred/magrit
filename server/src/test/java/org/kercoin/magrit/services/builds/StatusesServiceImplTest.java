@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.builds;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kercoin.magrit.services.dao.BuildDAO;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.GitUtilsTest;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -20,9 +21,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import tests.GuiceModulesHolder;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BuildStatusesServiceImplTest {
+public class StatusesServiceImplTest {
 
-	BuildStatusesServiceImpl service;
+	StatusesServiceImpl service;
 
 	BuildDAO dao;
 	
@@ -53,26 +54,26 @@ public class BuildStatusesServiceImplTest {
 	public void setup() {
 		initMocks(this);
 		dao = GuiceModulesHolder.MAGRIT_MODULE.getInstance(BuildDAO.class);
-		service = new BuildStatusesServiceImpl(new GitUtils(), dao);
+		service = new StatusesServiceImpl(new GitUtils(), dao);
 	}
 	
 	@Test
 	public void testGetStatus_withBuilds() {
 		check();
-		assertThat(service.getStatus(test, "c92788de607fa1375b05c8075814711c145d8dae")).containsExactly(BuildStatus.OK);
-		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(BuildStatus.OK, BuildStatus.ERROR);
+		assertThat(service.getStatus(test, "c92788de607fa1375b05c8075814711c145d8dae")).containsExactly(Status.OK);
+		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(Status.OK, Status.ERROR);
 	}
 
 	@Test
 	public void testGetStatus_unknownCommit() {
 		check();
-		assertThat(service.getStatus(test, "1111111111111111111111111111111111111111")).containsExactly(BuildStatus.UNKNOWN);
+		assertThat(service.getStatus(test, "1111111111111111111111111111111111111111")).containsExactly(Status.UNKNOWN);
 	}
 
 	@Test
 	public void testGetStatus_withoutBuild() {
 		check();
-		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(BuildStatus.NEW);
+		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(Status.NEW);
 	}
 
 	private void check() {

@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.utils;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -7,6 +7,7 @@ import java.util.TimeZone;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.kercoin.magrit.services.utils.SimpleTimeService;
 import org.kercoin.magrit.utils.Pair;
 
 

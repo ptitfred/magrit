@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.builds;
 
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -24,6 +24,8 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.kercoin.magrit.services.builds.Task;
+import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.kercoin.magrit.utils.UserIdentity;
@@ -33,11 +35,11 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-public class BuildTaskTest {
+public class TaskTest {
 
 	private static final String SHA1 = "12345";
 
-	BuildTask buildTask;
+	Task buildTask;
 	
 	@Mock GitUtils gitUtils;
 	UserIdentity committerIdentity;
@@ -70,7 +72,7 @@ public class BuildTaskTest {
 		initMocks(this);
 		committerIdentity = new UserIdentity("user@example.org", "Mister Example");
 		Pair<Repository, String> target = new Pair<Repository, String>(buildRepo, SHA1);
-		buildTask = Mockito.spy(new BuildTask(gitUtils, committerIdentity, timeService, remote, target));
+		buildTask = Mockito.spy(new Task(gitUtils, committerIdentity, timeService, remote, target));
 		given(buildTask.wrap(remote)).willReturn(gitWrapper);
 		given(gitWrapper.notesAdd()).willReturn(addNoteCommand);
 		given(gitWrapper.notesShow()).willReturn(showNoteCommand);

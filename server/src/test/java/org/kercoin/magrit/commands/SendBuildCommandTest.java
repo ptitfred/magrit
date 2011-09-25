@@ -15,8 +15,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.BuildQueueService;
-import org.kercoin.magrit.services.UserIdentityService;
+import org.kercoin.magrit.services.builds.QueueService;
+import org.kercoin.magrit.services.utils.UserIdentityService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.UserIdentity;
 import org.mockito.Mock;
@@ -29,7 +29,7 @@ public class SendBuildCommandTest {
 
 	Context ctx;
 	GitUtils gitUtils;
-	@Mock BuildQueueService buildQueueService;
+	@Mock QueueService buildQueueService;
 	@Mock UserIdentityService userService;
 	@Mock Environment env;
 

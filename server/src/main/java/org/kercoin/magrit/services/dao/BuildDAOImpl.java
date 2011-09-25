@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.dao;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +14,7 @@ import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.kercoin.magrit.services.builds.BuildResult;
 import org.kercoin.magrit.utils.GitUtils;
 
 import com.google.inject.Inject;

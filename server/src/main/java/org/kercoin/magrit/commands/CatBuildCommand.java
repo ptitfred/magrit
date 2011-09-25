@@ -5,8 +5,8 @@ import java.util.Scanner;
 
 import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.BuildDAO;
-import org.kercoin.magrit.services.BuildResult;
+import org.kercoin.magrit.services.builds.BuildResult;
+import org.kercoin.magrit.services.dao.BuildDAO;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

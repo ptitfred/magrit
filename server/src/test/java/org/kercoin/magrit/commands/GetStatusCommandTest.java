@@ -15,8 +15,8 @@ import org.eclipse.jgit.lib.Repository;
 import org.junit.Before;
 import org.junit.Test;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.BuildStatus;
-import org.kercoin.magrit.services.BuildStatusesService;
+import org.kercoin.magrit.services.builds.Status;
+import org.kercoin.magrit.services.builds.StatusesService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -27,7 +27,7 @@ public class GetStatusCommandTest {
 	GetStatusCommand command;
 	private Context ctx;
 	
-	@Mock BuildStatusesService buildStatusesService;
+	@Mock StatusesService buildStatusesService;
 	private ByteArrayOutputStream out;
 	@Mock ExitCallback exitCallback;
 	
@@ -47,7 +47,7 @@ public class GetStatusCommandTest {
 	public void testGetStatusCommandProvider() throws Exception {
 		// given
 		given(buildStatusesService.getStatus(any(Repository.class), anyString())).willReturn(
-				Arrays.asList(BuildStatus.ERROR, BuildStatus.INTERRUPTED, BuildStatus.OK, BuildStatus.RUNNING)
+				Arrays.asList(Status.ERROR, Status.INTERRUPTED, Status.OK, Status.RUNNING)
 		);
 		
 		// when

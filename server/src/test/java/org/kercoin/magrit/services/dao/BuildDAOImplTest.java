@@ -1,4 +1,4 @@
-package org.kercoin.magrit.services;
+package org.kercoin.magrit.services.dao;
 
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -15,6 +15,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kercoin.magrit.services.builds.BuildResult;
+import org.kercoin.magrit.services.dao.BuildDAOImpl;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.GitUtilsTest;
 import org.mockito.Mock;
