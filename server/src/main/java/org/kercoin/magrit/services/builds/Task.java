@@ -1,8 +1,6 @@
 package org.kercoin.magrit.services.builds;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
@@ -45,9 +43,9 @@ public class Task implements Callable<BuildResult> {
 	private Repository repository;
 	private RevCommit commit;
 
-	public Task(GitUtils gitUtils, UserIdentity user,
-			TimeService timeService, Repository remote, Pair<Repository,String> target) {
-		this.gitUtils = gitUtils;
+	public Task(Context ctx,
+			UserIdentity user, TimeService timeService, Repository remote, Pair<Repository,String> target) {
+		this.gitUtils = ctx.getGitUtils();
 		this.user = user;
 		this.timeService = timeService;
 		this.remote = remote;
@@ -204,39 +202,6 @@ public class Task implements Callable<BuildResult> {
 		return Git.wrap(repo);
 	}
 
-	private void lock() throws IOException {
-		File lockFile = getLockFile();
-		
-		if (lockFile.exists()) {
-			String msg = String.format("Can't start a build on this repository %s, a build is already running here...", repository.getDirectory());
-			log.error(msg);
-			throw new IllegalStateException(msg);
-		}
-		
-		lockFile.createNewFile();
-		PrintStream out = new PrintStream(new FileOutputStream(lockFile));
-		out.println(this.target.getU());
-		out.close();
-	}
-
-	private void unlock() {
-		File lockFile = getLockFile();
-		String lockPath = lockFile.getAbsolutePath();
-		
-		if (!lockFile.exists()) {
-			log.warn("Strange! the build lock file {} has disapparead while build progress...", lockPath);
-			return;
-		}
-		
-		if (!lockFile.delete()) {
-			log.warn("Couldn't delete build lock file {}", lockPath);
-		}
-	}
-	
-	private File getLockFile() {
-		return new File(repository.getDirectory(), "MAGRIT_BUILD");
-	}
-	
 	String findCommand() throws AmbiguousObjectException, IOException {
 		return gitUtils.show(this.repository, this.target.getU() + ":" + ".magrit");
 	}

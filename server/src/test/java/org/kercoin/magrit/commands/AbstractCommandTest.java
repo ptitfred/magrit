@@ -45,7 +45,7 @@ public class AbstractCommandTest {
 	@Before
 	public void setUp() throws Exception {
 		given(ctx.getCommandRunnerPool()).willReturn(commandRunnerPool);
-		cmd = new FakeCommand(new Context(new GitUtils(), commandRunnerPool));
+		cmd = new FakeCommand(new Context(new GitUtils(), commandRunnerPool, null));
 	}
 
 	@Test

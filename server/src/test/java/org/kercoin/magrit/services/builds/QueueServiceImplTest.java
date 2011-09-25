@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.services.concurrent.RepositoryGuardImpl;
 import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.UserIdentity;
@@ -36,7 +37,7 @@ public class QueueServiceImplTest {
 
 	@Before
 	public void createBuildQueueServiceImpl() throws Exception {
-		context= new Context();
+		context= new Context(null, null, new RepositoryGuardImpl());
 		repo = GitTestsUtils.open(context, "/r1");
 		committer = new UserIdentity("ptitfred@localhost", "ptitfred");
 		

@@ -2,6 +2,7 @@ package org.kercoin.magrit;
 
 import java.util.concurrent.ExecutorService;
 
+import org.kercoin.magrit.services.concurrent.RepositoryGuard;
 import org.kercoin.magrit.utils.GitUtils;
 
 import com.google.inject.Inject;
@@ -19,21 +20,25 @@ public class Context {
 	private final GitUtils gitUtils;
 	
 	private final ExecutorService commandRunnerPool;
+	private final RepositoryGuard repositoryGuard;
 
 	public Context() {
 		gitUtils = null;
 		commandRunnerPool = null;
+		repositoryGuard = null;
 	}
 	
 	public Context(GitUtils gitUtils) {
-		this(gitUtils, null);
+		this(gitUtils, null, null);
 	}
 	
 	@Inject
 	public Context(GitUtils gitUtils,
-			@Named("commandRunnerPool") ExecutorService commandRunnerPool) {
+			@Named("commandRunnerPool") ExecutorService commandRunnerPool,
+			RepositoryGuard repositoryGuard) {
 		this.gitUtils = gitUtils;
 		this.commandRunnerPool = commandRunnerPool;
+		this.repositoryGuard = repositoryGuard;
 	}
 
 	public Configuration configuration() {
@@ -46,6 +51,10 @@ public class Context {
 	
 	public ExecutorService getCommandRunnerPool() {
 		return commandRunnerPool;
+	}
+	
+	public RepositoryGuard getRepositoryGuard() {
+		return repositoryGuard;
 	}
 	
 	public void setInjector(Injector injector) {

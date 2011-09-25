@@ -80,6 +80,7 @@ public class QueueServiceImpl implements QueueService {
 			return null;
 		}
 		
+		context.getRepositoryGuard().acquire(repository.getDirectory().getAbsolutePath());
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
 		Task task = new Task(this.gitUtils, committer, timeService, repository, target);
 		pendings.put(target, task);
