@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.AccessControlException;
 import java.util.HashMap;
 import java.util.concurrent.Future;
 
@@ -141,6 +142,19 @@ public class SendBuildCommandTest {
 
 		// then ----------------------------------
 		assertThat(out.toString()).isEqualTo("1\n0\n");
+	}
+	
+	@Test
+	public void unknownUser() throws Exception {
+		// given ---------------------------------
+		given(userService.find("ptitfred")).willThrow(new AccessControlException("User unknown"));
+
+		// when ----------------------------------
+		command.command("magrit send-build /r1 1234512345123451234512345123451234512345").run();
+
+		// then ----------------------------------
+		verify(exitCallback).onExit(2, "User unknown");
+		assertThat(out.toString()).isEqualTo("");
 	}
 
 }

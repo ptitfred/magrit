@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.AccessControlException;
 import java.util.Scanner;
 
 import org.apache.sshd.server.Environment;
@@ -83,6 +84,8 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 	@Override
 	public void run() {
 		try {
+			String userId = env.getEnv().get(Environment.ENV_USER);
+			this.committer = userService.find(userId);
 			if (readStdin) {
 				String line = null;
 				while((line = stdin.readLine()) != null) {
@@ -95,15 +98,16 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 				handle(this.sha1);
 			}
 			callback.onExit(0);
+		} catch (AccessControlException e) {
+			log.error(e.getMessage());
+			callback.onExit(2, e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
 			callback.onExit(1, e.getMessage());
 		}
 	}
 
 	private void handle(String sha1) throws AmbiguousObjectException, IOException {
-		String userId = env.getEnv().get(Environment.ENV_USER);
-		this.committer = userService.find(userId);
 		sendBuild(repo.resolve(sha1));
 	}
 

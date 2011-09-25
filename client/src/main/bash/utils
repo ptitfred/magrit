@@ -1,3 +1,5 @@
+shopt -s compat31
+
 function _getRemote {
 	remote=$(git config --get magrit.remote)
 	if [[ "$remote" == "" ]]; then
@@ -43,7 +45,7 @@ function _sendSshCommand {
 	host=${_target[$_HOST]}
 	port=${_target[$_PORT]}
 	
-	ssh -x -p $port $user@$host $*
+	ssh -x -p $port $user@$host $* || echo "ssh error: $?"
 }
 
 function _sendSshCommandBg {
