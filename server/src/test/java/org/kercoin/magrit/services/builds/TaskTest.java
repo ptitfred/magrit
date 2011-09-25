@@ -24,7 +24,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.kercoin.magrit.services.builds.Task;
+import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
@@ -41,6 +41,7 @@ public class TaskTest {
 
 	Task buildTask;
 	
+	Context context;
 	@Mock GitUtils gitUtils;
 	UserIdentity committerIdentity;
 
@@ -70,9 +71,10 @@ public class TaskTest {
 	@Before
 	public void setUp() throws Exception {
 		initMocks(this);
+		context = new Context(gitUtils);
 		committerIdentity = new UserIdentity("user@example.org", "Mister Example");
 		Pair<Repository, String> target = new Pair<Repository, String>(buildRepo, SHA1);
-		buildTask = Mockito.spy(new Task(gitUtils, committerIdentity, timeService, remote, target));
+		buildTask = Mockito.spy(new Task(context, committerIdentity, timeService, remote, target));
 		given(buildTask.wrap(remote)).willReturn(gitWrapper);
 		given(gitWrapper.notesAdd()).willReturn(addNoteCommand);
 		given(gitWrapper.notesShow()).willReturn(showNoteCommand);

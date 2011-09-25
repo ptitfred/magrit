@@ -20,7 +20,6 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.utils.TimeService;
-import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.kercoin.magrit.utils.UserIdentity;
 
@@ -31,7 +30,6 @@ import com.google.inject.Singleton;
 public class QueueServiceImpl implements QueueService {
 
 	private final Context context;
-	private final GitUtils gitUtils;
 	private final TimeService timeService;
 	
 	private final ExecutorService executorService;
@@ -64,9 +62,8 @@ public class QueueServiceImpl implements QueueService {
 	}
 
 	@Inject
-	public QueueServiceImpl(Context context, GitUtils gitUtils, TimeService timeService, StatusesService statusService) {
+	public QueueServiceImpl(Context context, TimeService timeService, StatusesService statusService) {
 		this.context = context;
-		this.gitUtils = gitUtils;
 		this.timeService = timeService;
 		this.workplace = new ConcurrentHashMap<Pair<Repository,String>, Task>();
 		this.pendings = new ConcurrentHashMap<Pair<Repository, String>, Task>();
@@ -82,7 +79,7 @@ public class QueueServiceImpl implements QueueService {
 		
 		context.getRepositoryGuard().acquire(repository.getDirectory().getAbsolutePath());
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		Task task = new Task(this.gitUtils, committer, timeService, repository, target);
+		Task task = new Task(this.context, committer, timeService, repository, target);
 		pendings.put(target, task);
 		fireScheduled(target);
 		return executorService.submit(task);

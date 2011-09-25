@@ -41,7 +41,7 @@ public class QueueServiceImplTest {
 		repo = GitTestsUtils.open(context, "/r1");
 		committer = new UserIdentity("ptitfred@localhost", "ptitfred");
 		
-		buildQueueServiceImpl = new QueueServiceImpl(context, gitUtils,
+		buildQueueServiceImpl = new QueueServiceImpl(context, 
 				timeService, statusService);
 	}
 

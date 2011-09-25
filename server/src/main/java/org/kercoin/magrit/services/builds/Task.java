@@ -21,6 +21,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
@@ -57,13 +58,6 @@ public class Task implements Callable<BuildResult> {
 		return target;
 	}
 	
-	public void before() throws Exception {
-		lock();
-	}
-	
-	public void after() {
-		unlock();
-	}
 
 	@Override
 	public BuildResult call() throws Exception {
