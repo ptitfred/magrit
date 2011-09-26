@@ -46,8 +46,15 @@ function _sendSshCommand {
 	ssh -x -p $port $user@$host $*
 }
 
+function _sendSshCommandBg {
+	in=$1
+	out=$2
+	shift 2
+	
+	tail -f $in | _sendSshCommand $* >$out &
+}
+
 function _color {
-	#echo $1
 	echo -e "\x1b[${1}m"
 }
 

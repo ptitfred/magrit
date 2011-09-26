@@ -1,6 +1,9 @@
 package org.kercoin.magrit.commands;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
@@ -47,6 +50,7 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	private StatusesService buildStatusesService;
 	private Repository repo;
 	private String sha1;
+	private BufferedReader stdin;
 	
 	public GetStatusCommand(Context ctx, StatusesService buildStatusesService) {
 		super(ctx);
@@ -85,19 +89,39 @@ public class GetStatusCommand extends AbstractCommand<GetStatusCommand> {
 	}
 	
 	@Override
+	public void setInputStream(InputStream in) {
+		stdin = new BufferedReader(new InputStreamReader(in));
+		super.setInputStream(in);
+	}
+	
+	@Override
 	public void run() {
-		List<Status> statuses = buildStatusesService.getStatus(repo, sha1);
 		try {
-			for(Status status : statuses) {
-				out.write(status.getCode());
+			if ("-".equals(sha1)) {
+				String line = null;
+				while ((line = stdin.readLine()) != null) {
+					if ("--".equals(line)) {
+						break;
+					}
+					handle(line);
+				}
+			} else {
+				handle(sha1);
 			}
-			out.write('\n');
-			out.flush();
 			callback.onExit(0);
 		} catch (IOException e) {
 			e.printStackTrace();
 			callback.onExit(1);
 		}
+	}
+
+	private void handle(String sha1) throws IOException {
+		List<Status> statuses = buildStatusesService.getStatus(repo, sha1);
+		for(Status status : statuses) {
+			out.write(status.getCode());
+		}
+		out.write('\n');
+		out.flush();		
 	}
 
 }
