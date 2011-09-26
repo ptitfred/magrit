@@ -2,10 +2,16 @@ package org.kercoin.magrit.commands;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.concurrent.Future;
 
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
@@ -15,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.services.builds.BuildResult;
 import org.kercoin.magrit.services.builds.QueueService;
 import org.kercoin.magrit.services.utils.UserIdentityService;
 import org.kercoin.magrit.utils.GitUtils;
@@ -25,7 +32,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SendBuildCommandTest {
 
-	SendBuildCommand buildCommand;
+	SendBuildCommand command;
 
 	Context ctx;
 	GitUtils gitUtils;
@@ -36,68 +43,104 @@ public class SendBuildCommandTest {
 	@Mock Repository repo;
 
 	@Mock ExitCallback exitCallback;
+
+	@Mock Future<BuildResult> futureResult;
+
+	private OutputStream out;
 	
 	@SuppressWarnings("serial")
 	@Before
 	public void createBuildCommand() throws Exception {
 		gitUtils = new GitUtils();
 		ctx = new Context(gitUtils);
-		buildCommand = new SendBuildCommand(ctx, buildQueueService, userService);
+		command = new SendBuildCommand(ctx, buildQueueService, userService);
 		given(env.getEnv()).willReturn(new HashMap<String, String>() {{put(Environment.ENV_USER, "ptitfred");}});
-		buildCommand.env = env;
-		buildCommand.callback = exitCallback;
+		command.env = env;
+		command.callback = exitCallback;
+		out = new ByteArrayOutputStream();
+		command.setOutputStream(out);
 	}
 
 	@Test
-	public void testSend() throws IOException {
+	public void send() throws IOException {
 		// when
-		buildCommand.command("magrit send-build /r1 0123401234012340123401234012340123401234");
+		command.command("magrit send-build /r1 0123401234012340123401234012340123401234");
 
 		// then
-		assertThat(buildCommand.isForce()).isFalse();
-		assertThat(buildCommand.getSha1()).isEqualTo("0123401234012340123401234012340123401234");
-		assertThat(buildCommand.getRepo().getDirectory().getAbsolutePath()).isEqualTo(ctx.configuration().getRepositoriesHomeDir().getAbsolutePath() + "/r1");
+		assertThat(command.isForce()).isFalse();
+		assertThat(command.getSha1()).isEqualTo("0123401234012340123401234012340123401234");
+		assertThat(command.getRepo().getDirectory().getAbsolutePath()).isEqualTo(ctx.configuration().getRepositoriesHomeDir().getAbsolutePath() + "/r1");
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testSend_onlySha1() throws IOException {
+	public void send_onlySha1() throws IOException {
 		// when
-		buildCommand.command("magrit send-build /r1 HEAD");
+		command.command("magrit send-build /r1 HEAD");
 
 		// then
-		assertThat(buildCommand.isForce()).isFalse();
-		assertThat(buildCommand.getSha1()).isEqualTo("HEAD");
-		assertThat(buildCommand.getRepo().getDirectory().getAbsolutePath()).isEqualTo(ctx.configuration().getRepositoriesHomeDir().getAbsolutePath() + "/r1");
+		assertThat(command.isForce()).isFalse();
+		assertThat(command.getSha1()).isEqualTo("HEAD");
+		assertThat(command.getRepo().getDirectory().getAbsolutePath()).isEqualTo(ctx.configuration().getRepositoriesHomeDir().getAbsolutePath() + "/r1");
 	}
 	
 	@Test
-	public void testSend_force() throws IOException {
+	public void send_force() throws IOException {
 		// when
-		buildCommand.command("magrit send-build --force /r1 0123401234012340123401234012340123401234");
+		command.command("magrit send-build --force /r1 0123401234012340123401234012340123401234");
 
 		// then
-		assertThat(buildCommand.isForce()).isTrue();
-		assertThat(buildCommand.getSha1()).isEqualTo("0123401234012340123401234012340123401234");
-		assertThat(buildCommand.getRepo().getDirectory().getAbsolutePath()).isEqualTo(ctx.configuration().getRepositoriesHomeDir().getAbsolutePath() + "/r1");
+		assertThat(command.isForce()).isTrue();
+		assertThat(command.getSha1()).isEqualTo("0123401234012340123401234012340123401234");
+		assertThat(command.getRepo().getDirectory().getAbsolutePath()).isEqualTo(ctx.configuration().getRepositoriesHomeDir().getAbsolutePath() + "/r1");
 	}
 	
 	@Test
-	public void testRun() throws Exception {
+	public void run() throws Exception {
 		// given
 		UserIdentity expectedUserIdentity = new UserIdentity("ptitfred@localhost", "ptitfred");
 		given(userService.find("ptitfred")).willReturn(expectedUserIdentity);
-		buildCommand.setForce(false);
-		buildCommand.setSha1("HEAD");
-		buildCommand.setRepo(repo);
+		command.setForce(false);
+		command.setSha1("HEAD");
+		command.setRepo(repo);
 		ObjectId what = ObjectId.zeroId();
 		given(repo.resolve("HEAD")).willReturn(what);
 		
 		// when
-		buildCommand.run();
+		command.run();
 		
 		// then
 		verify(userService).find("ptitfred");
 		verify(buildQueueService).enqueueBuild(expectedUserIdentity, repo, "0000000000000000000000000000000000000000", false);
+	}
+	
+	@Test
+	public void send_stream() throws Exception {
+		// given ---------------------------------
+		UserIdentity expectedUserIdentity = new UserIdentity("ptitfred@localhost", "ptitfred");
+		given(userService.find("ptitfred")).willReturn(expectedUserIdentity);
+		StringBuilder stdin = new StringBuilder();
+		stdin.append("abcdef7890123456789012345678901234abcdef").append('\n');
+		stdin.append("1234567890123456789012345678901234567890").append('\n');
+		stdin.append("--").append('\n');
+		command.setInputStream(new ByteArrayInputStream(stdin.toString().getBytes()));
+		given(this.buildQueueService.enqueueBuild(
+				isA(UserIdentity.class),
+				isA(Repository.class),
+				eq("abcdef7890123456789012345678901234abcdef"),
+				eq(false)
+			)).willReturn(futureResult);
+		given(this.buildQueueService.enqueueBuild(
+				isA(UserIdentity.class),
+				isA(Repository.class),
+				eq("1234567890123456789012345678901234567890"),
+				eq(false)
+			)).willReturn(null);
+
+		// when ----------------------------------
+		command.command("magrit send-build /r1 -").run();
+
+		// then ----------------------------------
+		assertThat(out.toString()).isEqualTo("1\n0\n");
 	}
 
 }

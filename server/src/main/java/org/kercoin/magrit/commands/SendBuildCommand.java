@@ -1,9 +1,13 @@
 package org.kercoin.magrit.commands;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Scanner;
 
 import org.apache.sshd.server.Environment;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.Context;
@@ -54,24 +58,53 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 	private Repository repo;
 	private String sha1;
 	private boolean force;
+	private boolean readStdin = false;
 	
 	public SendBuildCommand(Context ctx, QueueService buildQueueService, UserIdentityService userService) {
 		super(ctx);
 		this.buildQueueService = buildQueueService;
 		this.userService = userService;
 	}
+	
+	private BufferedReader stdin = null;
+	
+	@Override
+	public void destroy() {
+		stdin = null;
+		super.destroy();
+	}
+	
+	@Override
+	public void setInputStream(InputStream in) {
+		stdin = new BufferedReader(new InputStreamReader(in));
+		super.setInputStream(in);
+	}
 
 	@Override
 	public void run() {
 		try {
-			String userId = env.getEnv().get(Environment.ENV_USER);
-			this.committer = userService.find(userId);
-			sendBuild(repo.resolve(sha1));
+			if (readStdin) {
+				String line = null;
+				while((line = stdin.readLine()) != null) {
+					if ("--".equals(line)) {
+						break;
+					}
+					handle(line);
+				}
+			} else {
+				handle(this.sha1);
+			}
 			callback.onExit(0);
 		} catch (Exception e) {
 			e.printStackTrace();
 			callback.onExit(1, e.getMessage());
 		}
+	}
+
+	private void handle(String sha1) throws AmbiguousObjectException, IOException {
+		String userId = env.getEnv().get(Environment.ENV_USER);
+		this.committer = userService.find(userId);
+		sendBuild(repo.resolve(sha1));
 	}
 
 	@Override
@@ -93,7 +126,10 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 		String repo = remainder;
 		check(command, scanner.hasNext());
 		String sha1 = scanner.next();
-		checkSha1(sha1);
+		readStdin = "-".equals(sha1);
+		if (!readStdin) {
+			checkSha1(sha1);
+		}
 		
 		this.force = force;
 		this.sha1 = sha1;
@@ -143,6 +179,7 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 				log.info(msg);
 				this.out.write('0');
 			}
+			this.out.write('\n');
 			this.out.flush();
 		} catch (Exception e) {
 			log.error("Unable to send build", e);
