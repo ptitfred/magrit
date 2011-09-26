@@ -4,9 +4,11 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
@@ -44,7 +46,7 @@ public class GetStatusCommandTest {
 	}
 	
 	@Test
-	public void testGetStatusCommandProvider() throws Exception {
+	public void testGetStatusCommand_xargs() throws Exception {
 		// given
 		given(buildStatusesService.getStatus(any(Repository.class), anyString())).willReturn(
 				Arrays.asList(Status.ERROR, Status.INTERRUPTED, Status.OK, Status.RUNNING)
@@ -58,4 +60,27 @@ public class GetStatusCommandTest {
 		assertThat(out.toString()).isEqualTo("EIOR\n");
 	}
 
+	@Test
+	public void testGetStatusCommand_stdin_stdout() throws Exception {
+		// given
+		given(buildStatusesService.getStatus(any(Repository.class), eq("1234567890123456789012345678901234567890"))).willReturn(
+				Arrays.asList(Status.ERROR, Status.OK)
+		);
+		given(buildStatusesService.getStatus(any(Repository.class), eq("abcdef7890123456789012345678901234abcdef"))).willReturn(
+				Arrays.asList(Status.ERROR, Status.INTERRUPTED, Status.OK, Status.RUNNING)
+		);
+		StringBuilder stdin = new StringBuilder();
+		stdin.append("abcdef7890123456789012345678901234abcdef").append('\n');
+		stdin.append("1234567890123456789012345678901234567890").append('\n');
+		stdin.append("--").append('\n');
+		command.setInputStream(new ByteArrayInputStream(stdin.toString().getBytes()));
+		
+		// when
+		command.command("magrit status /r1 -").run();
+		
+		// then
+		verify(exitCallback).onExit(0);
+		assertThat(out.toString()).isEqualTo("EIOR\n" + "EO\n");
+	}
+	
 }

@@ -1,16 +1,35 @@
 #!/bin/bash -e 
 
+echo "## log"
+
 source utils
 
 _getSsh
 repo=${_target[$_REPO]}
 
+in="/tmp/magrit-${BASHPID}-in"
+out="/tmp/magrit-${BASHPID}-out"
+
+mkfifo $in $out
+
+_sendSshCommandBg $in $out magrit status $repo -
+
+exec 3<$out
+
 for sha1 in $(git log --format=%H $1); do
 	log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
 
-	buildStatus=$(_sendSshCommand magrit status $repo $sha1)
-	buildStatus=$(_colorizeStatus $buildStatus)
+	echo $sha1 >$in
+	read -u 3 buildStatus
 	
-	echo -e "$(_ellipsis "$log") | $buildStatus"
+	echo -e "$(_ellipsis "$log") | $(_colorizeStatus $buildStatus)"
 done
 
+echo "--" >$in
+
+exec 3<&-
+
+rm $in $out
+for pid in $(jobs -p); do
+	kill -s TERM $pid
+done

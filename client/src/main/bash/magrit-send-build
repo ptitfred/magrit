@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+echo "## send build"
+
 source utils
 
 _getSsh
@@ -17,12 +19,21 @@ fi
 
 repo=${_target[$_REPO]}
 
+in="/tmp/magrit-${BASHPID}-in"
+out="/tmp/magrit-${BASHPID}-out"
+
+mkfifo $in $out
+
+_sendSshCommandBg $in $out magrit send-build $force $repo -
+
+exec 3<$out
+
 for sha1 in $(git log --format=%H $revstr); do
-	command="magrit send-build $force $repo $sha1"
-	status=$(_sendSshCommand $command)
-	
 	log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
-	
+
+	echo $sha1 >$in
+	read -u 3 status
+		
 	statusText=$(_colorize "Submitted" 92)
 	if [ $status -eq 0 ]; then
 		statusText=$(_colorize "Skipped" 37)
@@ -30,4 +41,12 @@ for sha1 in $(git log --format=%H $revstr); do
 	
 	echo -e "$(_ellipsis "$log") | $statusText"
 	
+done
+
+echo "--" >$in
+exec 3<&-
+
+rm $in $out
+for pid in $(jobs -p); do
+	kill -s TERM $pid
 done
