@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
-echo "## send build"
-
 source utils
+
+_colorize "## send build" 37
 
 _getSsh
 
@@ -29,17 +29,21 @@ _sendSshCommandBg $in $out magrit send-build $force $repo -
 exec 3<$out
 
 for sha1 in $(git log --format=%H $revstr); do
-	log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
-
 	echo $sha1 >$in
 	read -u 3 status
-		
-	statusText=$(_colorize "Submitted" 92)
-	if [ $status -eq 0 ]; then
-		statusText=$(_colorize "Skipped" 37)
-	fi
 	
-	echo -e "$(_ellipsis "$log") | $statusText"
+	if [[ "$status" =~ "ssh error: *" ]]; then
+		echo $status >&2
+	else
+		statusText=$(_colorize "Submitted" 92)
+		if [ "$status" -eq 0 ]; then
+			statusText=$(_colorize "Skipped" 37)
+		fi
+
+		log=$(git log --color=$_colorAction -1 --oneline $sha1 -z)
+						
+		echo -e "$(_ellipsis "$log") | $statusText"
+	fi
 	
 done
 
