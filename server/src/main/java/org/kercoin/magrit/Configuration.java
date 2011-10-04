@@ -78,5 +78,9 @@ public class Configuration {
 	public void setRemoteAllowed(boolean remoteAllowed) {
 		this.remoteAllowed = remoteAllowed;
 	}
+
+	public int getSlots() {
+		return Runtime.getRuntime().availableProcessors();
+	}
 	
 }
