@@ -35,11 +35,11 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-public class TaskTest {
+public class SimpleTaskTest {
 
 	private static final String SHA1 = "12345";
 
-	Task buildTask;
+	SimpleTask buildTask;
 	
 	Context context;
 	@Mock GitUtils gitUtils;
@@ -74,7 +74,7 @@ public class TaskTest {
 		context = new Context(gitUtils);
 		committerIdentity = new UserIdentity("user@example.org", "Mister Example");
 		Pair<Repository, String> target = new Pair<Repository, String>(buildRepo, SHA1);
-		buildTask = Mockito.spy(new Task(context, committerIdentity, timeService, remote, target));
+		buildTask = Mockito.spy(new SimpleTask(context, committerIdentity, timeService, remote, target));
 		given(buildTask.wrap(remote)).willReturn(gitWrapper);
 		given(gitWrapper.notesAdd()).willReturn(addNoteCommand);
 		given(gitWrapper.notesShow()).willReturn(showNoteCommand);

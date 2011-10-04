@@ -3,6 +3,7 @@ package org.kercoin.magrit.services.builds;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -41,18 +46,56 @@ public class PipelineImpl implements Pipeline {
 	private ExecutorService dispatcher;
 	private ExecutorService edt;
 
-	private Map<Key, Future<BuildResult>> futures;
-	private Map<Key, Task<BuildResult>> tasks;
-	private Set<Key> workings;
+	private volatile Map<Key, Future<BuildResult>> futures;
+	// @GuardedBy(main)
+	private volatile Map<Key, Task<BuildResult>> tasks;
+	private volatile Set<Key> workings;
 
 	@Inject
 	public PipelineImpl(Context ctx) {
+		log.info("{} cores", ctx.configuration().getSlots());
 		slots = new Semaphore(ctx.configuration().getSlots());
 		tasks = new ConcurrentHashMap<Pipeline.Key, Pipeline.Task<BuildResult>>();
 		futures = new ConcurrentHashMap<Pipeline.Key, Future<BuildResult>>();
 		workings = new ConcurrentHashSet<Pipeline.Key>();
-		dispatcher = Executors.newCachedThreadPool();
+		dispatcher = new ThreadPoolExecutor(ctx.configuration().getSlots(), Integer.MAX_VALUE,
+                60L, TimeUnit.SECONDS,
+                new PriorityBlockingQueue<Runnable>()) {
+			@Override
+			protected <T> RunnableFuture<T> newTaskFor(
+					Callable<T> callable) {
+				return new DispatchTask<T>(callable);
+			}
+		};
 		edt = Executors.newSingleThreadExecutor();
+	}
+
+	class DispatchTask<T> extends FutureTask<T> implements Comparable<DispatchTask<T>> {
+
+		private Key key;
+
+		@SuppressWarnings("rawtypes")
+		public DispatchTask(Callable<T> callable) {
+			super(callable);
+			if (callable instanceof Worker) {
+				this.key = ((Worker) callable).getKey();
+			}
+		}
+
+		@Override
+		public int compareTo(DispatchTask<T> o) {
+			if (key==null && o.key == null) {
+				return 0;
+			}
+			if (key == null) {
+				return -1;
+			}
+			if (o.key == null) {
+				return 1;
+			}
+			return key.compareTo(o.key);
+		}
+
 	}
 
 	static class ValidKey implements Key {
@@ -66,6 +109,11 @@ public class PipelineImpl implements Pipeline {
 		@Override
 		public int uniqId() {
 			return id;
+		}
+
+		@Override
+		public int compareTo(Key o) {
+			return uniqId() - o.uniqId();
 		}
 
 		@Override
@@ -91,6 +139,10 @@ public class PipelineImpl implements Pipeline {
 		public Worker(Task<V> t) {
 			this.t = t;
 		}
+		
+		Key getKey() {
+			return t.getKey();
+		}
 
 		@Override
 		public V call() throws Exception {
@@ -100,15 +152,21 @@ public class PipelineImpl implements Pipeline {
 				Key k = t.getKey();
 				try {
 					while (!slots.tryAcquire(5, TimeUnit.SECONDS)) {}
+					main.writeLock().lockInterruptibly();
 					workings.add(k);
+					main.writeLock().unlock();
 					justStarted(k);
 					V v = t.call();
-					tasks.remove(k);
-					justEnded(k);
 					return v;
 				} finally {
+					if (!main.writeLock().isHeldByCurrentThread()) {
+						main.writeLock().lockInterruptibly();
+					}
+					tasks.remove(k);
 					workings.remove(k);
+					main.writeLock().unlock();
 					slots.release();
+					justEnded(k);
 				}
 			} finally {
 				lock.unlock();
@@ -151,6 +209,7 @@ public class PipelineImpl implements Pipeline {
 			main.writeLock().lock();
 			tasks.remove(taskId);
 			futures.remove(taskId).cancel(false);
+			workings.remove(taskId);
 		} finally {
 			main.writeLock().unlock();
 		}
@@ -159,19 +218,23 @@ public class PipelineImpl implements Pipeline {
 	@Override
 	public List<Key> list(Filter... filters) {
 		List<Key> list = new ArrayList<Key>();
+		Collection<Task<BuildResult>> cTasks = null;
+		Set<Key> cWorkings = null;
 		try {
 			main.readLock().lock();
-			for (Task<?> t : tasks.values()) {
-				for (Filter f : filters) {
-					boolean running = workings.contains(t.getKey());
-					if (f.matches(running, t.getSubmitDate())) {
-						list.add(t.getKey());
-						break;
-					}
-				}
-			}
+			cTasks = new ArrayList<Task<BuildResult>>(tasks.values());
+			cWorkings = new HashSet<Key>(workings);
 		} finally {
 			main.readLock().unlock();
+		}
+		for (Task<?> t : cTasks) {
+			for (Filter f : filters) {
+				boolean running = cWorkings.contains(t.getKey());
+				if (f.matches(running, t.getSubmitDate())) {
+					list.add(t.getKey());
+					break;
+				}
+			}
 		}
 		return list;
 	}
@@ -187,6 +250,13 @@ public class PipelineImpl implements Pipeline {
 		return tasks.get(task).openStdout();
 	}
 
+	private static final Filter ANY = new Filter() {
+		
+		@Override
+		public boolean matches(boolean isRunning, Date submissionDate) {
+			return true;
+		}
+	};
 	private static final Filter PENDING = new Filter() {
 		public boolean matches(boolean r, Date d) {
 			return !r;
@@ -197,6 +267,10 @@ public class PipelineImpl implements Pipeline {
 			return r;
 		}
 	};
+	
+	public static Filter any() {
+		return ANY;
+	}
 
 	public static Filter pending() {
 		return PENDING;
@@ -352,6 +426,16 @@ public class PipelineImpl implements Pipeline {
 			waitForHeartBeat.unlock();
 			keys.retainAll(this.tasks.keySet());
 			mustWait = keys.size() > 0;
+		}
+	}
+	
+	@Override
+	public Future<BuildResult> getFuture(Key k) {
+		main.readLock().lock();
+		try {
+			return this.futures.get(k);
+		} finally {
+			main.readLock().unlock();
 		}
 	}
 

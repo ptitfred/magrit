@@ -34,8 +34,8 @@ public class QueueServiceImpl implements QueueService {
 	
 	private final ExecutorService executorService;
 
-	private final Map<Pair<Repository, String>, Task> pendings;
-	private final Map<Pair<Repository, String>, Task> workplace;
+	private final Map<Pair<Repository, String>, SimpleTask> pendings;
+	private final Map<Pair<Repository, String>, SimpleTask> workplace;
 	private final StatusesService statusService;
 
 	class PingBackExecutorService extends ThreadPoolExecutor {
@@ -46,8 +46,8 @@ public class QueueServiceImpl implements QueueService {
 
 		@Override
 		protected void beforeExecute(Thread t, Runnable r) {
-			if (r instanceof Task) {
-				fireStarted(((Task) r).getTarget());
+			if (r instanceof SimpleTask) {
+				fireStarted(((SimpleTask) r).getTarget());
 			}
 			super.beforeExecute(t, r);
 		}
@@ -65,8 +65,8 @@ public class QueueServiceImpl implements QueueService {
 	public QueueServiceImpl(Context context, TimeService timeService, StatusesService statusService) {
 		this.context = context;
 		this.timeService = timeService;
-		this.workplace = new ConcurrentHashMap<Pair<Repository,String>, Task>();
-		this.pendings = new ConcurrentHashMap<Pair<Repository, String>, Task>();
+		this.workplace = new ConcurrentHashMap<Pair<Repository,String>, SimpleTask>();
+		this.pendings = new ConcurrentHashMap<Pair<Repository, String>, SimpleTask>();
 		this.executorService = new PingBackExecutorService();
 		this.statusService = statusService;
 	}
@@ -79,7 +79,7 @@ public class QueueServiceImpl implements QueueService {
 		
 		context.getRepositoryGuard().acquire(repository.getDirectory().getAbsolutePath());
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		Task task = new Task(this.context, committer, timeService, repository, target);
+		SimpleTask task = new SimpleTask(this.context, committer, timeService, repository, target);
 		pendings.put(target, task);
 		fireScheduled(target);
 		return executorService.submit(task);

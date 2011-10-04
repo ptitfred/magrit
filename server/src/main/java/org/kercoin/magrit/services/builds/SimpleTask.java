@@ -29,7 +29,8 @@ import org.kercoin.magrit.utils.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Task implements Callable<BuildResult> {
+@Deprecated
+public class SimpleTask implements Callable<BuildResult> {
 
 	private static final char NL = '\n';
 
@@ -44,7 +45,7 @@ public class Task implements Callable<BuildResult> {
 	private Repository repository;
 	private RevCommit commit;
 
-	public Task(Context ctx,
+	public SimpleTask(Context ctx,
 			UserIdentity user, TimeService timeService, Repository remote, Pair<Repository,String> target) {
 		this.gitUtils = ctx.getGitUtils();
 		this.user = user;

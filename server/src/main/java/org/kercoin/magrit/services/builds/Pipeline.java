@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -19,7 +20,7 @@ public interface Pipeline {
 		Lock getLock();
 	}
 
-	public static interface Task<E> extends Callable<E>, Comparable<Task<E>> {
+	public static interface Task<E> extends Callable<E> {
 		Key getKey();
 		void setKey(Key k);
 		Date getSubmitDate();
@@ -34,7 +35,7 @@ public interface Pipeline {
 		void onDone(Key k);
 	}
 
-	public static interface Key {
+	public static interface Key extends Comparable<Key> {
 		/**
 		 * An uniq id, doesn't have any sense for client of the pipeline.
 		 * @return
@@ -87,4 +88,6 @@ public interface Pipeline {
 	 * @return
 	 */
 	InputStream cat(Key task);
+
+	Future<BuildResult> getFuture(Key k);
 }

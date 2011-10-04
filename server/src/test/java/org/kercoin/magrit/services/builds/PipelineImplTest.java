@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -117,11 +118,6 @@ public class PipelineImplTest {
 		}
 
 		@Override
-		public int compareTo(Task<BuildResult> o) {
-			return (int) (o.getKey().uniqId() - getKey().uniqId());
-		}
-
-		@Override
 		public Key getKey() {
 			return key;
 		}
@@ -180,31 +176,50 @@ public class PipelineImplTest {
 
 	@Test
 	public void scenario() throws InterruptedException {
+		// given ---------------------------------
 		final String R1 = "/R1";
 		final String R2 = "/R2";
 		final String R3 = "/R3";
-		Task<BuildResult> t1 = createTask(R1, 200);
-		Task<BuildResult> t2 = createTask(R2, 200);
-		Task<BuildResult> t3 = createTask(R2, 200);
-		Task<BuildResult> t4 = createTask(R3, 200);
+		Task<BuildResult> t1 = createTask(R1, 110);
+		Task<BuildResult> t2 = createTask(R2, 110);
+		Task<BuildResult> t3 = createTask(R2, 110);
+		Task<BuildResult> t4 = createTask(R3, 110);
 
+		LogListener logger = new LogListener(LogListener.SUBMIT | LogListener.START | LogListener.DONE);
+		pipeline.addListener(logger);
+		
+		// when ----------------------------------
 		Key k1 = pipeline.submit(t1);
 		Key k2 = pipeline.submit(t2);
 		Key k3 = pipeline.submit(t3);
 		Key k4 = pipeline.submit(t4);
-
-		assertThat(pipeline.list(PipelineImpl.running())).hasSize(2).containsOnly(k1, k2);
-		assertThat(pipeline.list(PipelineImpl.pending())).containsOnly(k3, k4);
-
+		
+		Thread.sleep(5);
+		
+		List<Key> running1 = pipeline.list(PipelineImpl.running());
+		List<Key> pending1 = pipeline.list(PipelineImpl.pending());
+		
 		pipeline.waitFor(k1, k2);
+		Thread.sleep(5);
 
-		assertThat(pipeline.list(PipelineImpl.running())).excludes(k1, k2);
-		assertThat(pipeline.list(PipelineImpl.pending())).isEmpty();
+		List<Key> running2 = pipeline.list(PipelineImpl.running());
+		List<Key> pending2 = pipeline.list(PipelineImpl.pending());
 
 		pipeline.waitFor(k3, k4);
+		Thread.sleep(5);
 
-		assertThat(pipeline.list(PipelineImpl.running())).isEmpty();
-		assertThat(pipeline.list(PipelineImpl.pending())).isEmpty();
+		List<Key> running3 = pipeline.list(PipelineImpl.running());
+		List<Key> pending3 = pipeline.list(PipelineImpl.pending());
+
+		// then ----------------------------------
+		assertThat(pending1).containsOnly(k3, k4);
+		assertThat(running1).containsOnly(k1, k2);
+
+		assertThat(running2).excludes(k1, k2);
+		assertThat(pending2).isEmpty();
+
+		assertThat(running3).isEmpty();
+		assertThat(pending3).isEmpty();
 	}
 
 	@Test
