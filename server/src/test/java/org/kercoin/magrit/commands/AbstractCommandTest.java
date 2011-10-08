@@ -27,21 +27,21 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class AbstractCommandTest {
 
 	AbstractCommand<?> cmd;
-	
+
 	@Mock(answer=Answers.RETURNS_DEEP_STUBS)
 	Context ctx;
-	
+
 	@Mock ExecutorService commandRunnerPool;
 
 	@Mock Environment env;
-	
+
 	static class FakeCommand extends AbstractCommand<FakeCommand> {
 		public FakeCommand(Context ctx) { super(ctx); }
 		public void run() {}
 		public FakeCommand command(String command) throws Exception { return this; }
 		protected Class<FakeCommand> getType() { return FakeCommand.class; }
 	}
-	
+
 	@Before
 	public void setUp() throws Exception {
 		given(ctx.getCommandRunnerPool()).willReturn(commandRunnerPool);
@@ -50,11 +50,13 @@ public class AbstractCommandTest {
 
 	@Test
 	public void testSetInputStream() throws IOException {
-		// given
+		// given ---------------------------------
 		cmd.logStreams = true;
-		// when
+
+		// when ----------------------------------
 		cmd.setInputStream(new ByteArrayInputStream(new byte[]{6, '*', 9, '=', 42}));
-		// then
+
+		// then ----------------------------------
 		assertThat(cmd.getInputStream()).isInstanceOf(LoggerInputStream.class);
 		cmd.getInputStream().read(new byte[4]);
 		assertThat(cmd.getInputStream().read()).isEqualTo(42);
@@ -64,10 +66,10 @@ public class AbstractCommandTest {
 	public void testSetOutputStream() {
 		// given ---------------------------------
 		cmd.logStreams = true;
-		
+
 		// when ----------------------------------
 		cmd.setOutputStream(NullOutputStream.INSTANCE);
-		
+
 		// then ----------------------------------
 		assertThat(cmd.getOutputStream()).isInstanceOf(LoggerOutputStream.class);
 	}
@@ -76,10 +78,10 @@ public class AbstractCommandTest {
 	public void testSetErrorStream() {
 		// given ---------------------------------
 		cmd.logStreams = true;
-		
+
 		// when ----------------------------------
 		cmd.setErrorStream(NullOutputStream.INSTANCE);
-		
+
 		// then ----------------------------------
 		assertThat(cmd.getErrorStream()).isInstanceOf(LoggerOutputStream.class);
 	}
@@ -107,7 +109,7 @@ public class AbstractCommandTest {
 		verify(ctx.getGitUtils()).createRepository(where.capture());
 		assertThat(where.getValue().getAbsolutePath()).isEqualTo("/tmp/r1");
 	}
-	
+
 	@Test
 	public void testCreateRepository_nominal() throws IOException {
 		// given ---------------------------------
