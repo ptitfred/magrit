@@ -2,6 +2,7 @@ package org.kercoin.magrit.services.builds;
 
 public enum Status {
 	RUNNING('R'),
+	PENDING('P'),
 	ERROR('E'),
 	OK('O'),
 	INTERRUPTED('I'),

@@ -61,8 +61,13 @@
 						<ignores>
 							<ignore>tests.*</ignore>
 						</ignores>
-						<!-- <excludes> <exclude>com/example/dullcode/**/*.class</exclude> 
-							<exclude>com/example/**/*Test.class</exclude> </excludes> -->
+						<excludes>
+							<exclude>org/kercoin/magrit/utils/Pair.class</exclude>
+							<exclude>org/kercoin/magrit/utils/LoggerInputStream.class</exclude>
+							<exclude>org/kercoin/magrit/utils/LoggerOutputStream.class</exclude>
+							<exclude>org/kercoin/magrit/utils/UserIdentity.class</exclude>
+							<exclude>org/kercoin/magrit/sshd/GitPublickeyAuthenticator.class</exclude>
+						</excludes>
 					</instrumentation>
 					<check>
 						<branchRate>85</branchRate>

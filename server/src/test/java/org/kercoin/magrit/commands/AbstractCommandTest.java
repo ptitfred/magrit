@@ -7,7 +7,9 @@ import static org.mockito.Mockito.verify;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
+import org.apache.sshd.server.Environment;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,29 +27,36 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class AbstractCommandTest {
 
 	AbstractCommand<?> cmd;
-	
+
 	@Mock(answer=Answers.RETURNS_DEEP_STUBS)
 	Context ctx;
-	
+
+	@Mock ExecutorService commandRunnerPool;
+
+	@Mock Environment env;
+
 	static class FakeCommand extends AbstractCommand<FakeCommand> {
 		public FakeCommand(Context ctx) { super(ctx); }
 		public void run() {}
-		public FakeCommand command(String command) throws Exception { return null; }
-		protected Class<FakeCommand> getType() { return null; }
+		public FakeCommand command(String command) throws Exception { return this; }
+		protected Class<FakeCommand> getType() { return FakeCommand.class; }
 	}
-	
+
 	@Before
 	public void setUp() throws Exception {
-		cmd = new FakeCommand(new Context(new GitUtils()));
+		given(ctx.getCommandRunnerPool()).willReturn(commandRunnerPool);
+		cmd = new FakeCommand(new Context(new GitUtils(), commandRunnerPool));
 	}
 
 	@Test
 	public void testSetInputStream() throws IOException {
-		// given
+		// given ---------------------------------
 		cmd.logStreams = true;
-		// when
+
+		// when ----------------------------------
 		cmd.setInputStream(new ByteArrayInputStream(new byte[]{6, '*', 9, '=', 42}));
-		// then
+
+		// then ----------------------------------
 		assertThat(cmd.getInputStream()).isInstanceOf(LoggerInputStream.class);
 		cmd.getInputStream().read(new byte[4]);
 		assertThat(cmd.getInputStream().read()).isEqualTo(42);
@@ -57,10 +66,10 @@ public class AbstractCommandTest {
 	public void testSetOutputStream() {
 		// given ---------------------------------
 		cmd.logStreams = true;
-		
+
 		// when ----------------------------------
 		cmd.setOutputStream(NullOutputStream.INSTANCE);
-		
+
 		// then ----------------------------------
 		assertThat(cmd.getOutputStream()).isInstanceOf(LoggerOutputStream.class);
 	}
@@ -69,10 +78,10 @@ public class AbstractCommandTest {
 	public void testSetErrorStream() {
 		// given ---------------------------------
 		cmd.logStreams = true;
-		
+
 		// when ----------------------------------
 		cmd.setErrorStream(NullOutputStream.INSTANCE);
-		
+
 		// then ----------------------------------
 		assertThat(cmd.getErrorStream()).isInstanceOf(LoggerOutputStream.class);
 	}
@@ -129,4 +138,14 @@ public class AbstractCommandTest {
 		assertThat(where.getValue().getAbsolutePath()).isEqualTo("/tmp/r1");
 	}
 
+	@Test
+	public void testStart() throws Exception {
+		// given ---------------------------------
+
+		// when ----------------------------------
+		cmd.start(env);
+
+		// then ----------------------------------
+		verify(commandRunnerPool).execute(cmd);
+	}
 }

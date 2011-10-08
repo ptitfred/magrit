@@ -2,25 +2,22 @@ package org.kercoin.magrit.services.builds;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.services.builds.Pipeline.Filter;
+import org.kercoin.magrit.services.builds.Pipeline.Key;
+import org.kercoin.magrit.services.builds.Pipeline.Listener;
+import org.kercoin.magrit.services.builds.Pipeline.Task;
 import org.kercoin.magrit.services.utils.TimeService;
-import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.kercoin.magrit.utils.UserIdentity;
 
@@ -31,47 +28,37 @@ import com.google.inject.Singleton;
 public class QueueServiceImpl implements QueueService {
 
 	private final Context context;
-	private final GitUtils gitUtils;
 	private final TimeService timeService;
-	
-	private final ExecutorService executorService;
 
-	private final Map<Pair<Repository, String>, Task> pendings;
-	private final Map<Pair<Repository, String>, Task> workplace;
 	private final StatusesService statusService;
 
-	class PingBackExecutorService extends ThreadPoolExecutor {
-		public PingBackExecutorService() {
-			super(1, 1, 0L, TimeUnit.MILLISECONDS,
-					new LinkedBlockingQueue<Runnable>());
-		}
+	private final Pipeline pipeline;
 
-		@Override
-		protected void beforeExecute(Thread t, Runnable r) {
-			if (r instanceof Task) {
-				fireStarted(((Task) r).getTarget());
-			}
-			super.beforeExecute(t, r);
-		}
-		
-		@Override
-		protected void afterExecute(Runnable r, Throwable t) {
-			if (r instanceof FutureTask<?>) {
-//				fireEnded(((BuildTask) r).getTarget());
-			}
-			super.afterExecute(r, t);
-		}
-	}
+	private final RepositoryGuard guard;
 
 	@Inject
-	public QueueServiceImpl(Context context, GitUtils gitUtils, TimeService timeService, StatusesService statusService) {
+	public QueueServiceImpl(Context context, TimeService timeService,
+			StatusesService statusService, Pipeline pipeline, RepositoryGuard guard) {
 		this.context = context;
-		this.gitUtils = gitUtils;
 		this.timeService = timeService;
-		this.workplace = new ConcurrentHashMap<Pair<Repository,String>, Task>();
-		this.pendings = new ConcurrentHashMap<Pair<Repository, String>, Task>();
-		this.executorService = new PingBackExecutorService();
 		this.statusService = statusService;
+		this.pipeline = pipeline;
+		pipeline.addListener(new Tracker());
+		this.guard = guard;
+	}
+
+	private Map<Key, Pair<Repository, String>> tracker = new HashMap<Key, Pair<Repository, String>>();
+
+	class Tracker implements Listener {
+
+		public void onSubmit(Key k) {}
+		public void onStart(Key k) {}
+
+		@Override
+		public void onDone(Key k) {
+			tracker.remove(k);
+		}
+
 	}
 
 	@Override
@@ -79,12 +66,12 @@ public class QueueServiceImpl implements QueueService {
 		if (!shouldBuild(repository, sha1, force)) {
 			return null;
 		}
-		
+
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		Task task = new Task(this.gitUtils, committer, timeService, repository, target);
-		pendings.put(target, task);
-		fireScheduled(target);
-		return executorService.submit(task);
+		Task<BuildResult> task = new BuildTask(context, guard, committer, timeService, repository, target);
+		Key k = pipeline.submit(task);
+		tracker.put(k, target);
+		return pipeline.getFuture(k);
 	}
 
 	private boolean shouldBuild(Repository repository, String sha1,
@@ -102,13 +89,13 @@ public class QueueServiceImpl implements QueueService {
 			if (aggreg.contains(Status.LOCAL)) {
 				return true;
 			}
-		} 
+		}
 		if (aggreg.contains(Status.RUNNING)) {
 			return false;
 		}
 		return !aggreg.contains(Status.OK);
 	}
-	
+
 	private Repository findBuildPlace(Repository repository) throws IOException {
 		String originalPath = repository.getDirectory().getAbsolutePath();
 		String targetPath = originalPath.replaceFirst(
@@ -123,46 +110,72 @@ public class QueueServiceImpl implements QueueService {
 		return workRepo;
 	}
 
-	private Set<BuildLifeCycleListener> callbacks = new HashSet<BuildLifeCycleListener>();
-	
+	class DelegateListener implements Listener {
+
+		BuildLifeCycleListener callback;
+
+		DelegateListener(BuildLifeCycleListener callback) {
+			this.callback = callback;
+		}
+
+		@Override
+		public void onSubmit(Key k) {
+			Pair<Repository, String> pair = tracker.get(k);
+			callback.buildScheduled(tracker.get(k).getT(), pair.getU());
+		}
+
+		@Override
+		public void onStart(Key k) {
+			Pair<Repository, String> pair = tracker.get(k);
+			callback.buildStarted(pair.getT(), pair.getU());
+		}
+
+		@Override
+		public void onDone(Key k) {
+			Pair<Repository, String> pair = tracker.get(k);
+			callback.buildEnded(pair.getT(), pair.getU(), Status.UNKNOWN);
+		}
+
+	}
+
+	Map<BuildLifeCycleListener, DelegateListener> callbackDelegates =
+			new HashMap<BuildLifeCycleListener, QueueServiceImpl.DelegateListener>();
+
 	@Override
 	public void addCallback(BuildLifeCycleListener callback) {
-		callbacks.add(callback);
+		DelegateListener delegate = new DelegateListener(callback);
+		callbackDelegates.put(callback, delegate);
+		pipeline.addListener(delegate);
 	}
 
 	@Override
 	public void removeCallback(BuildLifeCycleListener callback) {
-		callbacks.remove(callback);
-	}
-	
-	void fireScheduled(Pair<Repository, String> e) {
-		for (BuildLifeCycleListener callback : callbacks) {
-			callback.buildScheduled(e.getT(), e.getU());
-		}
-	}
-	
-	void fireStarted(Pair<Repository, String> e) {
-		workplace.put(e, pendings.remove(e));
-		for (BuildLifeCycleListener callback : callbacks) {
-			callback.buildStarted(e.getT(), e.getU());
-		}
-	}
-
-	void fireEnded(Pair<Repository, String> e) {
-		workplace.remove(e);
-		for (BuildLifeCycleListener callback : callbacks) {
-			callback.buildEnded(e.getT(), e.getU(), Status.OK);
+		DelegateListener listener = callbackDelegates.get(callback);
+		if (listener != null) {
+			pipeline.removeListener(listener);
 		}
 	}
 
 	@Override
 	public Collection<Pair<Repository, String>> getCurrentTasks() {
-		return workplace.keySet();
+		return get(PipelineImpl.running());
 	}
-	
+
+	private Collection<Pair<Repository, String>> get(Filter filter) {
+		List<Key> keys = pipeline.list(PipelineImpl.running());
+		Collection<Pair<Repository, String>> pairs = new ArrayList<Pair<Repository, String>>();
+		for (Key k : keys) {
+			Pair<Repository, String> pair = tracker.get(k);
+			if (pair != null) {
+				pairs.add(pair);
+			}
+		}
+		return pairs;
+	}
+
 	@Override
 	public Collection<Pair<Repository, String>> getScheduledTasks() {
-		return pendings.keySet();
+		return get(PipelineImpl.pending());
 	}
 
 }

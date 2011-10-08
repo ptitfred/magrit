@@ -7,8 +7,11 @@ import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.kercoin.magrit.services.builds.Pipeline.Key;
+import org.kercoin.magrit.services.builds.Pipeline.Task;
 import org.kercoin.magrit.services.dao.BuildDAO;
 import org.kercoin.magrit.utils.GitUtils;
+import org.kercoin.magrit.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +28,14 @@ public class StatusesServiceImpl implements StatusesService {
 
 	private final GitUtils gitUtils;
 	private final BuildDAO dao;
+	private final Pipeline pipeline;
 
 	@Inject
-	public StatusesServiceImpl(GitUtils gitUtils, BuildDAO dao) {
+	public StatusesServiceImpl(GitUtils gitUtils, BuildDAO dao, Pipeline pipeline) {
 		super();
 		this.gitUtils = gitUtils;
 		this.dao = dao;
+		this.pipeline = pipeline;
 	}
 
 	@Override
@@ -42,29 +47,58 @@ public class StatusesServiceImpl implements StatusesService {
 			throw new NullPointerException("SHA1 can't be null");
 		}
 		log.info("Checking status for {} @ {}", repository.getDirectory(), sha1);
+		boolean running = false;
+		boolean pending = false;
+		List<Status> statuses = new ArrayList<Status>();
 		try {
 			RevCommit commit = gitUtils.getCommit(repository, sha1);
 			if (commit == null) {
 				return Arrays.asList(Status.UNKNOWN);
 			}
+			for (Key k : pipeline.list(PipelineImpl.running())) {
+				Task<BuildResult> task = pipeline.get(k);
+				if (task instanceof BuildTask) {
+					Pair<Repository, String> target = ((BuildTask) task).getTarget();
+					if (sha1.equals(target.getU())) {
+						running = true;
+						break;
+					}
+				}
+			}
+			for(Key k : pipeline.list(PipelineImpl.pending())) {
+				Task<BuildResult> task = pipeline.get(k);
+				if (task instanceof BuildTask) {
+					Pair<Repository, String> target = ((BuildTask) task).getTarget();
+					if (sha1.equals(target.getU())) {
+						pending = true;
+						break;
+					}
+				}
+			}
 
 			List<BuildResult> results = dao.getAll(repository, sha1);
 			if (results.size() == 0) {
-				// check if it is running
-				return Arrays.asList(Status.NEW);
+				if (!running && !pending) {
+					statuses.add(Status.NEW);
+				}
+			} else {
+				for (BuildResult result: results) {
+					statuses.add(result.getExitCode() == 0 ? Status.OK : Status.ERROR);
+				}
 			}
-			
-			List<Status> statuses = new ArrayList<Status>(results.size());
-			for (BuildResult result: results) {
-				statuses.add(result.getExitCode() == 0 ? Status.OK : Status.ERROR);
-			}
-			return statuses;
-			
 		} catch (IOException e) {
 			log.warn(e.getMessage());
 		}
-		
-		return Arrays.asList(Status.UNKNOWN);
+		if (running) {
+			statuses.add(Status.RUNNING);
+		}
+		if (pending) {
+			statuses.add(Status.PENDING);
+		}
+		if (statuses.isEmpty()) {
+			statuses.add(Status.UNKNOWN);
+		}
+		return statuses;
 	}
 
 }

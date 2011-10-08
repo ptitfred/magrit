@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -24,7 +23,8 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.kercoin.magrit.services.builds.Task;
+import org.junit.runner.RunWith;
+import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
@@ -34,15 +34,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
-public class TaskTest {
+@RunWith(MockitoJUnitRunner.class)
+public class BuildTaskTest {
 
 	private static final String SHA1 = "12345";
 
-	Task buildTask;
+	BuildTask buildTask;
 	
 	@Mock GitUtils gitUtils;
-	UserIdentity committerIdentity;
 
 	@Mock(answer=Answers.RETURNS_DEEP_STUBS)
 	Repository remote;
@@ -66,13 +67,15 @@ public class TaskTest {
 	
 	@Mock(answer=Answers.RETURNS_DEEP_STUBS) Note previousNote;
 	@Mock ObjectId previousNoteId;
+
+	@Mock RepositoryGuard guard;
 	
 	@Before
 	public void setUp() throws Exception {
-		initMocks(this);
-		committerIdentity = new UserIdentity("user@example.org", "Mister Example");
+		Context context = new Context(gitUtils);
+		UserIdentity committerIdentity = new UserIdentity("user@example.org", "Mister Example");
 		Pair<Repository, String> target = new Pair<Repository, String>(buildRepo, SHA1);
-		buildTask = Mockito.spy(new Task(gitUtils, committerIdentity, timeService, remote, target));
+		buildTask = Mockito.spy(new BuildTask(context, guard, committerIdentity, timeService, remote, target));
 		given(buildTask.wrap(remote)).willReturn(gitWrapper);
 		given(gitWrapper.notesAdd()).willReturn(addNoteCommand);
 		given(gitWrapper.notesShow()).willReturn(showNoteCommand);
@@ -124,7 +127,7 @@ public class TaskTest {
 	
 	@Test
 	public void testWriteToRepository_overwrite() throws Exception {
-		// given
+		// given ---------------------------------
 		BuildResult buildResult = new BuildResult(SHA1);
 		buildResult.setStartDate(date(2011, Calendar.SEPTEMBER, 7, 1, 18, 35));
 		buildResult.setExitCode(3);
@@ -140,10 +143,10 @@ public class TaskTest {
 		given(previousNote.getData()).willReturn(previousNoteId);
 		given(gitUtils.show(remote, "9876543210987654321098765432109876543210")).willReturn("magrit:built-by previous");
 
-		// when
+		// when ----------------------------------
 		buildTask.writeToRepository(buildResult);
 		
-		// then
+		// then ----------------------------------
 		ArgumentCaptor<byte[]> blobCaptor = ArgumentCaptor.<byte[]>forClass(byte[].class);
 		verify(myInserter, Mockito.times(2)).insert(eq(Constants.OBJ_BLOB), blobCaptor.capture());
 		assertThat(new String(blobCaptor.getAllValues().get(0), "UTF-8")).isEqualTo("Oh. Yeah.");
