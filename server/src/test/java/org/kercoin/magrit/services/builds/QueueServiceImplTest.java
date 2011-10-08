@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.concurrent.RepositoryGuardImpl;
 import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.UserIdentity;
@@ -37,12 +36,12 @@ public class QueueServiceImplTest {
 
 	@Before
 	public void createBuildQueueServiceImpl() throws Exception {
-		context= new Context(null, null, new RepositoryGuardImpl());
+		context= new Context(null, null);
 		repo = GitTestsUtils.open(context, "/r1");
 		committer = new UserIdentity("ptitfred@localhost", "ptitfred");
 		
-		buildQueueServiceImpl = new QueueServiceImpl(context, 
-				timeService, statusService);
+		buildQueueServiceImpl = new QueueServiceImpl(context, timeService,
+				statusService, new PipelineImpl(context), new RepositoryGuard());
 	}
 
 	@Before
@@ -63,27 +62,18 @@ public class QueueServiceImplTest {
 		// then
 		assertThat(future).isNotNull();
 		
-		assertThat(
-				enqueue(true,
-						Arrays.asList(Status.OK))
-				).isNotNull();
+		assertThat( enqueue(true, Arrays.asList(Status.OK)) ).isNotNull();
 
 	}
 
 	@Test
 	public void testEnqueueBuild_onOKs() throws Exception {
-		assertThat(
-				enqueue(false,
-						Arrays.asList(Status.OK))
-				).isNull();
+		assertThat(	enqueue(false, Arrays.asList(Status.OK)) ).isNull();
 	}
 
 	@Test
 	public void testEnqueueBuild() throws Exception {
-		assertThat(
-				enqueue(false,
-						Arrays.<Status>asList())
-				).isNotNull();
+		assertThat( enqueue(false, Arrays.<Status>asList()) ).isNotNull();
 	}
 
 	@Test
@@ -130,13 +120,12 @@ public class QueueServiceImplTest {
 				).isNotNull();
 	}
 
-	private Future<BuildResult> enqueue(boolean force,
-			List<Status> statuses) throws Exception {
-		// given
+	private Future<BuildResult> enqueue(boolean force, List<Status> statuses) throws Exception {
+		// given ---------------------------------
 		String sha1 = "0123401234012340123401234012340123401234";
 		given(statusService.getStatus(repo, sha1)).willReturn(statuses);
 		
-		// when
+		// when ----------------------------------
 		Future<BuildResult> future = buildQueueServiceImpl.enqueueBuild(committer, repo, sha1, force);
 		return future;
 	}
