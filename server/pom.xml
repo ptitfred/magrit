@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.kercoin.magrit</groupId>
 		<artifactId>magrit</artifactId>
-		<version>mag1-SNAPSHOT</version>
+		<version>gabi1</version>
 	</parent>
 
 	<artifactId>magrit-server</artifactId>
