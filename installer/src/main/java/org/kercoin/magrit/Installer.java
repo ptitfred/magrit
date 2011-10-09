@@ -163,27 +163,47 @@ public class Installer {
 			File scriptsDirectory = new File(magritDir, "scripts");
 			inflate(new File(magritDir, p.getProperty("shell-scripts.archive")), scriptsDirectory);
 			
-			File setupScript = new File(magritDir, "setup.sh");
-			if (!setupScript.createNewFile()) {
-				throw new ExitException("The finalization script couldn't have been created, aborting... :'(");
+			{ // Utility script to setup PATH
+				PrintWriter pw = open(new File(magritDir, "setup.sh"));
+				pw.println("chmod +x " + scriptsDirectory.getAbsolutePath() + "/*");
+				pw.println("export PATH=\"" + scriptsDirectory.getAbsolutePath() + System.getProperty("path.separator") + "$PATH\"");
+				pw.println();
+				pw.close();
 			}
-			PrintWriter pw = new PrintWriter(new FileWriter(setupScript));
-			pw.println("chmod +x " + scriptsDirectory.getAbsolutePath() + "/*");
-			pw.println("export PATH=\"" + scriptsDirectory.getAbsolutePath() + System.getProperty("path.separator") + "$PATH\"");
-			pw.println();
-			pw.close();
+
+			{ // Startup script for the server
+				PrintWriter pw2 = open(new File(magritDir, "start.sh"));
+				pw2.println("java -jar " + magritDir.getAbsolutePath() + "/" + p.getProperty("server.archive") + " -a none -s " + magritDir.getAbsolutePath());
+				pw2.close();
+			}
 			
-			banner("Quick install completed");
+			p(Color.GREEN, "Quick install completed");
 			nl();
+			
 			p("In order to use Magrit, please execute");
-			p("  .  " + magritDir.getAbsolutePath() + "/setup.sh" );
-			p("  java -jar " + magritDir.getAbsolutePath() + "/" + p.getProperty("server.archive") + " -a none -s " + magritDir.getAbsolutePath());
+			p(Color.YELLOW, "  .  " + magritDir.getAbsolutePath() + "/setup.sh" );
+			nl();
+			p("Start the server: ");
+			boolean isScreen = System.getenv("TERM").startsWith("screen");
+			String startServerCmd = "sh " + magritDir.getAbsolutePath() + "/start.sh";
+			if (isScreen) {
+				p(Color.YELLOW, "  screen -t magrit-server " + startServerCmd);
+			} else {
+				p(Color.YELLOW, "  " + startServerCmd );
+			}
 			
 		} catch (Exception e) {
 			throw new ExitException(e.getMessage(), e);
 		}
 	}
 	
+	private static PrintWriter open(File setupScript) throws IOException {
+		if (!setupScript.createNewFile()) {
+			throw new ExitException("The finalization script couldn't have been created, aborting... :'(");
+		}
+		return new PrintWriter(new FileWriter(setupScript));
+	}
+
 	public static void inflate(File archive, File where) {
 		if (where.exists() && !where.isDirectory()) {
 			throw new ExitException("Can't unzip file here because this isn't a directory: " + where.getAbsolutePath());
@@ -229,7 +249,7 @@ public class Installer {
 			throw new ExitException(e.getMessage(), e);
 		}
 	}
-
+	
 	private int ask(String question, int... validValues) {
 		int i=Integer.MIN_VALUE;
 		int tries=0;
@@ -240,7 +260,7 @@ public class Installer {
 				i = in.nextInt();
 				if (in(i, validValues)) return i;
 			} catch (InputMismatchException e) {
-				p("Incorrect answer.");
+				p(Color.RED, "Incorrect answer.");
 				in.next();
 			}
 		}
@@ -268,16 +288,42 @@ public class Installer {
 	// ---------------------------------------------------------
 
 	private static void banner(String... texts) {
-		p("+-" + HEADER + "-+");
+		banner(Color.NONE, texts);
+	}
+	
+	private static void banner(Color color, String... texts) {
+		p(color, "+-" + HEADER + "-+");
 		for (String text : texts) {
 			String padded = text.substring(0, Math.min(text.length(), WIDTH));
-			p("| " + padded + FILLER.substring(padded.length()) + " |");
+			p(color, "| " + padded + FILLER.substring(padded.length()) + " |");
 		}
-		p("+-" + HEADER + "-+");
+		p(color, "+-" + HEADER + "-+");
 	}
 
+	private static enum Color {
+		NONE("0"), GREEN("92"), RED("91"), YELLOW("33");
+
+		private final String code;
+		private Color(String code) {
+			this.code = code;
+		}
+		
+		public String code() {
+			return code;
+		}
+	}
+	
 	private static void p(String text) {
-		System.out.println(text);
+		p(Color.NONE, text);
+	}
+	private static void p(Color color, String text) {
+		if (color == Color.NONE) {
+			System.out.println(text);
+		} else {
+			System.out.print("\033["+color.code()+"m");
+			System.out.print(text);
+			System.out.println("\033["+Color.NONE.code()+"m");
+		}
 	}
 	
 	private static void nl() {
