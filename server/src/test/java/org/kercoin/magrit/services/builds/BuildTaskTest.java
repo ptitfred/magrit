@@ -40,6 +40,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class BuildTaskTest {
 
 	private static final String SHA1 = "12345";
+	private static final String SHA2 = "67890";
 
 	BuildTask buildTask;
 	
@@ -75,7 +76,7 @@ public class BuildTaskTest {
 		Context context = new Context(gitUtils);
 		UserIdentity committerIdentity = new UserIdentity("user@example.org", "Mister Example");
 		Pair<Repository, String> target = new Pair<Repository, String>(buildRepo, SHA1);
-		buildTask = Mockito.spy(new BuildTask(context, guard, committerIdentity, timeService, remote, target));
+		buildTask = Mockito.spy(new BuildTask(context, guard, committerIdentity, timeService, remote, target, SHA2));
 		given(buildTask.wrap(remote)).willReturn(gitWrapper);
 		given(gitWrapper.notesAdd()).willReturn(addNoteCommand);
 		given(gitWrapper.notesShow()).willReturn(showNoteCommand);

@@ -62,13 +62,14 @@ public class QueueServiceImpl implements QueueService {
 	}
 
 	@Override
-	public Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository, String sha1, boolean force) throws Exception {
+	public Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository,
+			String sha1, String command, boolean force) throws Exception {
 		if (!shouldBuild(repository, sha1, force)) {
 			return null;
 		}
 
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		Task<BuildResult> task = new BuildTask(context, guard, committer, timeService, repository, target);
+		Task<BuildResult> task = new BuildTask(context, guard, committer, timeService, repository, target, command);
 		Key k = pipeline.submit(task);
 		tracker.put(k, target);
 		return pipeline.getFuture(k);

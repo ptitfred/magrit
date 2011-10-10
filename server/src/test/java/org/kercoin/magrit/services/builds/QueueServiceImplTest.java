@@ -52,12 +52,13 @@ public class QueueServiceImplTest {
 	public void testEnqueueBuild_force_onOKs() throws Exception {
 		// given
 		String sha1 = "0123401234012340123401234012340123401234";
+		String cmd = "0123456789012345678901234567890123456789";
 		boolean force = true;
 		List<Status> statuses = Arrays.asList(Status.OK);
 		given(statusService.getStatus(repo, sha1)).willReturn(statuses);
 		
 		// when
-		Future<BuildResult> future = buildQueueServiceImpl.enqueueBuild(committer, repo, sha1, force);
+		Future<BuildResult> future = buildQueueServiceImpl.enqueueBuild(committer, repo, sha1, cmd, force);
 		
 		// then
 		assertThat(future).isNotNull();
@@ -123,10 +124,11 @@ public class QueueServiceImplTest {
 	private Future<BuildResult> enqueue(boolean force, List<Status> statuses) throws Exception {
 		// given ---------------------------------
 		String sha1 = "0123401234012340123401234012340123401234";
+		String cmd = "0123456789012345678901234567890123456789";
 		given(statusService.getStatus(repo, sha1)).willReturn(statuses);
 		
 		// when ----------------------------------
-		Future<BuildResult> future = buildQueueServiceImpl.enqueueBuild(committer, repo, sha1, force);
+		Future<BuildResult> future = buildQueueServiceImpl.enqueueBuild(committer, repo, sha1, cmd, force);
 		return future;
 	}
 
