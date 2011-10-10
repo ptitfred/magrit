@@ -47,6 +47,7 @@ public class BuildTask implements Task<BuildResult> {
 
 	private Repository remote;
 	private Pair<Repository,String> target;
+	private String command;
 	private Repository repository;
 	private RevCommit commit;
 
@@ -55,7 +56,8 @@ public class BuildTask implements Task<BuildResult> {
 	private Date submitDate;
 
 	public BuildTask(Context ctx, RepositoryGuard guard,
-			UserIdentity user, TimeService timeService, Repository remote, Pair<Repository,String> target) {
+			UserIdentity user, TimeService timeService, Repository remote, Pair<Repository,String> target,
+			String command) {
 		this.gitUtils = ctx.getGitUtils();
 		this.guard = guard;
 		this.user = user;
@@ -63,6 +65,7 @@ public class BuildTask implements Task<BuildResult> {
 		this.remote = remote;
 		this.target = target;
 		this.repository = target.getT();
+		this.command = command;
 	}
 
 	@Override
@@ -214,7 +217,7 @@ public class BuildTask implements Task<BuildResult> {
 	}
 
 	String findCommand() throws AmbiguousObjectException, IOException {
-		return gitUtils.show(this.repository, this.target.getU() + ":" + ".magrit");
+		return gitUtils.show(this.repository, this.command + ":" + ".magrit");
 	}
 
 	@Override

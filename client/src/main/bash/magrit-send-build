@@ -7,10 +7,17 @@ _colorize "## send build" 37
 _getSsh
 
 force=""
-if [ "$1" = "--force" ]; then
-	force="--force"
-	shift 1
-fi
+command=""
+while [ "${1:0:2}" = "--" ]; do
+	if [ "$1" = "--force" ]; then
+		force="$1"
+		shift 1
+	elif [ "$1" = "--command" ]; then
+		command="$1 $2"
+		shift 2
+	fi
+done
+
 if [ $# -gt 0 ]; then
 	revstr=$1
 else
@@ -24,7 +31,7 @@ out="/tmp/magrit-${BASHPID}-out"
 
 mkfifo $in $out
 
-_sendSshCommandBg $in $out magrit send-build $force $repo -
+_sendSshCommandBg $in $out magrit send-build $force $command $repo -
 
 exec 3<$out
 

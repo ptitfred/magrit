@@ -11,7 +11,8 @@ import com.google.inject.ImplementedBy;
 
 @ImplementedBy(QueueServiceImpl.class)
 public interface QueueService {
-	Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository, String sha1, boolean force) throws Exception;
+	Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository,
+			String sha1, String command, boolean force) throws Exception;
 	
 	void addCallback(BuildLifeCycleListener callback);
 

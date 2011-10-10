@@ -58,6 +58,7 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 	
 	private Repository repo;
 	private String sha1;
+	private String command;
 	private boolean force;
 	private boolean readStdin = false;
 	
@@ -108,7 +109,8 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 	}
 
 	private void handle(String sha1) throws AmbiguousObjectException, IOException {
-		sendBuild(repo.resolve(sha1));
+		String cmd = command != null ? command : sha1;
+		sendBuild(repo.resolve(sha1), repo.resolve(cmd));
 	}
 
 	@Override
@@ -122,8 +124,13 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 		check(command, scanner.hasNext());
 		String remainder = scanner.next();
 		boolean force = false;
-		if ("--force".equals(remainder)) {
-			force = true;
+		while (remainder.startsWith("--")) {
+			if ("--force".equals(remainder)) {
+				force = true;
+			} else if ("--command".equals(remainder)) {
+				check(command, scanner.hasNext());
+				this.command = scanner.next();
+			}
 			check(command, scanner.hasNext());
 			remainder = scanner.next();
 		}
@@ -159,6 +166,14 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 		this.sha1 = sha1;
 	}
 	
+	String getCommand() {
+		return this.command;
+	}
+	
+	void setCommand(String command) {
+		this.command = command;
+	}
+	
 	Repository getRepo() {
 		return repo;
 	}
@@ -172,9 +187,9 @@ public class SendBuildCommand extends AbstractCommand<SendBuildCommand> {
 		return SendBuildCommand.class;
 	}
 
-	private void sendBuild(ObjectId newId) {
+	private void sendBuild(ObjectId newId, ObjectId cmdId) {
 		try {
-			if (buildQueueService.enqueueBuild(committer, repo, newId.getName(), force) != null) {
+			if (buildQueueService.enqueueBuild(committer, repo, newId.getName(), cmdId.getName(), force) != null) {
 				String msg = String.format("Triggering build for commit %s on repository %s by %s.", newId.getName(), repo.getDirectory(), committer);
 				log.info(msg);
 				this.out.write('1');
