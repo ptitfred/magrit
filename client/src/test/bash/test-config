@@ -1,0 +1,84 @@
+#!/bin/bash -e
+
+function _color {
+	echo -e "\x1b[${1}m"
+}
+
+error=$(_color "91")
+warning=$(_color "36")
+running=$(_color "1;33")
+pending=$(_color "1;34")
+cool=$(_color "92")
+clear=$(_color "0")
+
+function cleanup {
+	cd ..
+	rm -rf magrit-tests-$PID
+}
+
+function fail {
+	echo ${error}KO${clear}
+	cleanup
+	echo " > $1" >&2
+	exit 1
+}
+function ok {
+	echo ${cool}OK${clear}
+}
+
+root=$(pwd)
+
+function call {
+	$root/src/main/bash/magrit-config $*
+}
+
+function ut {
+	printf "$* "
+}
+
+cd /tmp
+mkdir magrit-tests-$PID
+cd magrit-tests-$PID
+
+git init . >/dev/null
+
+# magrit config add project-name
+ut T1 default config
+call add project-name
+url=$(git config remote.magrit.url)
+[ "$url" != "ssh://localhost:2022/project-name" ] && fail "Bad url for default remote."
+git remote rm magrit
+ok
+
+# magrit config add --alias magrit2 project-name
+ut T2 aliased remote
+call add --alias magrit2 project-name
+url=$(git config remote.magrit2.url)
+[ "$url" != "ssh://localhost:2022/project-name" ] && fail "Bad url for aliased remote."
+git remote rm magrit2
+ok
+
+# magrit config add outerhost:3333 project-name
+ut T3 custom hostname/port
+call add outerhost:3333 project-name
+url=$(git config remote.magrit.url)
+[ "$url" != "ssh://outerhost:3333/project-name" ] && fail "Bad url for remote."
+git remote rm magrit
+ok
+
+# magrit config use alias
+ut T4 use alias
+call use magrit2
+remote=$(git config magrit.remote)
+[ "$remote" != "magrit2" ] && fail "Bad remote name"
+ok
+
+# magrit config rm alias
+ut T5 rm alias
+call add project-name
+call rm magrit
+count=$(git remote | grep -e "^magrit$" | wc -l)
+[ $count -gt 0 ] && fail "Remote yet defined"
+ok
+
+cleanup

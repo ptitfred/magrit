@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# magrit config add (--alias alias) (localhost(:2022)) project-name
+# magrit config use alias
+# magrit config rm alias
+
+cmd=$1
+shift 1
+
+if [ $cmd = "add" ]
+then
+	aliasName="magrit"
+	if [ $1 = "--alias" ]
+	then
+		aliasName=$2
+		shift 2
+	fi
+	
+	host="localhost:2022"
+	if [ $# -eq 2 ]
+	then
+		host=$1
+		shift 1
+	fi
+	
+	projectName=$1
+	
+	url="ssh://$host/$projectName"
+	
+	git remote add $aliasName $url
+elif [ $cmd = "use" ]
+then
+	aliasName=$1
+	git config magrit.remote $aliasName
+elif [ $cmd = "rm" ]
+then
+	aliasName=$1
+	git remote rm $aliasName
+fi
