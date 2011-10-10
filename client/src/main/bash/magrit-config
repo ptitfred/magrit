@@ -16,6 +16,7 @@ then
 		shift 2
 	fi
 	
+	user=$LOGNAME
 	host="localhost:2022"
 	if [ $# -eq 2 ]
 	then
@@ -25,7 +26,7 @@ then
 	
 	projectName=$1
 	
-	url="ssh://$host/$projectName"
+	url="ssh://$user@$host/$projectName"
 	
 	git remote add $aliasName $url
 elif [ $cmd = "use" ]

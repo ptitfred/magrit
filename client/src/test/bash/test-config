@@ -29,7 +29,7 @@ function ok {
 root=$(pwd)
 
 function call {
-	$root/src/main/bash/magrit-config $*
+	LOGNAME=jack $root/src/main/bash/magrit-config $*
 }
 
 function ut {
@@ -46,7 +46,7 @@ git init . >/dev/null
 ut T1 default config
 call add project-name
 url=$(git config remote.magrit.url)
-[ "$url" != "ssh://localhost:2022/project-name" ] && fail "Bad url for default remote."
+[ "$url" != "ssh://jack@localhost:2022/project-name" ] && fail "Bad url for default remote."
 git remote rm magrit
 ok
 
@@ -54,7 +54,7 @@ ok
 ut T2 aliased remote
 call add --alias magrit2 project-name
 url=$(git config remote.magrit2.url)
-[ "$url" != "ssh://localhost:2022/project-name" ] && fail "Bad url for aliased remote."
+[ "$url" != "ssh://jack@localhost:2022/project-name" ] && fail "Bad url for aliased remote."
 git remote rm magrit2
 ok
 
@@ -62,7 +62,7 @@ ok
 ut T3 custom hostname/port
 call add outerhost:3333 project-name
 url=$(git config remote.magrit.url)
-[ "$url" != "ssh://outerhost:3333/project-name" ] && fail "Bad url for remote."
+[ "$url" != "ssh://jack@outerhost:3333/project-name" ] && fail "Bad url for remote."
 git remote rm magrit
 ok
 
