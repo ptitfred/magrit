@@ -2,7 +2,10 @@
 
 if [ $# -ge 1 ]
 then
-	if [[ $(which magrit-$1) ]]
+	if [ $1 = "--version" ]
+	then
+		echo ${project.version}
+	elif [[ $(which magrit-$1) ]]
 	then
 		command=$1
 		shift 1
