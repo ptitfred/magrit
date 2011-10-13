@@ -67,7 +67,7 @@ pending=$(_color "1;34")
 cool=$(_color "92")
 clear=$(_color "0")
 
-_color=$(git config --get color.ui)
+_color=$(git config --get color.ui || echo "none")
 if [ $_color = "auto" ]; then
 	_color=1
 	_colorAction=always
@@ -129,3 +129,4 @@ function _ellipsis {
 	fi
 	echo -e "$text$lineEnd"
 }
+
