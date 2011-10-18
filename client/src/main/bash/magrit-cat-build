@@ -2,7 +2,7 @@
 
 source utils
 
-_getSsh
+_checkSsh
 repo=${_target[_REPO]}
 
 # magrit cat-build <REVSTR>

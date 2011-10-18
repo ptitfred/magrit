@@ -2,9 +2,10 @@
 
 source utils
 
+_checkSsh
+
 _colorize "## log" 37
 
-_getSsh
 repo=${_target[$_REPO]}
 
 in="/tmp/magrit-${BASHPID}-in"

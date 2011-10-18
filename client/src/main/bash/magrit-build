@@ -4,8 +4,6 @@
 
 source utils
 
-_getSsh
-
 action=$1
 shift 1
 
