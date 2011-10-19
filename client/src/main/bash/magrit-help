@@ -6,6 +6,7 @@ then
 else
 	echo "Magrit ${project.version}" 2> /dev/null
 	cat <<__HELP__
+	build-log
 	cat-build
 	config
 	monitor
