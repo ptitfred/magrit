@@ -1,0 +1,38 @@
+#!/bin/bash
+# Completion setup for bash
+# to be put in /etc/completion.d
+# Can be used as it with :
+# source magrit
+
+function _magrit {
+	local cur cmds opts
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	opts="-h --help"
+	cmds="build-log cat-build config monitor send-build share status"
+	
+	if [[ ${cur} == -* ]]
+	then
+		case $prev in
+		magrit)
+			COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+			return 0
+			;;
+		esac
+	else
+		case $prev in
+		config)
+			COMPREPLY=( $(compgen -W "add use rm" -- ${cur}) )
+			return 0
+			;;
+		magrit)
+			COMPREPLY=( $(compgen -W "${cmds}" -- ${cur}) )
+			return 0
+			;;
+		esac
+	fi
+	
+}
+
+complete -F _magrit magrit
