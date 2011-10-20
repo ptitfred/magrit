@@ -11,6 +11,13 @@
 				<include>*</include>
 			</includes>
 		</fileSet>
+		<fileSet>
+			<directory>src/main/completion</directory>
+			<outputDirectory>/completion</outputDirectory>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
 	</fileSets>
 </assembly>
 

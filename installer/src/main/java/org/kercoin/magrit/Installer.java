@@ -165,8 +165,9 @@ public class Installer {
 			
 			{ // Utility script to setup PATH
 				PrintWriter pw = open(new File(magritDir, "setup.sh"));
-				pw.println("chmod +x " + scriptsDirectory.getAbsolutePath() + "/*");
+				pw.println("chmod +x " + scriptsDirectory.getAbsolutePath() + "/magrit*");
 				pw.println("export PATH=\"" + scriptsDirectory.getAbsolutePath() + System.getProperty("path.separator") + "$PATH\"");
+				pw.println(". " + new File(scriptsDirectory.getAbsolutePath(), "/completion/magrit").getAbsolutePath() );
 				pw.println();
 				pw.close();
 			}
