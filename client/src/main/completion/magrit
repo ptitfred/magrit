@@ -37,6 +37,10 @@ function _magrit {
 			COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
 			return 0
 			;;
+		build-log)
+			COMPREPLY=( $(compgen -W "${opts} --watch" -- ${cur}) )
+			return 0
+			;;
 		esac
 	else
 		case $prev in
