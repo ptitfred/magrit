@@ -1,10 +1,17 @@
-#!/bin/bash -e 
+#!/bin/bash -e
 
 source utils
 
+if [ "$1" = "--help" -o "$1" = "-h" ]
+then
+	echo "usage: magrit build-log [<git-log options>] [<since>..<until>]"
+	exit 0
+fi
+
+_checkSsh
+
 _colorize "## log" 37
 
-_getSsh
 repo=${_target[$_REPO]}
 
 in="/tmp/magrit-${BASHPID}-in"

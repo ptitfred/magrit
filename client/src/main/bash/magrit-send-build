@@ -2,9 +2,9 @@
 
 source utils
 
-_colorize "## send build" 37
+_checkSsh
 
-_getSsh
+_colorize "## send build" 37
 
 force=""
 command=""

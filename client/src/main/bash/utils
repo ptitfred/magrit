@@ -45,7 +45,33 @@ function _sendSshCommand {
 	host=${_target[$_HOST]}
 	port=${_target[$_PORT]}
 	
-	ssh -x -p $port $user@$host $* || echo "ssh error: $?"
+	if [ "$1" = "--raw" ]
+	then
+		shift 1
+		ssh -x -p $port $user@$host $*
+	else
+		ssh -x -p $port $user@$host $* || echo "ssh error: $?"
+	fi
+}
+
+function _checkSsh {
+	# backup bash options
+	setBackup=$(set +o)
+	set +e
+
+	# make a ping
+	_sendSshCommand --raw magrit ping >/dev/null 2>/dev/null
+	status=$?
+
+	# restore bash options
+	eval $setBackup 2> /dev/null
+
+	# handle bad response
+	if [ $status -eq 255 ]
+	then
+		echo "Unable to reach server at ${user}@${host}:${port}"
+		exit 1
+	fi
 }
 
 function _sendSshCommandBg {

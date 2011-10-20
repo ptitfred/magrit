@@ -1,4 +1,17 @@
 #!/bin/bash
 
-echo "Magrit v0"
-
+if [ $# -gt 0 ]
+then
+	magrit $1 --help
+else
+	echo "Magrit ${project.version}" 2> /dev/null
+	cat <<__HELP__
+	build-log
+	cat-build
+	config
+	monitor
+	send-build
+	share
+	status
+__HELP__
+fi
