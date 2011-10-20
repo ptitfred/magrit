@@ -4,10 +4,28 @@
 # magrit config use alias
 # magrit config rm alias
 
+function help {
+	cat <<__HELP__
+usage: magrit config add [--alias name] [host:port] project-name
+   or: magrit config use name
+   or: rm name
+__HELP__
+}
+
 cmd=$1
 shift 1
 
-if [ $cmd = "add" ]
+if [ $# -eq 0 ]
+then
+	echo "Bad syntax: missing sub command"
+	help
+	exit 1
+fi
+
+if [ $cmd = "help" ]
+then
+	help
+elif [ $cmd = "add" ]
 then
 	aliasName="magrit"
 	if [ $1 = "--alias" ]
@@ -37,4 +55,8 @@ elif [ $cmd = "rm" ]
 then
 	aliasName=$1
 	git remote rm $aliasName
+else
+	echo "Bad syntax: unrecognized argument $1"
+	help
+	exit 1
 fi
