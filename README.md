@@ -20,6 +20,11 @@ zero-conf zero-infra:
 * setup supposed to as simple as dowloading an installer and passing an url to it to join a project
 * your computer is a node of the grid - the build system grows up with the project (you'll still be able to setup magrit on headless nodes like servers or cloud PaaS).
 
+License:
+--------
+
+Affero GPL v3
+
 Use cases:
 ----------
 
