@@ -21,7 +21,8 @@ source utils
 
 if [ "$1" = "--help" -o "$1" = "-h" ]
 then
-	echo "usage: magrit wait-for <commit>"
+	echo "usage: magrit wait-for"
+	echo "   or: magrit wait-for <commit>*"
 	exit 0
 fi
 
@@ -31,11 +32,17 @@ ref=HEAD
 if [ $# -gt 0 ]
 then
 	ref=$1
+	while [ $# -gt 0 ]
+	do
+		commit=$(git log -1 --format=%H $1)
+		commits=$(echo $commits $commit)
+		shift 1
+	done
+else
+	commits=$(git rev-parse HEAD)
 fi
 
-commit=$(git log -1 --format=%H $ref)
+_colorize "Waiting for commit $commits build to complete" 37
 
-_colorize "Waiting for commit $commit build to complete" 37
-
-_sendSshCommand magrit wait-for $repo $commit
+_sendSshCommand magrit wait-for $repo $commits
 
