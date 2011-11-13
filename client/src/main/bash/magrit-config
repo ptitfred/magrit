@@ -25,12 +25,18 @@ function help {
 	cat <<__HELP__
 usage: magrit config add [--alias name] [host:port] project-name
    or: magrit config use name
-   or: rm name
+   or: magrit config rm name
 __HELP__
 }
 
 cmd=$1
 shift 1
+
+if [ $cmd = "--help" -o $cmd = "-h" ]
+then
+	help
+	exit 0
+fi
 
 if [ $# -eq 0 ]
 then
@@ -39,10 +45,7 @@ then
 	exit 1
 fi
 
-if [ $cmd = "help" ]
-then
-	help
-elif [ $cmd = "add" ]
+if [ $cmd = "add" ]
 then
 	aliasName="magrit"
 	if [ $1 = "--alias" ]
