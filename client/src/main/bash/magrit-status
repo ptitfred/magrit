@@ -17,6 +17,21 @@
 # License along with Magrit.
 # If not, see <http://www.gnu.org/licenses/>.
 
+# magrit status
+
+function help {
+	cat <<__HELP__
+usage: magrit status <commit>
+__HELP__
+}
+
+if [ $# -gt 0 ]; then
+	if [ $1 = "-h" -o $1 = "--help" ]; then
+		help
+		exit 0
+	fi
+fi
+
 source utils
 
 _checkSsh
