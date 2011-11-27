@@ -105,4 +105,23 @@ public class CatBuildCommandTest {
 		assertThat(out.getData()).isEqualTo(logMessage);
 	}
 
+	@Test
+	public void testRun_notFound() throws Exception {
+		// given ---------------------------------
+		buildCommand.setSha1("0000000000000000000000000000000000000000");
+		buildCommand.setRepository(repo);
+		LoggerOutputStream out = new LoggerOutputStream();
+		buildCommand.setOutputStream(out);
+		
+		given(dao.getLast(isA(Repository.class), anyString()))
+			.willReturn(null);
+		
+		// when ----------------------------------
+		buildCommand.run();
+
+		// then ----------------------------------
+		verify(dao).getLast(repo, "0000000000000000000000000000000000000000");
+		assertThat(out.getData()).isEqualTo("No log found for this commit.\n");
+	}
+
 }

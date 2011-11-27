@@ -100,7 +100,11 @@ public class CatBuildCommand extends AbstractCommand<CatBuildCommand> {
 		try {
 			BuildResult last = dao.getLast(repository, sha1);
 			pOut = new PrintStream(out);
-			out.write(last.getLog());
+			if (last != null) {
+				out.write(last.getLog());
+			} else {
+				pOut.println("No log found for this commit.");
+			}
 			out.flush();
 			callback.onExit(0);
 		} catch (Throwable e) {
