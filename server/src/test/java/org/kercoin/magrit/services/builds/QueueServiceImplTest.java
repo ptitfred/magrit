@@ -20,6 +20,7 @@ If not, see <http://www.gnu.org/licenses/>.
 package org.kercoin.magrit.services.builds;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.kercoin.magrit.services.builds.Status.*;
 import static org.mockito.BDDMockito.given;
 
 import java.util.Arrays;
@@ -151,5 +152,21 @@ public class QueueServiceImplTest {
 		return future;
 	}
 
+	@Test
+	public void testShouldBuild() throws Exception {
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(ERROR))).isTrue();
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(OK, ERROR))).isTrue();
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(NEW))).isTrue();
+	}
+
+	@Test
+	public void testShouldntBuild() throws Exception {
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(OK))).isFalse();
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(ERROR, OK))).isFalse();
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(PENDING))).isFalse();
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(RUNNING))).isFalse();
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(ERROR, PENDING))).isFalse();
+		assertThat(buildQueueServiceImpl.shouldBuild(Arrays.asList(ERROR, RUNNING))).isFalse();
+	}
 
 }

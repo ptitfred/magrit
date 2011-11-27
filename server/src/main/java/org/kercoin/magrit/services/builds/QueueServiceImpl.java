@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,26 +93,34 @@ public class QueueServiceImpl implements QueueService {
 		return pipeline.getFuture(k);
 	}
 
-	private boolean shouldBuild(Repository repository, String sha1,
+	boolean shouldBuild(Repository repository, String sha1,
 			boolean force) {
 		if (force) return true;
-		List<Status> statuses = statusService.getStatus(repository, sha1);
+		return shouldBuild(statusService.getStatus(repository, sha1));
+	}
+
+	boolean shouldBuild(List<Status> statuses) {
 		if (statuses.isEmpty()) {
 			return true;
 		}
-		final EnumSet<Status> aggreg = EnumSet.copyOf(statuses);
-		if (aggreg.size()==1) {
-			if (aggreg.contains(Status.UNKNOWN)) {
+		Status last = statuses.get(statuses.size() - 1);
+		if (statuses.size()==1) {
+			switch (last) {
+			case UNKNOWN:
 				return false;
-			}
-			if (aggreg.contains(Status.LOCAL)) {
+			case LOCAL:
+			case NEW:
 				return true;
 			}
 		}
-		if (aggreg.contains(Status.RUNNING)) {
+		switch (last) {
+		case RUNNING:
+		case PENDING:
+		case OK:
 			return false;
+		default:
+			return true;
 		}
-		return !aggreg.contains(Status.OK);
 	}
 
 	private Repository findBuildPlace(Repository repository) throws IOException {
