@@ -78,7 +78,7 @@ function _checkSsh {
 	set +e
 
 	# make a ping
-	_sendSshCommand --raw magrit ping >/dev/null 2>/dev/null
+	_sendSshCommand --raw magrit ping >/dev/null
 	status=$?
 
 	# restore bash options
