@@ -62,7 +62,7 @@ public class WaitForCommandTest {
 		cmd.setOutputStream(output);
 		given(gitUtils.isSha1(anyString())).willReturn(true);
 	}
-	
+
 	@Test(timeout=100)
 	public void nominal() throws Exception {
 		// given ---------------------------------
@@ -74,9 +74,40 @@ public class WaitForCommandTest {
 
 		// then ----------------------------------
 		verify(queueService).addCallback(cmd);
+		assertThat(cmd.getTimeout()).isEqualTo(-1);
 		assertThat(cmd.getSha1s()).containsOnly(c1, c2);
 	}
-	
+
+	@Test(timeout=100)
+	public void withTimeout() throws Exception {
+		// given ---------------------------------
+		String c1 = "1234567890123456789012345678901234567890";
+		String c2 = "abcdefabcdabcdefabcdabcdefabcdabcdefabcd";
+
+		// when ----------------------------------
+		cmd.command("magrit wait-for --timeout=1000 /r1 " + c1 + " " + c2);
+
+		// then ----------------------------------
+		verify(queueService).addCallback(cmd);
+		assertThat(cmd.getTimeout()).isEqualTo(1000);
+		assertThat(cmd.getSha1s()).containsOnly(c1, c2);
+	}
+
+	@Test(timeout=100)
+	public void timeout() throws Exception {
+		// given ---------------------------------
+		String commit = "1234567890123456789012345678901234567890";
+
+		// when ----------------------------------
+		cmd.command("magrit wait-for --timeout=10 /1 " + commit);
+		cmd.run();
+
+		// then ----------------------------------
+		assertThat(output.toString()).isEqualTo("timeout\n");
+		verify(output).flush();
+		verify(callback).onExit(2);
+	}
+
 	@Test
 	public void check_valid() throws Exception {
 		// given ---------------------------------

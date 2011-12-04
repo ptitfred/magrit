@@ -82,6 +82,8 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	@SuppressWarnings("unused")
 	private Repository repo;
 
+	private int timeout = -1;
+
 	@Override
 	public WaitForCommand command(String command) throws Exception {
 		queueService.addCallback(this);
@@ -89,7 +91,13 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		check(scanner.next(), "magrit");
 		check(scanner.next(), "wait-for");
 		check(command, scanner.hasNext());
-		String repo = scanner.next();
+		String buffer = scanner.next();
+		if (buffer.startsWith("--timeout=")) {
+			String timeout = buffer.substring("--timeout=".length());
+			this.timeout = Integer.parseInt(timeout);
+			buffer = scanner.next();
+		}
+		String repo = buffer;
 		check(command, scanner.hasNext());
 		String sha1 = scanner.next();
 		checkSha1(sha1);
@@ -108,6 +116,14 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		// Nothing to do
 		// Connection will be closed on event
 		// Could set a timer
+		if (timeout >0) {
+			try {
+				Thread.sleep(timeout);
+				exit("timeout", 2);
+			} catch (InterruptedException e) {
+				Thread.interrupted();
+			}
+		}
 	}
 
 	@Override
@@ -119,6 +135,10 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		return sha1s;
 	}
 	
+	int getTimeout() {
+		return timeout;
+	}
+
 	@Override
 	public void buildEnded(Repository repo, String sha1, Status status) {
 		check(repo, sha1);
@@ -133,16 +153,22 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	synchronized void check(Repository repo, String sha1) {
 		log.info("Checking {}", sha1);
 		if (sha1s.contains(sha1)) {
-			try {
-				log.info("Matching {}, releasing remote.", sha1);
-				out.write(sha1.getBytes());
-				out.write('\n');
-				out.flush();
-				sha1s.clear();
-				callback.onExit(0);
-			} catch (IOException e) {
-				callback.onExit(1);
-			}
+			log.info("Matching {}, releasing remote.", sha1);
+			String msg = sha1;
+			int exitCode = 0;
+			exit(msg, exitCode);
+		}
+	}
+
+	private void exit(String msg, int exitCode) {
+		try {
+			out.write(msg.getBytes());
+			out.write('\n');
+			out.flush();
+			sha1s.clear();
+			callback.onExit(exitCode);
+		} catch (IOException e) {
+			callback.onExit(1);
 		}
 	}
 

@@ -21,12 +21,22 @@ source utils
 
 if [ "$1" = "--help" -o "$1" = "-h" ]
 then
-	echo "usage: magrit wait-for"
-	echo "   or: magrit wait-for <commit>*"
+	echo "usage: magrit wait-for (--timeout=<ms>) <commit>*"
 	exit 0
 fi
 
 _checkSsh
+
+timeout=""
+
+while [[ $1 =~ "--.*" ]]
+do
+	arg=$1
+	shift 1
+	if [[ "$arg" =~ "--timeout=[0-9]+" ]]; then
+		timeout=$arg
+	fi
+done
 
 ref=HEAD
 if [ $# -gt 0 ]
@@ -44,5 +54,5 @@ fi
 
 _colorize "Waiting for commit $commits build to complete" 37
 
-_sendSshCommand magrit wait-for $repo $commits
+_sendSshCommand --raw magrit wait-for $timeout $repo $commits
 
