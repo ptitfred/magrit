@@ -21,13 +21,14 @@ source utils
 
 if [ "$1" = "--help" -o "$1" = "-h" ]
 then
-	echo "usage: magrit wait-for (--timeout=<ms>) <commit>*"
+	echo "usage: magrit wait-for (--event-mask=[SEP]) (--timeout=<ms>) <commit>*"
 	exit 0
 fi
 
 _checkSsh
 
 timeout=""
+eventMask="--event-mask=E"
 
 while [[ $1 =~ "--.*" ]]
 do
@@ -35,6 +36,8 @@ do
 	shift 1
 	if [[ "$arg" =~ "--timeout=[0-9]+" ]]; then
 		timeout=$arg
+	elif [[ "$arg" =~ "--event-mask=[SEP]+" ]]; then
+		eventMask=$arg
 	fi
 done
 
@@ -52,7 +55,28 @@ else
 	commits=$(git rev-parse HEAD)
 fi
 
-_colorize "Waiting for commit $commits build to complete" 37
+function formatCondition {
+	local text=""
+	local mask=${1#--event-mask=}
+	local i=0
+	while (( i++ < ${#mask} ))
+	do
+		local char=$(expr substr "$mask" $i 1)
+		local word=""
+		case $char in
+			S) word="to start";;
+			E) word="to end";;
+			P) word="to be scheduled";;
+		esac
+		local sep=", "
+		if [ $i -eq 1 ]; then sep=""; fi
+		text="${text}${sep}${word}"
+	done
+	echo $text | sed -e 's/\(.*\), \(.*\)$/\1 or \2/'
+}
 
-_sendSshCommand --raw magrit wait-for $timeout $repo $commits
+condition=$(formatCondition $eventMask)
 
+_colorize "Waiting for commit $commits build $condition" 37
+
+_sendSshCommand --raw magrit wait-for $eventMask $timeout $repo $commits

@@ -20,6 +20,7 @@ If not, see <http://www.gnu.org/licenses/>.
 package org.kercoin.magrit.commands;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -60,7 +61,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 
 		@Override
 		public boolean accept(String command) {
-			return command.startsWith("magrit wait-for");
+			return command.startsWith("magrit wait-for ");
 		}
 
 		@Override
@@ -77,12 +78,33 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		this.queueService = queueService;
 	}
 	
+	private Set<Event> eventMask = EnumSet.of(Event.END);
 	private final Set<String> sha1s = new HashSet<String>();
 	
 	@SuppressWarnings("unused")
 	private Repository repo;
 
 	private int timeout = -1;
+
+	public static enum Event {
+		START('S'), END('E'), SCHEDULED('P');
+		private final char code;
+
+		private Event(char code) {
+			this.code = code;
+		}
+
+		char getCode() {
+			return code;
+		}
+
+		static Event resolveFromChar(char c) {
+			for (Event candidate : Event.values()) {
+				if (candidate.code == c) { return candidate; }
+			}
+			return null;
+		}
+	}
 
 	@Override
 	public WaitForCommand command(String command) throws Exception {
@@ -91,12 +113,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		check(scanner.next(), "magrit");
 		check(scanner.next(), "wait-for");
 		check(command, scanner.hasNext());
-		String buffer = scanner.next();
-		if (buffer.startsWith("--timeout=")) {
-			String timeout = buffer.substring("--timeout=".length());
-			this.timeout = Integer.parseInt(timeout);
-			buffer = scanner.next();
-		}
+		String buffer = consumeOptions(scanner);
 		String repo = buffer;
 		check(command, scanner.hasNext());
 		String sha1 = scanner.next();
@@ -111,11 +128,30 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		return this;
 	}
 	
+	private String consumeOptions(Scanner scanner) {
+		String buffer = null;
+		do {
+			buffer = scanner.next();
+			if (buffer.startsWith("--timeout=")) {
+				String timeout = buffer.substring("--timeout=".length());
+				this.timeout = Integer.parseInt(timeout);
+				buffer = scanner.next();
+			} else if (buffer.startsWith("--event-mask=")) {
+				String evtMask = buffer.substring("--event-mask=".length());
+				eventMask = EnumSet.noneOf(Event.class);
+				for (char c : evtMask.toCharArray()) {
+					Event evt = Event.resolveFromChar(c);
+					if (evt != null) {
+						eventMask.add(evt);
+					}
+				}
+			}
+		} while (buffer.startsWith("--"));
+		return buffer;
+	}
+
 	@Override
 	public void run() {
-		// Nothing to do
-		// Connection will be closed on event
-		// Could set a timer
 		if (timeout >0) {
 			try {
 				Thread.sleep(timeout);
@@ -123,6 +159,9 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 			} catch (InterruptedException e) {
 				Thread.interrupted();
 			}
+		} else {
+			// Nothing to do
+			// Connection will be closed on event
 		}
 	}
 
@@ -139,24 +178,30 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		return timeout;
 	}
 
+	Set<Event> getEventMask() {
+		return eventMask;
+	}
+
 	@Override
 	public void buildEnded(Repository repo, String sha1, Status status) {
-		check(repo, sha1);
+		check(repo, sha1, Event.END);
 	}
 	
 	@Override
-	public void buildScheduled(Repository repo, String sha1) {}
+	public void buildScheduled(Repository repo, String sha1) {
+		check(repo, sha1, Event.SCHEDULED);
+	}
 	
 	@Override
-	public void buildStarted(Repository repo, String sha1) {}
+	public void buildStarted(Repository repo, String sha1) {
+		check(repo, sha1, Event.START);
+	}
 	
-	synchronized void check(Repository repo, String sha1) {
+	synchronized void check(Repository repo, String sha1, Event evt) {
 		log.info("Checking {}", sha1);
-		if (sha1s.contains(sha1)) {
+		if (eventMask.contains(evt) && sha1s.contains(sha1)) {
 			log.info("Matching {}, releasing remote.", sha1);
-			String msg = sha1;
-			int exitCode = 0;
-			exit(msg, exitCode);
+			exit(sha1, 0);
 		}
 	}
 

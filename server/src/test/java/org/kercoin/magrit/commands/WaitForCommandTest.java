@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.commands.WaitForCommand.Event;
 import org.kercoin.magrit.services.builds.QueueService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.mockito.Mock;
@@ -41,6 +42,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WaitForCommandTest {
+
+	private static final char NL = '\n';
 
 	WaitForCommand cmd;
 	
@@ -91,6 +94,21 @@ public class WaitForCommandTest {
 		verify(queueService).addCallback(cmd);
 		assertThat(cmd.getTimeout()).isEqualTo(1000);
 		assertThat(cmd.getSha1s()).containsOnly(c1, c2);
+		assertThat(cmd.getEventMask()).containsOnly(Event.END);
+	}
+
+	@Test(timeout=100)
+	public void withOptions() throws Exception {
+		// given ---------------------------------
+		String commit = "1234567890123456789012345678901234567890";
+		
+		// when ----------------------------------
+		cmd.command("magrit wait-for --event-mask=SeESPEP /r1 " + commit);
+
+		// then ----------------------------------
+		verify(queueService).addCallback(cmd);
+		assertThat(cmd.getEventMask()).containsOnly(Event.START, Event.END, Event.SCHEDULED);
+		assertThat(cmd.getSha1s()).containsOnly(commit);
 	}
 
 	@Test(timeout=100)
@@ -103,7 +121,7 @@ public class WaitForCommandTest {
 		cmd.run();
 
 		// then ----------------------------------
-		assertThat(output.toString()).isEqualTo("timeout\n");
+		assertThat(output.toString()).isEqualTo("timeout" + NL);
 		verify(output).flush();
 		verify(callback).onExit(2);
 	}
@@ -116,11 +134,13 @@ public class WaitForCommandTest {
 		cmd.command("magrit wait-for /r1 " + c1 + " " + c2);
 
 		// when ----------------------------------
-		cmd.check((Repository) null, "abcdefabcdabcdefabcdabcdefabcdabcdefabcd");
+		cmd.check((Repository) null, c2, Event.START);
+		cmd.check((Repository) null, c1, Event.SCHEDULED);
+		cmd.check((Repository) null, c2, Event.END);
 
 		// then ----------------------------------
 		verify(callback).onExit(0);
-		assertThat(output.toString()).isEqualTo("abcdefabcdabcdefabcdabcdefabcdabcdefabcd\n");
+		assertThat(output.toString()).isEqualTo(c2 + NL);
 		verify(output).flush();
 	}
 
