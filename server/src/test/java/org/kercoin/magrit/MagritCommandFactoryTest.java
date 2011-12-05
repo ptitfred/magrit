@@ -32,6 +32,7 @@ import org.kercoin.magrit.commands.MonitorCommand;
 import org.kercoin.magrit.commands.PingCommand;
 import org.kercoin.magrit.commands.ReceivePackCommand;
 import org.kercoin.magrit.commands.SendBuildCommand;
+import org.kercoin.magrit.commands.WaitForCommand;
 
 import tests.GuiceModulesHolder;
 
@@ -81,6 +82,11 @@ public class MagritCommandFactoryTest {
 	@Test
 	public void testCreateCommand_nominal_PingCommand() {
 		assertCommand("magrit ping", PingCommand.class);
+	}
+
+	@Test
+	public void testCreateCommand_nominal_WaitForCommand() {
+		assertCommand("magrit wait-for /r1 1234512345123451234512345123451234512345", WaitForCommand.class);
 	}
 
 	private void assertCommand(String commandLine, Class<?> type) {

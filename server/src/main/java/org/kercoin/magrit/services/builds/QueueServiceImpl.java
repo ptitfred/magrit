@@ -61,23 +61,10 @@ public class QueueServiceImpl implements QueueService {
 		this.timeService = timeService;
 		this.statusService = statusService;
 		this.pipeline = pipeline;
-		pipeline.addListener(new Tracker());
 		this.guard = guard;
 	}
 
 	private Map<Key, Pair<Repository, String>> tracker = new HashMap<Key, Pair<Repository, String>>();
-
-	class Tracker implements Listener {
-
-		public void onSubmit(Key k) {}
-		public void onStart(Key k) {}
-
-		@Override
-		public void onDone(Key k) {
-			tracker.remove(k);
-		}
-
-	}
 
 	@Override
 	public Future<BuildResult> enqueueBuild(UserIdentity committer, Repository repository,

@@ -37,6 +37,7 @@ import org.kercoin.magrit.commands.MonitorCommand.MonitorCommandProvider;
 import org.kercoin.magrit.commands.PingCommand.PingCommandProvider;
 import org.kercoin.magrit.commands.ReceivePackCommand.ReceivePackCommandProvider;
 import org.kercoin.magrit.commands.SendBuildCommand.SendBuildCommandProvider;
+import org.kercoin.magrit.commands.WaitForCommand.WaitForCommandProvider;
 import org.mockito.Answers;
 import org.mockito.Mock;
 
@@ -71,14 +72,15 @@ public class CommandsProviderTest {
 		
 		// then
 		assertThat(types)
-			.hasSize(6)
+			.hasSize(7)
 			.contains(
 					SendBuildCommandProvider.class,
 					CatBuildCommandProvider.class,
 					ReceivePackCommandProvider.class,
 					GetStatusCommandProvider.class,
 					MonitorCommandProvider.class,
-					PingCommandProvider.class
+					PingCommandProvider.class,
+					WaitForCommandProvider.class
 					);
 	}
 

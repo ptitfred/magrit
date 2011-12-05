@@ -1,0 +1,82 @@
+#!/bin/bash -e
+# Copyright 2011 Frederic Menou
+#
+# This file is part of Magrit.
+#
+# Magrit is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+#
+# Magrit is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with Magrit.
+# If not, see <http://www.gnu.org/licenses/>.
+
+source utils
+
+if [ "$1" = "--help" -o "$1" = "-h" ]
+then
+	echo "usage: magrit wait-for (--event-mask=[SEP]) (--timeout=<ms>) <commit>*"
+	exit 0
+fi
+
+_checkSsh
+
+timeout=""
+eventMask="--event-mask=E"
+
+while [[ $1 =~ "--.*" ]]
+do
+	arg=$1
+	shift 1
+	if [[ "$arg" =~ "--timeout=[0-9]+" ]]; then
+		timeout=$arg
+	elif [[ "$arg" =~ "--event-mask=[SEP]+" ]]; then
+		eventMask=$arg
+	fi
+done
+
+ref=HEAD
+if [ $# -gt 0 ]
+then
+	ref=$1
+	while [ $# -gt 0 ]
+	do
+		commit=$(git log -1 --format=%H $1)
+		commits=$(echo $commits $commit)
+		shift 1
+	done
+else
+	commits=$(git rev-parse HEAD)
+fi
+
+function formatCondition {
+	local text=""
+	local mask=${1#--event-mask=}
+	local i=0
+	while (( i++ < ${#mask} ))
+	do
+		local char=$(expr substr "$mask" $i 1)
+		local word=""
+		case $char in
+			S) word="to start";;
+			E) word="to end";;
+			P) word="to be scheduled";;
+		esac
+		local sep=", "
+		if [ $i -eq 1 ]; then sep=""; fi
+		text="${text}${sep}${word}"
+	done
+	echo $text | sed -e 's/\(.*\), \(.*\)$/\1 or \2/'
+}
+
+condition=$(formatCondition $eventMask)
+
+_colorize "Waiting for commit $commits build $condition" 37
+
+_sendSshCommand --raw magrit wait-for $eventMask $timeout $repo $commits
