@@ -37,6 +37,10 @@ done
 
 if [ $# -gt 0 ]; then
 	revstr=$1
+	count=$(git rev-parse $1 | wc -l)
+	if [ $count -eq 1 ]; then
+		revstr="-1 $1"
+	fi
 else
 	revstr="-1 HEAD"
 fi
