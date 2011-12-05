@@ -67,6 +67,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		@Override
 		public void onEnd(WaitForCommand command) {
 			queueService.removeCallback(command);
+			command.close();
 		}
 		
 	}
@@ -78,6 +79,17 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		this.queueService = queueService;
 	}
 	
+	public void close() {
+		synchronized (timeoutLock) {
+			closed = true;
+			timeoutLock.notify();
+		}
+	}
+
+	private final Object timeoutLock = new Object();
+
+	private boolean closed = false;
+
 	private Set<Event> eventMask = EnumSet.of(Event.END);
 	private final Set<String> sha1s = new HashSet<String>();
 	
@@ -153,11 +165,13 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	@Override
 	public void run() {
 		if (timeout >0) {
-			try {
-				Thread.sleep(timeout);
-				exit("timeout", 2);
-			} catch (InterruptedException e) {
-				Thread.interrupted();
+			synchronized(timeoutLock) {
+				try {
+					timeoutLock.wait(timeout);
+					exit("timeout", 2);
+				} catch (InterruptedException e) {
+					Thread.interrupted();
+				}
 			}
 		} else {
 			// Nothing to do
@@ -206,6 +220,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	}
 
 	private void exit(String msg, int exitCode) {
+		if (closed) return;
 		try {
 			out.write(msg.getBytes());
 			out.write('\n');
