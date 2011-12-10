@@ -33,7 +33,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.InvalidRefNameException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -50,14 +49,10 @@ import org.kercoin.magrit.services.utils.TimeService;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.Pair;
 import org.kercoin.magrit.utils.UserIdentity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BuildTask implements Task<BuildResult> {
 
 	private static final char NL = '\n';
-
-	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final GitUtils gitUtils;
 	private final RepositoryGuard guard;
@@ -66,7 +61,7 @@ public class BuildTask implements Task<BuildResult> {
 
 	private Repository remote;
 	private Pair<Repository,String> target;
-	private String command;
+	private String commandTreeSHA1;
 	private Repository repository;
 	private RevCommit commit;
 
@@ -76,7 +71,7 @@ public class BuildTask implements Task<BuildResult> {
 
 	public BuildTask(Context ctx, RepositoryGuard guard,
 			UserIdentity user, TimeService timeService, Repository remote, Pair<Repository,String> target,
-			String command) {
+			String commandTreeSha1) {
 		this.gitUtils = ctx.getGitUtils();
 		this.guard = guard;
 		this.user = user;
@@ -84,7 +79,7 @@ public class BuildTask implements Task<BuildResult> {
 		this.remote = remote;
 		this.target = target;
 		this.repository = target.getT();
-		this.command = command;
+		this.commandTreeSHA1 = commandTreeSha1;
 	}
 
 	@Override
@@ -139,8 +134,7 @@ public class BuildTask implements Task<BuildResult> {
 		}
 	}
 
-	private int build(ByteArrayOutputStream stdout, PrintStream printOut)
-			throws AmbiguousObjectException, IOException, ExecuteException {
+	private int build(ByteArrayOutputStream stdout, PrintStream printOut) throws IOException {
 		String command = findCommand();
 		printOut.println(String.format("Starting build with command '%s'", command));
 
@@ -149,8 +143,7 @@ public class BuildTask implements Task<BuildResult> {
 		executable.setWorkingDirectory(repository.getDirectory().getParentFile());
 		executable.setStreamHandler(new PumpStreamHandler(stdout));
 
-		int exitCode = executable.execute(cmdLine);
-		return exitCode;
+		return executable.execute(cmdLine);
 	}
 
 	private void checkout(PrintStream printOut) throws RefNotFoundException,
@@ -176,7 +169,7 @@ public class BuildTask implements Task<BuildResult> {
 		try {
 			String message = "";
 			if (success) {
-				message = String.format("notify-send \"Magrit\" \"Build successful\"", exitCode);
+				message = String.format("notify-send \"Magrit\" \"Build successful\"");
 			} else {
 				message = String.format("notify-send \"Magrit\" \"Build failed %s\"", exitCode);
 			}
@@ -235,8 +228,8 @@ public class BuildTask implements Task<BuildResult> {
 		return Git.wrap(repo);
 	}
 
-	String findCommand() throws AmbiguousObjectException, IOException {
-		return gitUtils.show(this.repository, this.command + ":" + ".magrit");
+	String findCommand() throws IOException {
+		return gitUtils.show(this.repository, this.commandTreeSHA1 + ":" + ".magrit");
 	}
 
 	@Override
@@ -251,7 +244,10 @@ public class BuildTask implements Task<BuildResult> {
 
 	@Override
 	public Date getSubmitDate() {
-		return this.submitDate;
+		if (submitDate == null) {
+			return null;
+		}
+		return new Date(this.submitDate.getTime());
 	}
 	
 	public Pair<Repository, String> getTarget() {
@@ -260,7 +256,11 @@ public class BuildTask implements Task<BuildResult> {
 
 	@Override
 	public void setSubmitDate(Date d) {
-		this.submitDate = d;
+		if (d == null) {
+			this.submitDate = null;
+		} else {
+			this.submitDate = new Date(d.getTime());
+		}
 	}
 
 	@Override
