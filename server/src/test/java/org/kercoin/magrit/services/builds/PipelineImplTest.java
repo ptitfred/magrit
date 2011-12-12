@@ -356,6 +356,8 @@ public class PipelineImplTest {
 		pipeline.submit(createTask("/", 100));
 		Key k2 = pipeline.submit(createTask("/", 100));
 		pipeline.waitFor(1, TimeUnit.SECONDS, k2);
+		boolean timeout = pipeline.awaitEventDispatching(250, TimeUnit.MILLISECONDS);
+		assertThat(timeout).isFalse();
 		assertThat(listener.log.toString()).isEqualTo("START 1\nDONE 1\nSTART 2\nDONE 2\n");
 	}
 

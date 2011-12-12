@@ -458,4 +458,7 @@ public class PipelineImpl implements Pipeline {
 		}
 	}
 
+	boolean awaitEventDispatching(long timeout, TimeUnit unit) throws InterruptedException {
+		return edt.awaitTermination(timeout, unit);
+	}
 }
