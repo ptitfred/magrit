@@ -37,7 +37,7 @@ import com.google.inject.Inject;
 
 public class WaitForCommand extends AbstractCommand<WaitForCommand> implements BuildLifeCycleListener {
 
-	protected final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	public static class WaitForCommandProvider implements CommandProvider<WaitForCommand>,
 	org.kercoin.magrit.commands.AbstractCommand.EndCallback<WaitForCommand>{
@@ -82,7 +82,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	public void close() {
 		synchronized (timeoutLock) {
 			closed = true;
-			timeoutLock.notify();
+			timeoutLock.notifyAll();
 		}
 	}
 
@@ -126,7 +126,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		check(scanner.next(), "wait-for");
 		check(command, scanner.hasNext());
 		String buffer = consumeOptions(scanner);
-		String repo = buffer;
+		String repoValue = buffer;
 		check(command, scanner.hasNext());
 		String sha1 = scanner.next();
 		checkSha1(sha1);
@@ -136,7 +136,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 			checkSha1(sha1);
 			sha1s.add(sha1);
 		}
-		this.repo = createRepository(repo);
+		this.repo = createRepository(repoValue);
 		return this;
 	}
 	
@@ -145,8 +145,8 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 		do {
 			buffer = scanner.next();
 			if (buffer.startsWith("--timeout=")) {
-				String timeout = buffer.substring("--timeout=".length());
-				this.timeout = Integer.parseInt(timeout);
+				String timeoutValue = buffer.substring("--timeout=".length());
+				this.timeout = Integer.parseInt(timeoutValue);
 				buffer = scanner.next();
 			} else if (buffer.startsWith("--event-mask=")) {
 				String evtMask = buffer.substring("--event-mask=".length());
@@ -166,17 +166,20 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	public void run() {
 		if (timeout >0) {
 			synchronized(timeoutLock) {
-				try {
-					timeoutLock.wait(timeout);
-					exit("timeout", 2);
-				} catch (InterruptedException e) {
-					Thread.interrupted();
+				if (!closed) {
+					try {
+						timeoutLock.wait(timeout);
+						exit("timeout", 2);
+					} catch (InterruptedException e) {
+						Thread.interrupted();
+					}
 				}
 			}
-		} else {
-			// Nothing to do
-			// Connection will be closed on event
 		}
+		// else {
+		// -- Nothing to do
+		// -- Connection will be closed on event
+		// }
 	}
 
 	@Override
@@ -220,7 +223,9 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	}
 
 	private void exit(String msg, int exitCode) {
-		if (closed) return;
+		if (closed) {
+			return;
+		}
 		try {
 			out.write(msg.getBytes());
 			out.write('\n');

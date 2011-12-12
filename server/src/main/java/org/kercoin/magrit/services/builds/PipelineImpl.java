@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -56,7 +57,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class PipelineImpl implements Pipeline {
 
-	protected final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final Semaphore slots;
 
@@ -77,24 +78,30 @@ public class PipelineImpl implements Pipeline {
 		tasks = new ConcurrentHashMap<Pipeline.Key, Pipeline.Task<BuildResult>>();
 		futures = new ConcurrentHashMap<Pipeline.Key, Future<BuildResult>>();
 		workings = new ConcurrentHashSet<Pipeline.Key>();
-		dispatcher = new ThreadPoolExecutor(ctx.configuration().getSlots(), Integer.MAX_VALUE,
-                60L, TimeUnit.SECONDS,
-                new PriorityBlockingQueue<Runnable>()) {
-			@Override
-			protected <T> RunnableFuture<T> newTaskFor(
-					Callable<T> callable) {
-				return new DispatchTask<T>(callable);
-			}
-		};
+		dispatcher = new DispatcherThreadPool(ctx.configuration().getSlots(), new PriorityBlockingQueue<Runnable>());
 		edt = Executors.newSingleThreadExecutor();
 	}
 
-	class DispatchTask<T> extends FutureTask<T> implements Comparable<DispatchTask<T>> {
+	private static final class DispatcherThreadPool extends ThreadPoolExecutor {
+
+		private static final long KEEP_ALIVE_TIME = 60L;
+
+		private DispatcherThreadPool(int corePoolSize, BlockingQueue<Runnable> workQueue) {
+			super(corePoolSize, Integer.MAX_VALUE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, workQueue);
+		}
+
+		@Override
+		protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+			return new DispatchTask<T>(callable);
+		}
+	}
+
+	private static final class DispatchTask<T> extends FutureTask<T> implements Comparable<DispatchTask<T>> {
 
 		private Key key;
 
 		@SuppressWarnings("rawtypes")
-		public DispatchTask(Callable<T> callable) {
+		private DispatchTask(Callable<T> callable) {
 			super(callable);
 			if (callable instanceof Worker) {
 				this.key = ((Worker) callable).getKey();
@@ -113,6 +120,36 @@ public class PipelineImpl implements Pipeline {
 				return 1;
 			}
 			return key.compareTo(o.key);
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((key == null) ? 0 : key.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			DispatchTask<?> other = (DispatchTask<?>) obj;
+			if (key == null) {
+				if (other.key != null) {
+					return false;
+				}
+			} else if (!key.equals(other.key)) {
+				return false;
+			}
+			return true;
 		}
 
 	}
@@ -136,6 +173,32 @@ public class PipelineImpl implements Pipeline {
 		}
 
 		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + id;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			ValidKey other = (ValidKey) obj;
+			if (id != other.id) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
 		public boolean isValid() {
 			return true;
 		}
@@ -153,9 +216,11 @@ public class PipelineImpl implements Pipeline {
 
 	class Worker<V> implements Callable<V> {
 
-		final Task<V> t;
+		private static final int WORKER_TIMER_SECONDS = 5;
 
-		public Worker(Task<V> t) {
+		private final Task<V> t;
+
+		Worker(Task<V> t) {
 			this.t = t;
 		}
 		
@@ -170,13 +235,15 @@ public class PipelineImpl implements Pipeline {
 				lock.lockInterruptibly();
 				Key k = t.getKey();
 				try {
-					while (!slots.tryAcquire(5, TimeUnit.SECONDS)) {}
+					boolean hasAcquired = false;
+					do {
+						hasAcquired = slots.tryAcquire(WORKER_TIMER_SECONDS, TimeUnit.SECONDS);
+					} while (!hasAcquired);
 					main.writeLock().lockInterruptibly();
 					workings.add(k);
 					main.writeLock().unlock();
 					justStarted(k);
-					V v = t.call();
-					return v;
+					return t.call();
 				} finally {
 					if (!main.writeLock().isHeldByCurrentThread()) {
 						main.writeLock().lockInterruptibly();
@@ -309,7 +376,7 @@ public class PipelineImpl implements Pipeline {
 
 	public static Filter between(final Date from, final Date to) {
 		if (from == null && to == null) {
-			throw new NullPointerException("Both dates can't be null.");
+			throw new IllegalArgumentException("Both dates can't be null.");
 		}
 		if (from != null && to != null && from.after(to)) {
 			throw new IllegalArgumentException("from must be before to");
@@ -366,6 +433,8 @@ public class PipelineImpl implements Pipeline {
 					case SUBMITTED:
 						l.onSubmit(key);
 						break;
+					default:
+						throw new IllegalStateException("Unknown EventType");
 					}
 				}
 			}
@@ -436,15 +505,23 @@ public class PipelineImpl implements Pipeline {
 		boolean mustWait = keys.size()>0;
 		while (mustWait) {
 			waitForHeartBeat.lock();
-			long ns1 = System.nanoTime();
-			if (waitNS>0) {
-				waitForNotifier.await(waitNS - ns1 + ns0, TimeUnit.NANOSECONDS);
-			} else {
-				waitForNotifier.await();
+			try {
+				boolean timeout = false;
+				long ns1 = System.nanoTime();
+				if (waitNS>0) {
+					timeout = !waitForNotifier.await(waitNS - ns1 + ns0, TimeUnit.NANOSECONDS);
+				} else {
+					waitForNotifier.await();
+				}
+				if (!timeout) {
+					keys.retainAll(this.tasks.keySet());
+					mustWait = keys.size() > 0;
+				} else {
+					mustWait = false;
+				}
+			} finally {
+				waitForHeartBeat.unlock();
 			}
-			waitForHeartBeat.unlock();
-			keys.retainAll(this.tasks.keySet());
-			mustWait = keys.size() > 0;
 		}
 	}
 	
