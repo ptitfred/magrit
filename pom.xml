@@ -6,7 +6,7 @@
 	<groupId>org.kercoin.magrit</groupId>
 	<artifactId>magrit</artifactId>
 	<packaging>pom</packaging>
-	<version>rebecca-SNAPSHOT</version>
+	<version>rebecca1</version>
 
 	<name>magrit parent project</name>
 	<description>Magrit is a Continuous Integration system built over git, meant to be distributed. Designed as zero-conf zero-infra.</description>

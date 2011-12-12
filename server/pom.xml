@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.kercoin.magrit</groupId>
 		<artifactId>magrit</artifactId>
-		<version>rebecca-SNAPSHOT</version>
+		<version>rebecca1</version>
 	</parent>
 
 	<artifactId>magrit-server</artifactId>
