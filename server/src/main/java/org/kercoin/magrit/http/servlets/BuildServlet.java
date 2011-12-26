@@ -20,6 +20,11 @@ If not, see <http://www.gnu.org/licenses/>.
 package org.kercoin.magrit.http.servlets;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -27,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jgit.lib.Repository;
+import org.json.simple.JSONValue;
 import org.kercoin.magrit.services.builds.QueueService;
 import org.kercoin.magrit.utils.Pair;
 
@@ -50,18 +56,29 @@ public class BuildServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		int count = 0;
-		for (Pair<Repository, String> task : buildQueueService.getCurrentTasks()) {
-			resp.getWriter().println("Running: " + task.getU());
-			count++;
-		}
-		for (Pair<Repository, String> task : buildQueueService.getScheduledTasks()) {
-			resp.getWriter().println("Pending: " + task.getU());
-			count++;
-		}
-		if (count == 0) {
-			resp.getWriter().println("The build queue is clean.");
-		}
+		List<String> currentTasks = mapSHA1s(buildQueueService.getCurrentTasks());
+		List<String> scheduledTasks = mapSHA1s(buildQueueService.getScheduledTasks());
+		resp.getWriter().println(encodeJSON(currentTasks, scheduledTasks));
+		resp.setStatus(HttpServletResponse.SC_OK);
 	}
 
+	private List<String> mapSHA1s(Collection<Pair<Repository, String>> tasks) {
+		List<String> sha1s = new ArrayList<String>();
+		for (Pair<Repository, String> task : tasks) {
+			sha1s.add(task.getU());
+		}
+		return sha1s;
+	}
+
+	String encodeJSON(List<String> runnings, List<String> pendings) {
+		return JSONValue.toJSONString(wrap(runnings, pendings));
+	}
+
+	private Map<String, Object> wrap(List<String> runnings,
+			List<String> pendings) {
+		Map<String, Object> content = new LinkedHashMap<String, Object>();
+		content.put("runnings", runnings);
+		content.put("pendings", pendings);
+		return content;
+	}
 }
