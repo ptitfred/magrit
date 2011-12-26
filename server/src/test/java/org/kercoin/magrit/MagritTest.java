@@ -19,10 +19,10 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static tests.MyAssertions.assertThat;
 
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -224,12 +224,12 @@ public class MagritTest {
 		return args.toArray(new String[0]);
 	}
 
-	@Test(expected=BindException.class)
+	@Test
 	public void testTryBind() throws Exception {
 		int port = 22222;
 		ServerSocket ss = new ServerSocket(port);
 		try {
-			magrit.tryBind(port);
+			assertThat(magrit.tryBind(port)).isFalse();
 		} finally {
 			ss.close();
 		}
@@ -239,11 +239,7 @@ public class MagritTest {
 	public void testTryBind_releasePortAfterTry() throws Exception {
 		int port = 22222;
 		magrit.tryBind(port);
-		try {
-			magrit.tryBind(port);
-		} catch (BindException e) {
-			fail("Magrit.tryBind(int) didn't release the TCP port.");
-		}
+		assertThat(magrit.tryBind(port)).isTrue();
 	}
 	
 	

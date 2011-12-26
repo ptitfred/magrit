@@ -21,7 +21,6 @@ package org.kercoin.magrit;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.util.Date;
 
@@ -142,16 +141,38 @@ public final class Magrit {
 		return ctx;
 	}
 	
-	void tryBind(int port) throws IOException {
+	boolean tryBind(int port) {
+		boolean success = false;
 		ServerSocket ss = null;
 		try {
 			ss = new ServerSocket(port);
+		} catch (Exception e) {
+			log.error("Unable to bind the TCP port " + port, e);
 		} finally {
-			if (ss!= null && ss.isBound()) {
-				ss.close();
+			try {
+				if (ss!= null && ss.isBound()) {
+					success = true;
+					ss.close();
+				}
+			} catch (IOException e) {
+				log.error("Unmanageable error while closing test socket", e);
 			}
 		}
-		
+		return success;
+	}
+
+	private void tryBindOrFail(int port) {
+		if (!tryBind(port)) {
+			log.error("Port {} already bound, aborting...", port);
+			System.exit(1);
+		}
+	}
+
+	private void checkPorts(Configuration cfg) {
+		tryBindOrFail(cfg.getSshPort());
+		if (cfg.hasWebApp()) {
+			tryBindOrFail(cfg.getHttpPort());
+		}
 	}
 	
 	protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -159,7 +180,10 @@ public final class Magrit {
 	private void launch() throws IOException {
 		Configuration cfg = ctx.configuration();
 		log.info("--------------------------------------------------------------------");
-		log.info("Port used  : {}", cfg.getSshPort());
+		log.info("Port (ssh) : {}", cfg.getSshPort());
+		if (cfg.hasWebApp()) {
+			log.info("Port (http): {}", cfg.getHttpPort());
+		}
 		log.info("Listening  : {}", cfg.isRemoteAllowed() ? "everybody":"localhost");
 		log.info("Authent    : {}", cfg.getAuthentication().external());
 		if (cfg.getAuthentication() == Authentication.SSH_PUBLIC_KEYS) {
@@ -168,16 +192,14 @@ public final class Magrit {
 		log.info("Home dir   : {}", cfg.getRepositoriesHomeDir());
 		log.info("Work dir   : {}", cfg.getWorkHomeDir());
 		log.info("--------------------------------------------------------------------");
-		try {
-			tryBind(cfg.getSshPort());
-			log.info("Starting...");
-			guice.getInstance(Server.class).start(cfg.getSshPort());
-			log.info("R E A D Y - {}", new Date());
-		} catch (BindException be) {
-			log.error("Port {} already bound, aborting...", cfg.getSshPort());
-		}
+
+		checkPorts(cfg);
+
+		log.info("Starting...");
+		guice.getInstance(Server.class).start(cfg.getSshPort());
+		log.info("R E A D Y - {}", new Date());
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		Magrit m = new Magrit();
 		try {
