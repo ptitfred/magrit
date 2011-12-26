@@ -176,7 +176,7 @@ public class QueueServiceImpl implements QueueService {
 	}
 
 	private Collection<Pair<Repository, String>> get(Filter filter) {
-		List<Key> keys = pipeline.list(PipelineImpl.running());
+		List<Key> keys = pipeline.list(filter);
 		Collection<Pair<Repository, String>> pairs = new ArrayList<Pair<Repository, String>>();
 		for (Key k : keys) {
 			Pair<Repository, String> pair = tracker.get(k);
