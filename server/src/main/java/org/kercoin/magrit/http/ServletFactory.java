@@ -19,10 +19,14 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.http;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+
+import javax.servlet.http.HttpServlet;
 
 import org.eclipse.jetty.servlet.ServletMapping;
+import org.kercoin.magrit.http.servlets.BuildServlet;
+import org.kercoin.magrit.http.servlets.Home;
 
 import com.google.inject.Singleton;
 
@@ -30,11 +34,28 @@ import com.google.inject.Singleton;
 public class ServletFactory {
 
 	public Collection<ServletDefinition> getServlets() {
-		return Collections.emptyList();
+		return Arrays.asList(
+				define("build", BuildServlet.class),
+				define("home", Home.class)
+			);
+	}
+
+	private ServletDefinition define(String servletName, Class<? extends HttpServlet> type) {
+		return new ServletDefinition(servletName, type);
 	}
 
 	public Collection<ServletMapping> getServletMappings() {
-		return Collections.emptyList();
+		return Arrays.asList(
+				bind("build", "/build"),
+				bind("home", "/")
+			);
+	}
+
+	private ServletMapping bind(String servletName, String... paths) {
+		ServletMapping mapping = new ServletMapping();
+		mapping.setServletName(servletName);
+		mapping.setPathSpecs(paths);
+		return mapping;
 	}
 
 }

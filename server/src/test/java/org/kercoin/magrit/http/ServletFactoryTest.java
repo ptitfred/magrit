@@ -46,4 +46,12 @@ public class ServletFactoryTest {
 		assertThat(servletMappings).hasSize(factory.getServlets().size());
 	}
 
+	@Test
+	public void testBuildServlet() {
+		// when
+		Collection<ServletDefinition> servlets = factory.getServlets();
+
+		// then
+		assertThat(servlets).isNotEmpty();
+	}
 }
