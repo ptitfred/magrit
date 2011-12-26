@@ -38,7 +38,7 @@ public class Configuration {
 
 	private boolean remoteAllowed;
 
-	private boolean webApp;
+	private boolean webApp = true;
 
 	
 	public static enum Authentication {

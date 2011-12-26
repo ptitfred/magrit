@@ -55,7 +55,8 @@ public class MagritTest {
 			.hasWorkDir(System.getProperty("java.io.tmpdir") + "/magrit/builds") //
 			.hasPublickeyDir(System.getProperty("java.io.tmpdir") + "/magrit/keys") //
 			.hasAuthentication(Authentication.SSH_PUBLIC_KEYS) //
-			.isRemoteAllowed(false);
+			.isRemoteAllowed(false)
+			.isWebAppEnabled(true);
 	}
 
 	@Test
@@ -198,9 +199,9 @@ public class MagritTest {
 
 	@Test
 	public void testConfigure_webapp() throws Exception {
-		assertThat(cfg()).isWebAppEnabled(false);
-		magrit.configure(split("--webapp"));
 		assertThat(cfg()).isWebAppEnabled(true);
+		magrit.configure(split("--no-webapp"));
+		assertThat(cfg()).isWebAppEnabled(false);
 	}
 
 	@Test

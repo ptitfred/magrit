@@ -95,7 +95,7 @@ public final class Magrit {
 		}
 		
 		ctx.configuration().setRemoteAllowed(cmdLine.hasOption("remote"));
-		ctx.configuration().setWebApp(cmdLine.hasOption("webapp"));
+		ctx.configuration().setWebApp(!cmdLine.hasOption("no-webapp"));
 
 	}
 
@@ -131,8 +131,8 @@ public final class Magrit {
 				"authentication provider : ssh-public-keys or none");
 		opts.addOption("r", "remote", false, //
 				"allows the Magrit instance to be accessed by non-local client");
-		opts.addOption(null, "webapp", false, //
-				"enables the monitor web app");
+		opts.addOption(null, "no-webapp", false, //
+				"disables the monitor web app");
 		opts.addOption("h", "http-port", true, //
 				"HTTP(s) port to listen to");
 		return opts;
