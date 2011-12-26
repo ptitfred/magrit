@@ -52,7 +52,7 @@ then
 		shift 1
 		magrit-$command "$@"
 	else
-		echo "Magrit: commande magrit $1 inconnue."
+		echo "Magrit: command $1 unknown."
 	fi
 fi
 
