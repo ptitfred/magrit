@@ -16,6 +16,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<sshd.version>0.5.1-r1095809</sshd.version>
+		<jgit.version>1.2.0.201112221803-r</jgit.version>
+		<slf4j.version>1.6.1</slf4j.version>
 	</properties>
 
 	<build>
@@ -117,7 +120,7 @@
 		<dependency>
 			<groupId>org.apache.sshd</groupId>
 			<artifactId>sshd-core</artifactId>
-			<version>0.5.1-r1095809</version>
+			<version>${sshd.version}</version>
 		</dependency>
 
 		<dependency>
@@ -129,13 +132,13 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>1.2.0.201112221803-r</version>
+			<version>${jgit.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>1.6.1</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 
 		<dependency>
