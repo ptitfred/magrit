@@ -30,6 +30,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.kercoin.magrit.Configuration.Authentication;
+import org.kercoin.magrit.http.HttpServer;
 import org.kercoin.magrit.sshd.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,7 +178,7 @@ public final class Magrit {
 	
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
-	private void launch() throws IOException {
+	private void launch() throws Exception {
 		Configuration cfg = ctx.configuration();
 		log.info("--------------------------------------------------------------------");
 		log.info("Port (ssh) : {}", cfg.getSshPort());
@@ -195,8 +196,12 @@ public final class Magrit {
 
 		checkPorts(cfg);
 
-		log.info("Starting...");
+		log.info("Starting SSH service");
 		guice.getInstance(Server.class).start(cfg.getSshPort());
+		if (cfg.hasWebApp()) {
+			log.info("Starting HTTP service");
+			guice.getInstance(HttpServer.class).start();
+		}
 		log.info("R E A D Y - {}", new Date());
 	}
 
