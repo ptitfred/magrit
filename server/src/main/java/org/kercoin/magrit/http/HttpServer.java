@@ -38,32 +38,34 @@ public class HttpServer {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
-	private Server httpd;
+	private final Context ctx;
+	private final Server httpd;
 
 	@Inject
 	public HttpServer(final Context ctx, ServletFactory factory) {
+		this.ctx = ctx;
 		httpd = new Server(ctx.configuration().getHttpPort());
 		httpd.setHandler(getHandler(factory));
 	}
 
 	private Handler getHandler(ServletFactory factory) {
 		ServletHandler servletHandler = new ServletHandler();
-		servletHandler.setServlets(asHolders(servletHandler, factory.getServlets()));
+		servletHandler.setServlets(asHolders(factory.getServlets()));
 		servletHandler.setServletMappings(factory.getServletMappings().toArray(new ServletMapping[0]));
 		return servletHandler;
 	}
 
-	private ServletHolder[] asHolders(ServletHandler handler, Collection<ServletDefinition> servlets) {
+	private ServletHolder[] asHolders(Collection<ServletDefinition> servlets) {
 		ServletHolder[] holders = new ServletHolder[servlets.size()];
 		int i=0;
 		for (ServletDefinition servlet : servlets) {
-			holders[i++] = asHolder(handler, servlet);
+			holders[i++] = asHolder(servlet);
 		}
 		return holders;
 	}
 
-	private ServletHolder asHolder(ServletHandler handler, ServletDefinition servlet) {
-		ServletHolder holder = handler.newServletHolder();
+	private ServletHolder asHolder(ServletDefinition servlet) {
+		ServletHolder holder = new GuiceServletHolder(ctx.getInjector());
 		holder.setName(servlet.getName());
 		holder.setClassName(servlet.getType().getName());
 		return holder;
