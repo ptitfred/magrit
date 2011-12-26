@@ -26,6 +26,7 @@ public class Configuration {
 	private static final String DEFAULT_BASE_DIR = System.getProperty("java.io.tmpdir") + "/magrit";
 
 	private int sshPort = 2022;
+	private int httpPort = 2080;
 	
 	private File repositoriesHomeDir = new File(DEFAULT_BASE_DIR, "repos");
 	
@@ -38,6 +39,7 @@ public class Configuration {
 	private boolean remoteAllowed;
 
 	private boolean webApp;
+
 	
 	public static enum Authentication {
 		SSH_PUBLIC_KEYS { public String external() { return "ssh-public-keys"; } },
@@ -110,5 +112,13 @@ public class Configuration {
 	
 	public void setWebApp(boolean webApp) {
 		this.webApp = webApp;
+	}
+
+	public int getHttpPort() {
+		return httpPort;
+	}
+
+	public void setHttpPort(int httpPort) {
+		this.httpPort = httpPort;
 	}
 }

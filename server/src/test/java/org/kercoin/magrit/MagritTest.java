@@ -203,6 +203,13 @@ public class MagritTest {
 		assertThat(cfg()).isWebAppEnabled(true);
 	}
 
+	@Test
+	public void testConfigure_webapp_port() throws Exception {
+		assertThat(cfg()).onWebAppPort(2080);
+		magrit.configure(split("--http-port 1234"));
+		assertThat(cfg()).onWebAppPort(1234);
+	}
+
 	private Configuration cfg() {
 		return magrit.getCtx().configuration();
 	}

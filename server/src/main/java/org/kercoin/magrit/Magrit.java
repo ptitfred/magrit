@@ -64,15 +64,10 @@ public final class Magrit {
 		}
 		
 		if (cmdLine.hasOption("port")) {
-			try {
-				int sshdPort = Integer.parseInt(cmdLine.getOptionValue("port"));
-				if (sshdPort<=1024) {
-					throw new ParseException("SSH port must be >1024");
-				}
-				ctx.configuration().setSshPort(sshdPort);
-			} catch (NumberFormatException e) {
-				throw new ParseException("SSH port option should be numeric");
-			}
+			ctx.configuration().setSshPort(getNumber(cmdLine.getOptionValue("port"), 1024, "SSH port option"));
+		}
+		if (cmdLine.hasOption("http-port")) {
+			ctx.configuration().setHttpPort(getNumber(cmdLine.getOptionValue("http-port"), 1024, "HTTP port option"));
 		}
 		
 		if (cmdLine.hasOption("bares")) {
@@ -103,6 +98,18 @@ public final class Magrit {
 		ctx.configuration().setWebApp(cmdLine.hasOption("webapp"));
 
 	}
+
+	private int getNumber(String value, int min, String label) throws ParseException {
+		try {
+			int httpPort = Integer.parseInt(value);
+			if (httpPort<=min) {
+				throw new ParseException(label + " must be >" + min);
+			}
+			return httpPort;
+		} catch (NumberFormatException e) {
+			throw new ParseException(label + " should be numeric");
+		}
+	}
 	
 	private Options createCmdLineOptions() {
 		Options opts = new Options();
@@ -125,7 +132,9 @@ public final class Magrit {
 		opts.addOption("r", "remote", false, //
 				"allows the Magrit instance to be accessed by non-local client");
 		opts.addOption(null, "webapp", false, //
-				"allows the Magrit instance to be accessed by non-local client");
+				"enables the monitor web app");
+		opts.addOption("h", "http-port", true, //
+				"HTTP(s) port to listen to");
 		return opts;
 	}
 

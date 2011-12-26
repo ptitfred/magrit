@@ -69,6 +69,11 @@ public class ConfigurationAssert extends GenericAssert<ConfigurationAssert, Conf
 		return this;
 	}
 
+	public ConfigurationAssert onWebAppPort(int expected) {
+		assertThat(actual.getHttpPort()).isEqualTo(expected);
+		return this;
+	}
+
 	private static String cleanPath(String absolutePath) {
 		return new File(absolutePath).getPath();
 	}
