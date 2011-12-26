@@ -196,6 +196,13 @@ public class MagritTest {
 		}
 	}
 
+	@Test
+	public void testConfigure_webapp() throws Exception {
+		assertThat(cfg()).isWebAppEnabled(false);
+		magrit.configure(split("--webapp"));
+		assertThat(cfg()).isWebAppEnabled(true);
+	}
+
 	private Configuration cfg() {
 		return magrit.getCtx().configuration();
 	}

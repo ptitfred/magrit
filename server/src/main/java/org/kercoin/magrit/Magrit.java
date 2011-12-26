@@ -100,6 +100,7 @@ public final class Magrit {
 		}
 		
 		ctx.configuration().setRemoteAllowed(cmdLine.hasOption("remote"));
+		ctx.configuration().setWebApp(cmdLine.hasOption("webapp"));
 
 	}
 	
@@ -122,6 +123,8 @@ public final class Magrit {
 		opts.addOption("a", "authentication", true, //
 				"authentication provider : ssh-public-keys or none");
 		opts.addOption("r", "remote", false, //
+				"allows the Magrit instance to be accessed by non-local client");
+		opts.addOption(null, "webapp", false, //
 				"allows the Magrit instance to be accessed by non-local client");
 		return opts;
 	}

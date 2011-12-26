@@ -36,6 +36,8 @@ public class Configuration {
 	private Authentication authentication = Authentication.SSH_PUBLIC_KEYS;
 
 	private boolean remoteAllowed;
+
+	private boolean webApp;
 	
 	public static enum Authentication {
 		SSH_PUBLIC_KEYS { public String external() { return "ssh-public-keys"; } },
@@ -101,5 +103,12 @@ public class Configuration {
 	public int getSlots() {
 		return Runtime.getRuntime().availableProcessors();
 	}
+
+	public boolean hasWebApp() {
+		return webApp;
+	}
 	
+	public void setWebApp(boolean webApp) {
+		this.webApp = webApp;
+	}
 }

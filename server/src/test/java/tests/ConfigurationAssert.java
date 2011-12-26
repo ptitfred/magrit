@@ -64,6 +64,11 @@ public class ConfigurationAssert extends GenericAssert<ConfigurationAssert, Conf
 		return this;
 	}
 
+	public ConfigurationAssert isWebAppEnabled(boolean expected) {
+		assertThat(actual.hasWebApp()).isEqualTo(expected);
+		return this;
+	}
+
 	private static String cleanPath(String absolutePath) {
 		return new File(absolutePath).getPath();
 	}
