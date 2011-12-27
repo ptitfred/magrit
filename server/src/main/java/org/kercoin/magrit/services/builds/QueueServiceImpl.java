@@ -164,7 +164,7 @@ public class QueueServiceImpl implements QueueService {
 
 	@Override
 	public void removeCallback(BuildLifeCycleListener callback) {
-		DelegateListener listener = callbackDelegates.get(callback);
+		DelegateListener listener = callbackDelegates.remove(callback);
 		if (listener != null) {
 			pipeline.removeListener(listener);
 		}
