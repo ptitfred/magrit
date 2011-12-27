@@ -19,8 +19,9 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.http;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.servlet.http.HttpServlet;
 
@@ -28,34 +29,43 @@ import org.eclipse.jetty.servlet.ServletMapping;
 import org.kercoin.magrit.http.servlets.BuildServlet;
 import org.kercoin.magrit.http.servlets.Home;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class ServletFactory {
 
-	public Collection<ServletDefinition> getServlets() {
-		return Arrays.asList(
-				define("build", BuildServlet.class),
-				define("home", Home.class)
-			);
+	private final List<ServletDefinition> servlets = new ArrayList<ServletDefinition>();
+	private final List<ServletMapping> mappings = new ArrayList<ServletMapping>();
+
+	@Inject
+	public ServletFactory() {
+		defineAndBind(Home.class, "home", "/");
+		defineAndBind(BuildServlet.class, "build", "/build");
 	}
 
-	private ServletDefinition define(String servletName, Class<? extends HttpServlet> type) {
-		return new ServletDefinition(servletName, type);
+	private void defineAndBind(Class<? extends HttpServlet> type, String servletName, String... paths) {
+		define(servletName, type);
+		bind(servletName, paths);
 	}
 
-	public Collection<ServletMapping> getServletMappings() {
-		return Arrays.asList(
-				bind("build", "/build"),
-				bind("home", "/")
-			);
+	private void define(String servletName, Class<? extends HttpServlet> type) {
+		servlets.add(new ServletDefinition(servletName, type));
 	}
 
-	private ServletMapping bind(String servletName, String... paths) {
+	private void bind(String servletName, String... paths) {
 		ServletMapping mapping = new ServletMapping();
 		mapping.setServletName(servletName);
 		mapping.setPathSpecs(paths);
-		return mapping;
+		mappings.add(mapping);
+	}
+
+	public Collection<ServletDefinition> getServlets() {
+		return servlets;
+	}
+
+	public Collection<ServletMapping> getServletMappings() {
+		return mappings;
 	}
 
 }
