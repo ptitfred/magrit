@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 
 import org.eclipse.jetty.servlet.ServletMapping;
 import org.kercoin.magrit.http.servlets.BuildServlet;
+import org.kercoin.magrit.http.servlets.EventsWebSocket;
 import org.kercoin.magrit.http.servlets.Home;
 
 import com.google.inject.Inject;
@@ -42,6 +43,7 @@ public class ServletFactory {
 	public ServletFactory() {
 		defineAndBind(Home.class, "home", "/");
 		defineAndBind(BuildServlet.class, "build", "/build");
+		defineAndBind(EventsWebSocket.class, "events", "/events");
 	}
 
 	private void defineAndBind(Class<? extends HttpServlet> type, String servletName, String... paths) {
