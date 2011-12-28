@@ -26,6 +26,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author ptitfred
  *
@@ -34,13 +37,17 @@ public class Home extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
-	/* (non-Javadoc)
-	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
+	protected final Logger log = LoggerFactory.getLogger(getClass());
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		resp.sendRedirect("/build");
+		sendRedirect(resp, "/build");
+	}
+
+	private void sendRedirect(HttpServletResponse resp, String dir) throws IOException {
+		log.info("Home redirecting to " + dir);
+		resp.sendRedirect(dir);
 	}
 
 }
