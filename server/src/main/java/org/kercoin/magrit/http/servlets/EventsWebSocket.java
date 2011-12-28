@@ -29,6 +29,8 @@ import org.eclipse.jgit.lib.Repository;
 import org.kercoin.magrit.services.builds.BuildLifeCycleListener;
 import org.kercoin.magrit.services.builds.QueueService;
 import org.kercoin.magrit.services.builds.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -42,39 +44,40 @@ public class EventsWebSocket extends WebSocketServlet {
 
 	private static final long serialVersionUID = 1L;
 
+	protected final Logger log = LoggerFactory.getLogger(getClass());
+
 	private final QueueService queue;
 
 	@Inject
 	public EventsWebSocket(QueueService queue) {
 		this.queue = queue;
 	}
-	
+
 	@Override
-	protected WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
+	public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
+		log.info("Accepting websocket connection from " + request.getRemoteHost() + ":" + request.getRemotePort() + " with protocol " + protocol);
 		return new QueueListenerWebSocket();
 	}
 
-	class QueueListenerWebSocket implements WebSocket, BuildLifeCycleListener {
+	class QueueListenerWebSocket implements WebSocket.OnTextMessage, BuildLifeCycleListener {
 
-		private Outbound out;
+		private Connection connection;
 
 		@Override
-		public void onConnect(Outbound outbound) {
-			this.out = outbound;
+		public void onOpen(Connection connection) {
+			log.info("WS opening");
+			this.connection = connection;
 			EventsWebSocket.this.queue.addCallback(this);
 		}
 
 		@Override
-		public void onMessage(byte frame, String data) {
+		public void onMessage(String data) {
 		}
 
 		@Override
-		public void onMessage(byte frame, byte[] data, int offset, int length) {
-		}
-
-		@Override
-		public void onDisconnect() {
-			this.out = null;
+		public void onClose(int closeCode, String message) {
+			log.info("WS closing");
+			this.connection = null;
 			EventsWebSocket.this.queue.removeCallback(this);
 		}
 
@@ -95,7 +98,7 @@ public class EventsWebSocket extends WebSocketServlet {
 		
 		private void sendMsg(String message) {
 			try {
-				out.sendMessage(message);
+				connection.sendMessage(message);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

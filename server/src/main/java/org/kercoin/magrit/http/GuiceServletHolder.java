@@ -19,6 +19,8 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.http;
 
+import javax.servlet.Servlet;
+
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,18 +42,23 @@ class GuiceServletHolder extends ServletHolder {
 	}
 
 	@Override
-	public synchronized Object newInstance() throws InstantiationException,
+	public synchronized Servlet newInstance() throws InstantiationException,
 			IllegalAccessException {
-		Class<?> servletClass = getServletClass();
+		Class<? extends Servlet> servletClass = getServletClass();
 		if (servletClass != null) {
 			return injector.getInstance(servletClass);
 		}
 		throw new InstantiationException("Couldn't find class " + getClassName());
 	}
 
-	private Class<?> getServletClass() {
+	@SuppressWarnings("unchecked")
+	private Class<? extends Servlet> getServletClass() {
 		try {
-			return getClassLoader().loadClass(getClassName());
+			Class<?> loadedClass = getClassLoader().loadClass(getClassName());
+			if (Servlet.class.isAssignableFrom(loadedClass)) {
+				return (Class<? extends Servlet>) loadedClass;
+			}
+			throw new ClassCastException(getClassName() + "should be a Servlet subclass");
 		} catch (ClassNotFoundException e) {
 			log.error("Couldn't load Servlet class " + getClassName());
 		}
