@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript">
+		function myNotification(text) {
+			if (window.webkitNotifications.checkPermission() == 0) {
+				try {
+					var image = "http://magrit-dci.org/logo.png";
+					var notif = window.webkitNotifications.createNotification(image, "Magrit", text);
+					notif.show();
+					window.setInterval(function() {
+							notif.cancel();
+						}, 10000);
+				} catch(Err) {
+					console.log(Err.message); // Will output a security error if we don't have permission.
+				}
+			}
+		}
+		
+		function display(text) {
+			$('#messages').append(text + "<br/>");
+		}
+
+		function updateNotificationStatus() {
+			switch (window.webkitNotifications.checkPermission()) {
+			case 0:
+				$('#notificationPermission').hide();
+				display('Notifications are enabled');
+				break;
+			case 2:
+				$('#notificationPermission').hide();
+				display('Notifications are disabled');
+				break;
+			}
+		}
+
+		$(function() {
+			switch (window.webkitNotifications.checkPermission()) {
+			case 1:
+				$('#notificationPermission').click(function() {
+					window.webkitNotifications.requestPermission(updateNotificationStatus);
+					});
+				break;
+			default:
+				updateNotificationStatus();
+				break;
+			}
+			var ws = new WebSocket("ws://localhost:2080/events");
+			ws.onmessage = function(evt) {
+				myNotification(evt.data);
+				display(evt.data);
+			}; 
+		});
+	</script>
+</head>
+<body>
+	<button id="notificationPermission">Request notification permission</button>
+	<div id="messages"/>
+</body>
+</html>
