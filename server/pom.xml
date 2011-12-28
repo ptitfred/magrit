@@ -202,6 +202,12 @@
 			<version>1.4</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.ning</groupId>
+			<artifactId>async-http-client</artifactId>
+			<version>1.7.0-RC1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<reporting>
