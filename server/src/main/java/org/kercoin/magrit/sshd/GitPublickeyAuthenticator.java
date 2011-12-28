@@ -71,23 +71,9 @@ public class GitPublickeyAuthenticator implements PublickeyAuthenticator {
 	}
 	
 	boolean areEqual(PublicKey ref, PublicKey candidate) {
-		byte[] raw = sha1(candidate.getEncoded());
-		byte[] target = sha1(ref.getEncoded());
-		return Arrays.areEqual(target, raw);
+		return Arrays.areEqual(ref.getEncoded(), candidate.getEncoded());
 	}
-	
-	byte[] sha1(byte[] data) {
-		try {
-			Digest digest = new SHA1.Factory().create();
-			digest.init();
-			digest.update(data, 0, data.length);
-			return digest.digest();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return new byte[20];
-	}
-	
+		
 	private PublicKey readKeyFromRepository(String username) throws AmbiguousObjectException, Exception {
 		String revstr = String.format("HEAD:keys/%s.pub", username);
 		String encoded = gitUtils.show(datasource, revstr);
