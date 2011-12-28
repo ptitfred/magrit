@@ -19,10 +19,14 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.http;
 
+import java.net.URL;
 import java.util.Collection;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
@@ -49,10 +53,35 @@ public class HttpServer {
 	}
 
 	private Handler getHandler(ServletFactory factory) {
-		ServletHandler servletHandler = new ServletHandler();
-		servletHandler.setServlets(asHolders(factory.getServlets()));
-		servletHandler.setServletMappings(factory.getServletMappings().toArray(new ServletMapping[0]));
-		return servletHandler;
+		HandlerList global = new HandlerList();
+		global.addHandler(getResourceHandler());
+		global.addHandler(getServletHandler(factory));
+		global.addHandler(new DefaultHandler());
+		return global;
+	}
+
+	private Handler getResourceHandler() {
+		ResourceHandler handler = new ResourceHandler();
+		handler.setResourceBase(getPath());
+		handler.setWelcomeFiles(new String[] { "index.html" });
+		handler.setDirectoriesListed(true);
+		return handler;
+	}
+
+	private String getPath() {
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		URL resource = classLoader.getResource("web");
+		if (resource != null) {
+			return resource.toString();
+		}
+		return null;
+	}
+
+	private ServletHandler getServletHandler(ServletFactory factory) {
+		ServletHandler handler = new ServletHandler();
+		handler.setServlets(asHolders(factory.getServlets()));
+		handler.setServletMappings(factory.getServletMappings().toArray(new ServletMapping[0]));
+		return handler;
 	}
 
 	private ServletHolder[] asHolders(Collection<ServletDefinition> servlets) {
