@@ -56,10 +56,18 @@ public class BuildServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		enableCORS(resp);
 		List<String> currentTasks = mapSHA1s(buildQueueService.getCurrentTasks());
 		List<String> scheduledTasks = mapSHA1s(buildQueueService.getScheduledTasks());
 		resp.getWriter().println(encodeJSON(currentTasks, scheduledTasks));
 		resp.setStatus(HttpServletResponse.SC_OK);
+	}
+
+	/**
+	 * @param resp
+	 */
+	private void enableCORS(HttpServletResponse resp) {
+		resp.addHeader("Access-Control-Allow-Origin", "*");
 	}
 
 	private List<String> mapSHA1s(Collection<Pair<Repository, String>> tasks) {
