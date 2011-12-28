@@ -26,8 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.websocket.WebSocket;
-import com.ning.http.client.websocket.WebSocketByteListener;
+import com.ning.http.client.websocket.WebSocketTextListener;
 import com.ning.http.client.websocket.WebSocketUpgradeHandler;
 
 /**
@@ -51,14 +52,16 @@ public class EventsListener {
 		return "ws://localhost:2080/events";
 	}
 	
-	private final String url;
+	private final BoundRequestBuilder request;
 	private final WebSocketUpgradeHandler handler;
 
-	private class Listener implements WebSocketByteListener {
+	private class Listener implements WebSocketTextListener {
+		@Override
 		public void onOpen(WebSocket websocket) {
 			log.info("WebSocket open");
 		}
-		
+
+		@Override
 		public void onClose(WebSocket websocket) {
 			log.info("WebSocket closing...");
 			synchronized (EventsListener.this) {
@@ -66,31 +69,33 @@ public class EventsListener {
 			}
 			log.info("WebSocket closed");
 		}
-		
+
+		@Override
 		public void onError(Throwable t) {
 			log.error("WebSocket received an error", t);
 		}
-		
-		public void onMessage(byte[] message) {
-			log.info("message: " + new String(message));
+
+		@Override
+		public void onMessage(String message) {
+			log.info("message: " + message);
 		}
-		
-		public void onFragment(byte[] fragment, boolean last) {
-			log.info("fragment: " + (last ? "(last)" : "") + new String(fragment));
+
+		@Override
+		public void onFragment(String fragment, boolean last) {
+			log.info("fragment: " + (last ? "(last)" : "") + fragment);
 		}
+
 	}
 	
 	private EventsListener(String url) {
 		log.info("On URL: " + url);
-		this.url = url;
+		this.request = new AsyncHttpClient().prepareGet(url);
 		this.handler = new WebSocketUpgradeHandler.Builder().addWebSocketListener(new Listener()).build();
 	}
 	
 	private void start() throws InterruptedException, ExecutionException, IOException {
-		AsyncHttpClient c = new AsyncHttpClient();
 		log.info("Starting");
-		@SuppressWarnings("unused")
-		WebSocket socket = c.prepareGet(url).execute(handler).get();
+		request.execute(handler);
 		synchronized (this) {
 			wait();
 			log.info("We're done");
