@@ -18,7 +18,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sshd.version>0.5.1-r1095809</sshd.version>
 		<jgit.version>1.2.0.201112221803-r</jgit.version>
-		<slf4j.version>1.6.1</slf4j.version>
+		<slf4j.version>1.6.4</slf4j.version>
 	</properties>
 
 	<build>
