@@ -21,9 +21,10 @@ package org.kercoin.magrit;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.BindException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,6 +32,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.kercoin.magrit.Configuration.Authentication;
+import org.kercoin.magrit.Service.ConfigurationLogger;
 import org.kercoin.magrit.sshd.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,31 +141,68 @@ public final class Magrit {
 				ss.close();
 			}
 		}
-		
 	}
 	
+	void tryBindOrFail(int port) {
+		try {
+			tryBind(port);
+		} catch (IOException e) {
+			System.exit(1);
+		}
+	}
+
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
-	private void launch() throws IOException {
-		Configuration cfg = ctx.configuration();
+	private void launch() throws Exception {
+		Service[] services = getServices();
+		logConfig(services);
+		checkTCPServices(services);
+		startServices(services);
+		log.info("R E A D Y - {}", new Date());
+	}
+
+	private Service[] getServices() {
+		List<Service> services = new ArrayList<Service>();
+		services.add(getService(Server.class));
+		return services.toArray(new Service[0]);
+	}
+
+	private Service getService(Class<? extends Service> type) {
+		return guice.getInstance(type);
+	}
+
+	private void logConfig(Service[] services) {
 		log.info("--------------------------------------------------------------------");
-		log.info("Port used  : {}", cfg.getSshPort());
-		log.info("Listening  : {}", cfg.isRemoteAllowed() ? "everybody":"localhost");
-		log.info("Authent    : {}", cfg.getAuthentication().external());
-		if (cfg.getAuthentication() == Authentication.SSH_PUBLIC_KEYS) {
-		log.info("  Keys dir : {}", cfg.getPublickeyRepositoryDir());
+		boolean first = true;
+		for (Service svc : services) {
+			if (first) {
+				first = false;
+			} else {
+				log.info("---");
+			}
+			log.info(svc.getName() + " configuration");
+			svc.logConfig(configurationLogger, ctx.configuration());
 		}
-		log.info("Home dir   : {}", cfg.getRepositoriesHomeDir());
-		log.info("Work dir   : {}", cfg.getWorkHomeDir());
 		log.info("--------------------------------------------------------------------");
-		try {
-			tryBind(cfg.getSshPort());
-			log.info("Starting...");
-			guice.getInstance(Server.class).start(cfg.getSshPort());
-			log.info("R E A D Y - {}", new Date());
-		} catch (BindException be) {
-			log.error("Port {} already bound, aborting...", cfg.getSshPort());
+	}
+
+	private void checkTCPServices(Service[] services) {
+		for (Service svc : services) {
+			if (svc instanceof Service.UseTCP) {
+				tryBindOrFail(((Service.UseTCP) svc).getTCPPort());
+			}
 		}
+	}
+
+	private void startServices(Service[] services) throws ServiceException {
+		for (Service svc : services) {
+			start(svc);
+		}
+	}
+
+	private void start(Service service) throws ServiceException {
+		log.info("Starting " + service.getName());
+		service.start();
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -176,4 +215,22 @@ public final class Magrit {
 		}
 	}
 
+	private final ConfigurationLogger configurationLogger = new LogConfigurationLogger();
+
+	final class LogConfigurationLogger implements ConfigurationLogger {
+
+		@Override
+		public void logKey(String key, Object value) {
+			log.info(format(key, value));
+		}
+
+		private String format(String key, Object value) {
+			return String.format(" %-16s : %s", key, value);
+		}
+
+		@Override
+		public void logSubKey(String subKey, Object value) {
+			log.info(format("  " + subKey, value));
+		}
+	}
 }
