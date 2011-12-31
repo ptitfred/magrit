@@ -38,6 +38,9 @@ import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 import org.kercoin.magrit.Configuration;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.Service;
+import org.kercoin.magrit.ServiceException;
+import org.kercoin.magrit.Configuration.Authentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +48,17 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class Server {
+public class Server implements Service.UseTCP {
 	
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private SshServer sshd;
-	
+
+	private final int port;
+
 	@Inject
 	public Server(final Context ctx, CommandFactory factory) {
+		port = ctx.configuration().getSshPort();
 		sshd = SshServer.setUpDefaultServer();
 		
         if (SecurityUtils.isBouncyCastleRegistered()) {
@@ -104,9 +110,35 @@ public class Server {
 		sshd.setUserAuthFactories(list);
 	}
 
-	public void start(int port) throws IOException {
+	@Override
+	public void start() throws ServiceException {
 		sshd.setPort(port);
-		sshd.start();
+		try {
+			sshd.start();
+		} catch (IOException e) {
+			throw new ServiceException(e);
+		}
 	}
 
+	@Override
+	public String getName() {
+		return "SSH Service";
+	}
+
+	@Override
+	public int getTCPPort() {
+		return port;
+	}
+
+	@Override
+	public void logConfig(ConfigurationLogger log, Configuration cfg) {
+		log.logKey("SSHd", cfg.getSshPort());
+		log.logKey("Listening", cfg.isRemoteAllowed() ? "everybody" : "localhost");
+		log.logKey("Authent", cfg.getAuthentication().external());
+		if (cfg.getAuthentication() == Authentication.SSH_PUBLIC_KEYS) {
+			log.logSubKey("Keys dir", cfg.getPublickeyRepositoryDir());
+		}
+		log.logKey("Home dir", cfg.getRepositoriesHomeDir());
+		log.logKey("Work dir", cfg.getWorkHomeDir());
+	}
 }

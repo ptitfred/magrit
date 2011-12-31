@@ -22,7 +22,9 @@ package org.kercoin.magrit;
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,6 +32,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.kercoin.magrit.Configuration.Authentication;
+import org.kercoin.magrit.Service.ConfigurationLogger;
 import org.kercoin.magrit.http.HttpServer;
 import org.kercoin.magrit.sshd.Server;
 import org.slf4j.Logger;
@@ -169,42 +172,63 @@ public final class Magrit {
 		}
 	}
 
-	private void checkPorts(Configuration cfg) {
-		tryBindOrFail(cfg.getSshPort());
-		if (cfg.hasWebApp()) {
-			tryBindOrFail(cfg.getHttpPort());
-		}
-	}
-	
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	private void launch() throws Exception {
-		Configuration cfg = ctx.configuration();
-		log.info("--------------------------------------------------------------------");
-		log.info("Port (ssh) : {}", cfg.getSshPort());
-		if (cfg.hasWebApp()) {
-			log.info("Port (http): {}", cfg.getHttpPort());
-		}
-		log.info("Listening  : {}", cfg.isRemoteAllowed() ? "everybody":"localhost");
-		log.info("Authent    : {}", cfg.getAuthentication().external());
-		if (cfg.getAuthentication() == Authentication.SSH_PUBLIC_KEYS) {
-		log.info("  Keys dir : {}", cfg.getPublickeyRepositoryDir());
-		}
-		log.info("Home dir   : {}", cfg.getRepositoriesHomeDir());
-		log.info("Work dir   : {}", cfg.getWorkHomeDir());
-		log.info("--------------------------------------------------------------------");
-
-		checkPorts(cfg);
-
-		log.info("Starting SSH service");
-		guice.getInstance(Server.class).start(cfg.getSshPort());
-		if (cfg.hasWebApp()) {
-			log.info("Starting HTTP service");
-			guice.getInstance(HttpServer.class).start();
-		}
+		Service[] services = getServices();
+		logConfig(services);
+		checkTCPServices(services);
+		startServices(services);
 		log.info("R E A D Y - {}", new Date());
 	}
 
+	private Service[] getServices() {
+		List<Service> services = new ArrayList<Service>();
+		services.add(getService(Server.class));
+		if (ctx.configuration().hasWebApp()) {
+			services.add(getService(HttpServer.class));
+		}
+		return services.toArray(new Service[0]);
+	}
+
+	private Service getService(Class<? extends Service> type) {
+		return guice.getInstance(type);
+	}
+
+	private void logConfig(Service[] services) {
+		log.info("--------------------------------------------------------------------");
+		boolean first = true;
+		for (Service svc : services) {
+			if (first) {
+				first = false;
+			} else {
+				log.info("---");
+			}
+			log.info(svc.getName() + " configuration");
+			svc.logConfig(configurationLogger, ctx.configuration());
+		}
+		log.info("--------------------------------------------------------------------");
+	}
+
+	private void checkTCPServices(Service[] services) {
+		for (Service svc : services) {
+			if (svc instanceof Service.UseTCP) {
+				tryBindOrFail(((Service.UseTCP) svc).getTCPPort());
+			}
+		}
+	}
+
+	private void startServices(Service[] services) throws ServiceException {
+		for (Service svc : services) {
+			start(svc);
+		}
+	}
+
+	private void start(Service service) throws ServiceException {
+		log.info("Starting " + service.getName());
+		service.start();
+	}
+	
 	public static void main(String[] args) throws Exception {
 		Magrit m = new Magrit();
 		try {
@@ -215,4 +239,22 @@ public final class Magrit {
 		}
 	}
 
+	private final ConfigurationLogger configurationLogger = new LogConfigurationLogger();
+
+	final class LogConfigurationLogger implements ConfigurationLogger {
+
+		@Override
+		public void logKey(String key, Object value) {
+			log.info(format(key, value));
+		}
+
+		private String format(String key, Object value) {
+			return String.format(" %-16s : %s", key, value);
+		}
+
+		@Override
+		public void logSubKey(String subKey, Object value) {
+			log.info(format("  " + subKey, value));
+		}
+	}
 }

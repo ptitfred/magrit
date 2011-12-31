@@ -30,25 +30,33 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
+import org.kercoin.magrit.Configuration;
 import org.kercoin.magrit.Context;
+import org.kercoin.magrit.Service;
+import org.kercoin.magrit.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 @Singleton
-public class HttpServer {
+public class HttpServer implements Service.UseTCP {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final Context ctx;
 	private final Server httpd;
+
+	private final Injector injector;
+	private final int port;
+
 
 	@Inject
 	public HttpServer(final Context ctx, ServletFactory factory) {
-		this.ctx = ctx;
-		httpd = new Server(ctx.configuration().getHttpPort());
+		injector = ctx.getInjector();
+		port = ctx.configuration().getHttpPort();
+		httpd = new Server(port);
 		httpd.setHandler(getHandler(factory));
 	}
 
@@ -94,13 +102,33 @@ public class HttpServer {
 	}
 
 	private ServletHolder asHolder(ServletDefinition servlet) {
-		ServletHolder holder = new GuiceServletHolder(ctx.getInjector());
+		ServletHolder holder = new GuiceServletHolder(injector);
 		holder.setName(servlet.getName());
 		holder.setClassName(servlet.getType().getName());
 		return holder;
 	}
 
-	public void start() throws Exception {
-		httpd.start();
+	@Override
+	public void start() throws ServiceException {
+		try {
+			httpd.start();
+		} catch (Exception e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	@Override
+	public String getName() {
+		return "HTTP Service";
+	}
+
+	@Override
+	public int getTCPPort() {
+		return port;
+	}
+
+	@Override
+	public void logConfig(ConfigurationLogger log, Configuration cfg) {
+		log.logKey("HTTPd", port);
 	}
 }
