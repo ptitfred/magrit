@@ -42,6 +42,19 @@ public class Configuration {
 		NONE { public String external() { return "none"; } };
 		
 		public abstract String external();
+
+		/**
+		 * @param authValue
+		 * @return
+		 */
+		public static Authentication fromExternalValue(String authValue) {
+			for (Authentication auth : Authentication.values()) {
+				if (auth.external().equals(authValue)) {
+					return auth;
+				}
+			}
+			return Authentication.NONE;
+		}
 	}
 
 	public int getSshPort() {

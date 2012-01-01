@@ -210,7 +210,7 @@ public class ArgumentsParserTest {
 		parse(commandLine).configure(configuration);
 	}
 
-	static ArgumentsParser parse(String commandLine) {
+	static ArgumentsParser parse(String commandLine) throws ParseException {
 		return new ArgumentsParser(split(commandLine));
 	}
 
