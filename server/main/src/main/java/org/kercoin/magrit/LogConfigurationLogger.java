@@ -19,39 +19,28 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit;
 
-import static org.fest.assertions.Assertions.assertThat;
+import org.kercoin.magrit.core.services.Service.ConfigurationLogger;
+import org.slf4j.Logger;
 
-import java.net.ServerSocket;
+final class LogConfigurationLogger implements ConfigurationLogger {
 
-import org.junit.Before;
-import org.junit.Test;
-
-public class MagritTest {
-
-	Magrit magrit;
+	private final Logger log;
 	
-	@Before
-	public void setup() {
-		magrit = new Magrit();
+	LogConfigurationLogger(Logger log) {
+		this.log = log;
 	}
 	
-	@Test
-	public void testTryBind() throws Exception {
-		int port = 22222;
-		ServerSocket ss = new ServerSocket(port);
-		try {
-			assertThat(magrit.tryBind(port)).isFalse();
-		} finally {
-			ss.close();
-		}
+	@Override
+	public void logKey(String key, Object value) {
+		log.info(format(key, value));
 	}
-	
-	@Test
-	public void testTryBind_releasePortAfterTry() throws Exception {
-		int port = 22222;
-		magrit.tryBind(port);
-		assertThat(magrit.tryBind(port)).isTrue();
+
+	private String format(String key, Object value) {
+		return String.format(" %-16s : %s", key, value);
 	}
-	
-	
+
+	@Override
+	public void logSubKey(String subKey, Object value) {
+		log.info(format("  " + subKey, value));
+	}
 }

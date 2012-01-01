@@ -19,19 +19,13 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
-import org.kercoin.magrit.core.Configuration.Authentication;
 import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.CoreModule;
 import org.kercoin.magrit.core.services.Service;
@@ -63,93 +57,9 @@ public final class Magrit {
 	}
 	
 	void configure(String[] args) throws ParseException {
-		CommandLineParser parser = new PosixParser();
-		Options options = createCmdLineOptions();
-		CommandLine cmdLine = parser.parse(options, args, true);
-
-		if (cmdLine.hasOption("standard")) {
-			ctx.configuration().applyStandardLayout(cmdLine.getOptionValue("standard"));
-		}
-		
-		if (cmdLine.hasOption("port")) {
-			ctx.configuration().setSshPort(getNumber(cmdLine.getOptionValue("port"), 1024, "SSH port option"));
-		}
-		if (cmdLine.hasOption("http-port")) {
-			ctx.configuration().setHttpPort(getNumber(cmdLine.getOptionValue("http-port"), 1024, "HTTP port option"));
-		}
-		
-		if (cmdLine.hasOption("bares")) {
-			ctx.configuration().setRepositoriesHomeDir(new File(cmdLine.getOptionValue("bares")));
-		}
-		
-		if (cmdLine.hasOption("work")) {
-			ctx.configuration().setWorkHomeDir(new File(cmdLine.getOptionValue("work")));
-		}
-		
-		if (cmdLine.hasOption("keys")) {
-			ctx.configuration().setPublickeysRepositoryDir(new File(cmdLine.getOptionValue("keys")));
-		}
-		
-		if (cmdLine.hasOption("authentication")) {
-			Authentication authentication = Authentication.NONE;
-			String authValue = cmdLine.getOptionValue("authentication");
-			for (Authentication auth : Authentication.values()) {
-				if (auth.external().equals(authValue)) {
-					authentication = auth;
-					break;
-				}
-			}
-			ctx.configuration().setAuthentication(authentication);
-		}
-		
-		ctx.configuration().setRemoteAllowed(cmdLine.hasOption("remote"));
-		ctx.configuration().setWebApp(!cmdLine.hasOption("no-webapp"));
-
+		new ArgumentsParser(args).configure(ctx.configuration());
 	}
 
-	private int getNumber(String value, int min, String label) throws ParseException {
-		try {
-			int httpPort = Integer.parseInt(value);
-			if (httpPort<=min) {
-				throw new ParseException(label + " must be >" + min);
-			}
-			return httpPort;
-		} catch (NumberFormatException e) {
-			throw new ParseException(label + " should be numeric");
-		}
-	}
-	
-	private Options createCmdLineOptions() {
-		Options opts = new Options();
-		opts.addOption("p", "port", true, //
-				"SSH port to listen to");
-		opts.addOption("b", "bares", true, //
-				"directory where to create bare repositories");
-		opts.addOption("w", "work", true, //
-				"directory where to create work directories (for builds)");
-		opts.addOption("k", "keys", true, //
-				"non-bare Git repository containing SSH public keys for authentication." +
-				"Useless if and only if authentication=ssh-public-keys");
-		opts.addOption("s", "standard", true, //
-				"directory where to apply the standard " + //
-				"layout for bare repositories, " + //
-				"work directories and public keys, " + //
-				"all put in the supplied directory");
-		opts.addOption("a", "authentication", true, //
-				"authentication provider : ssh-public-keys or none");
-		opts.addOption("r", "remote", false, //
-				"allows the Magrit instance to be accessed by non-local client");
-		opts.addOption(null, "no-webapp", false, //
-				"disables the monitor web app");
-		opts.addOption("h", "http-port", true, //
-				"HTTP(s) port to listen to");
-		return opts;
-	}
-
-	Context getCtx() {
-		return ctx;
-	}
-	
 	boolean tryBind(int port) {
 		boolean success = false;
 		ServerSocket ss = null;
@@ -201,6 +111,7 @@ public final class Magrit {
 	}
 
 	private void logConfig(Service[] services) {
+		final ConfigurationLogger configurationLogger = new LogConfigurationLogger(log);
 		log.info("--------------------------------------------------------------------");
 		boolean first = true;
 		for (Service svc : services) {
@@ -241,25 +152,6 @@ public final class Magrit {
 			m.launch();
 		} catch (ParseException e) {
 			System.err.println(e.getLocalizedMessage());
-		}
-	}
-
-	private final ConfigurationLogger configurationLogger = new LogConfigurationLogger();
-
-	final class LogConfigurationLogger implements ConfigurationLogger {
-
-		@Override
-		public void logKey(String key, Object value) {
-			log.info(format(key, value));
-		}
-
-		private String format(String key, Object value) {
-			return String.format(" %-16s : %s", key, value);
-		}
-
-		@Override
-		public void logSubKey(String subKey, Object value) {
-			log.info(format("  " + subKey, value));
 		}
 	}
 }
