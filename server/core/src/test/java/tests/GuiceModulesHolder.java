@@ -19,13 +19,15 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package tests;
 
+import org.kercoin.magrit.CoreModule;
+
+import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class GuiceModulesHolder {
 	public static final Injector MAGRIT_MODULE;
 	static {
-		MAGRIT_MODULE = null;
-//		MAGRIT_MODULE = Guice.createInjector(new MagritModule());
+		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
 	}
 	
 }
