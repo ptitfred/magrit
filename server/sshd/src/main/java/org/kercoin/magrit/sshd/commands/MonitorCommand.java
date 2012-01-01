@@ -25,11 +25,11 @@ import java.io.PrintStream;
 import java.util.Date;
 
 import org.eclipse.jgit.lib.Repository;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.builds.BuildLifeCycleListener;
-import org.kercoin.magrit.services.builds.QueueService;
-import org.kercoin.magrit.services.builds.Status;
-import org.kercoin.magrit.utils.Pair;
+import org.kercoin.magrit.core.build.BuildLifeCycleListener;
+import org.kercoin.magrit.core.build.QueueService;
+import org.kercoin.magrit.core.build.Status;
+import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.model.Pair;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

@@ -35,11 +35,11 @@ import org.apache.sshd.server.ExitCallback;
 import org.eclipse.jgit.lib.Repository;
 import org.junit.Before;
 import org.junit.Test;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.builds.Status;
-import org.kercoin.magrit.services.builds.StatusesService;
+import org.kercoin.magrit.core.build.Status;
+import org.kercoin.magrit.core.build.StatusesService;
+import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.sshd.commands.GetStatusCommand;
-import org.kercoin.magrit.utils.GitUtils;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 

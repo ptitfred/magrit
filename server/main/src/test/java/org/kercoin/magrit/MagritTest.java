@@ -32,7 +32,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.cli.ParseException;
 import org.junit.Before;
 import org.junit.Test;
-import org.kercoin.magrit.Configuration.Authentication;
+import org.kercoin.magrit.core.model.Configuration;
+import org.kercoin.magrit.core.model.Configuration.Authentication;
 
 public class MagritTest {
 

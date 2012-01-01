@@ -19,7 +19,7 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package tests;
 
-import org.kercoin.magrit.CoreModule;
+import org.kercoin.magrit.core.CoreModule;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;

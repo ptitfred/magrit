@@ -32,8 +32,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.util.FileUtils;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.utils.GitUtils;
+import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.utils.GitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

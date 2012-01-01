@@ -28,8 +28,8 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.CoreModule;
+import org.kercoin.magrit.core.CoreModule;
+import org.kercoin.magrit.core.model.Context;
 import org.kercoin.magrit.sshd.SshdModule;
 import org.kercoin.magrit.sshd.commands.AbstractCommand.CommandProvider;
 import org.kercoin.magrit.sshd.commands.CatBuildCommand.CatBuildCommandProvider;

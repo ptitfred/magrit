@@ -24,7 +24,7 @@ import java.io.IOException;
 import org.apache.sshd.server.Command;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.ReceivePack;
-import org.kercoin.magrit.Context;
+import org.kercoin.magrit.core.model.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

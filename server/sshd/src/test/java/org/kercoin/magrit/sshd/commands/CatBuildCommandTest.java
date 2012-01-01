@@ -33,12 +33,12 @@ import org.eclipse.jgit.lib.Repository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.services.builds.BuildResult;
-import org.kercoin.magrit.services.dao.BuildDAO;
+import org.kercoin.magrit.core.build.BuildResult;
+import org.kercoin.magrit.core.dao.BuildDAO;
+import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.sshd.commands.CatBuildCommand;
-import org.kercoin.magrit.utils.GitUtils;
-import org.kercoin.magrit.utils.LoggerOutputStream;
+import org.kercoin.magrit.sshd.utils.LoggerOutputStream;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 

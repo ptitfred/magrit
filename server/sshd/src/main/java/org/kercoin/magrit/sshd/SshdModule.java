@@ -21,6 +21,7 @@ package org.kercoin.magrit.sshd;
 
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.PublickeyAuthenticator;
+import org.kercoin.magrit.sshd.auth.GitPublickeyAuthenticator;
 import org.kercoin.magrit.sshd.commands.MagritCommandFactory;
 
 import com.google.inject.AbstractModule;
