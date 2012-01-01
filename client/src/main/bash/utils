@@ -84,6 +84,8 @@ function _checkSsh {
 	# restore bash options
 	eval $setBackup 2> /dev/null
 
+	set -e
+
 	# handle bad response
 	if [ $status -eq 255 ]
 	then
