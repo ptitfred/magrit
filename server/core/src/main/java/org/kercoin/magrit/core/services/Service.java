@@ -17,17 +17,27 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.core.services;
 
-import org.kercoin.magrit.core.CoreModule;
+import org.kercoin.magrit.core.Configuration;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
+/**
+ * @author ptitfred
+ *
+ */
+public interface Service {
+
+	String getName();
+	void logConfig(ConfigurationLogger log, Configuration cfg);
+	void start() throws ServiceException;
+
+	interface UseTCP extends Service {
+		int getTCPPort();
 	}
-	
+
+	interface ConfigurationLogger {
+		void logKey(String key, Object value);
+		void logSubKey(String subKey, Object value);
+	}
 }

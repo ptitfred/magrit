@@ -17,17 +17,23 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.core.build;
 
-import org.kercoin.magrit.core.CoreModule;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
-	}
+public enum Status {
+	RUNNING('R'),
+	PENDING('P'),
+	ERROR('E'),
+	OK('O'),
+	INTERRUPTED('I'),
+	LOCAL('L'),
+	NEW('N'),
+	UNKNOWN('?');
 	
+	private char code;
+	
+	private Status(char code) { this.code = code; }
+	
+	public char getCode() {
+		return code;
+	}
 }

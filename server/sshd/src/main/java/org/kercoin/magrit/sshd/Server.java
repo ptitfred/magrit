@@ -36,11 +36,11 @@ import org.apache.sshd.server.auth.UserAuthPublicKey;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
-import org.kercoin.magrit.Configuration;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.Service;
-import org.kercoin.magrit.ServiceException;
-import org.kercoin.magrit.Configuration.Authentication;
+import org.kercoin.magrit.core.Configuration;
+import org.kercoin.magrit.core.Context;
+import org.kercoin.magrit.core.Configuration.Authentication;
+import org.kercoin.magrit.core.services.Service;
+import org.kercoin.magrit.core.services.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

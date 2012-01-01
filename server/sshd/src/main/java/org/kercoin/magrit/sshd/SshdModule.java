@@ -17,17 +17,25 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.sshd;
 
-import org.kercoin.magrit.core.CoreModule;
+import org.apache.sshd.server.CommandFactory;
+import org.apache.sshd.server.PublickeyAuthenticator;
+import org.kercoin.magrit.sshd.auth.GitPublickeyAuthenticator;
+import org.kercoin.magrit.sshd.commands.MagritCommandFactory;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.AbstractModule;
 
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
+/**
+ * @author ptitfred
+ *
+ */
+public class SshdModule extends AbstractModule {
+
+	@Override
+	protected void configure() {
+		bind(PublickeyAuthenticator.class).to(GitPublickeyAuthenticator.class);
+		bind(CommandFactory.class).to(MagritCommandFactory.class);
 	}
-	
+
 }
