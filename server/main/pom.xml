@@ -37,6 +37,13 @@
 			<artifactId>magrit-server-sshd</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.kercoin.magrit</groupId>
+			<artifactId>magrit-server-core</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>
