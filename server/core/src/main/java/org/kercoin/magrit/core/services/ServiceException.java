@@ -17,17 +17,30 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.core.services;
 
-import org.kercoin.magrit.core.CoreModule;
+/**
+ * @author ptitfred
+ *
+ */
+public class ServiceException extends Exception {
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+	private static final long serialVersionUID = 1L;
 
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
+	public ServiceException() {
+		super();
 	}
-	
+
+	public ServiceException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public ServiceException(String message) {
+		super(message);
+	}
+
+	public ServiceException(Throwable cause) {
+		super(cause);
+	}
+
 }

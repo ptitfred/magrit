@@ -30,10 +30,10 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
-import org.kercoin.magrit.Configuration;
-import org.kercoin.magrit.Context;
-import org.kercoin.magrit.Service;
-import org.kercoin.magrit.ServiceException;
+import org.kercoin.magrit.core.Configuration;
+import org.kercoin.magrit.core.Context;
+import org.kercoin.magrit.core.services.Service;
+import org.kercoin.magrit.core.services.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

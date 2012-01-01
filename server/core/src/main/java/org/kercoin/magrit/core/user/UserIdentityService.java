@@ -17,17 +17,14 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.core.user;
 
-import org.kercoin.magrit.core.CoreModule;
+import java.security.AccessControlException;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
-	}
-	
+import com.google.inject.ImplementedBy;
+
+@ImplementedBy(UserIdentityServiceImpl.class)
+public interface UserIdentityService {
+	UserIdentity find(String login) throws AccessControlException;
 }

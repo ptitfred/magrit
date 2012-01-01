@@ -17,17 +17,15 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.core.build;
 
-import org.kercoin.magrit.core.CoreModule;
+import org.eclipse.jgit.lib.Repository;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
-	}
+public interface BuildLifeCycleListener {
 	
+	void buildScheduled(Repository repo, String sha1);
+	
+	void buildStarted(Repository repo, String sha1);
+
+	void buildEnded(Repository repo, String sha1, Status status);
 }

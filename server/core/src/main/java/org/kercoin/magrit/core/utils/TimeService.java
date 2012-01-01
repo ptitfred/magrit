@@ -17,17 +17,14 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.core.utils;
 
-import org.kercoin.magrit.core.CoreModule;
+import org.kercoin.magrit.core.Pair;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.ImplementedBy;
 
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
-	}
-	
+@ImplementedBy(SimpleTimeService.class)
+public interface TimeService {
+	Pair<Long, Integer> now();
+	String offsetToString(int minutes);
 }

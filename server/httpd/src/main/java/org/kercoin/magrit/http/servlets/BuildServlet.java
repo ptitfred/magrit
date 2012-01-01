@@ -33,8 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jgit.lib.Repository;
 import org.json.simple.JSONValue;
-import org.kercoin.magrit.services.builds.QueueService;
-import org.kercoin.magrit.utils.Pair;
+import org.kercoin.magrit.core.Pair;
+import org.kercoin.magrit.core.build.QueueService;
 
 import com.google.inject.Inject;
 
