@@ -37,6 +37,11 @@
 			<artifactId>magrit-server-sshd</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.kercoin.magrit</groupId>
+			<artifactId>magrit-server-httpd</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 </project>
