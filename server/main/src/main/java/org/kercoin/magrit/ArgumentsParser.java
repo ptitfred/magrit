@@ -35,59 +35,68 @@ import org.kercoin.magrit.core.Configuration.Authentication;
  */
 class ArgumentsParser {
 
-	private final String[] args;
+	private final CommandLine cmdLine;
 
-	ArgumentsParser(String[] args) {
-		this.args = args;
+	ArgumentsParser(String[] args) throws ParseException {
+		CommandLineParser parser = new PosixParser();
+		Options options = createCmdLineOptions();
+		this.cmdLine = parser.parse(options, args, true);
 	}
 
 	void configure(Configuration configuration) throws ParseException {
-		CommandLineParser parser = new PosixParser();
-		Options options = createCmdLineOptions();
-		CommandLine cmdLine = parser.parse(options, args, true);
-
-		if (cmdLine.hasOption("standard")) {
-			configuration.applyStandardLayout(cmdLine.getOptionValue("standard"));
+		if (has("standard")) {
+			configuration.applyStandardLayout(get("standard"));
 		}
 		
-		if (cmdLine.hasOption("port")) {
-			configuration.setSshPort(getNumber(cmdLine.getOptionValue("port"), 1024, "SSH port option"));
+		if (has("port")) {
+			configuration.setSshPort(getPort("port", "SSH"));
 		}
-		if (cmdLine.hasOption("http-port")) {
-			configuration.setHttpPort(getNumber(cmdLine.getOptionValue("http-port"), 1024, "HTTP port option"));
-		}
-		
-		if (cmdLine.hasOption("bares")) {
-			configuration.setRepositoriesHomeDir(new File(cmdLine.getOptionValue("bares")));
+		if (has("http-port")) {
+			configuration.setHttpPort(getPort("http-port", "HTTP"));
 		}
 		
-		if (cmdLine.hasOption("work")) {
-			configuration.setWorkHomeDir(new File(cmdLine.getOptionValue("work")));
+		if (has("bares")) {
+			configuration.setRepositoriesHomeDir(getFile("bares"));
 		}
 		
-		if (cmdLine.hasOption("keys")) {
-			configuration.setPublickeysRepositoryDir(new File(cmdLine.getOptionValue("keys")));
+		if (has("work")) {
+			configuration.setWorkHomeDir(getFile("work"));
 		}
 		
-		if (cmdLine.hasOption("authentication")) {
+		if (has("keys")) {
+			configuration.setPublickeysRepositoryDir(getFile("keys"));
+		}
+		
+		if (has("authentication")) {
 			Authentication authentication = Authentication.NONE;
-			String authValue = cmdLine.getOptionValue("authentication");
-			for (Authentication auth : Authentication.values()) {
-				if (auth.external().equals(authValue)) {
-					authentication = auth;
-					break;
-				}
-			}
+			String authValue = get("authentication");
+			authentication = Authentication.fromExternalValue(authValue);
 			configuration.setAuthentication(authentication);
 		}
 		
-		configuration.setRemoteAllowed(cmdLine.hasOption("remote"));
-		configuration.setWebApp(!cmdLine.hasOption("no-webapp"));
+		configuration.setRemoteAllowed(has("remote"));
+		configuration.setWebApp(!has("no-webapp"));
 	}
 
-	private int getNumber(String value, int min, String label) throws ParseException {
+	private File getFile(String opt) {
+		return new File(cmdLine.getOptionValue(opt));
+	}
+
+	private int getPort(String opt, String portName) throws ParseException {
+		return getNumber(opt, 1024, portName + " port option");
+	}
+
+	private String get(String opt) {
+		return cmdLine.getOptionValue(opt);
+	}
+
+	private boolean has(String opt) {
+		return cmdLine.hasOption(opt);
+	}
+
+	private int getNumber(String opt, int min, String label) throws ParseException {
 		try {
-			int httpPort = Integer.parseInt(value);
+			int httpPort = Integer.parseInt(get(opt));
 			if (httpPort<=min) {
 				throw new ParseException(label + " must be >" + min);
 			}
