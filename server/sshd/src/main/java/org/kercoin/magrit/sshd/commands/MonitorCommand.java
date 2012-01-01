@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.commands;
+package org.kercoin.magrit.sshd.commands;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,7 +37,7 @@ import com.google.inject.Singleton;
 public class MonitorCommand extends AbstractCommand<MonitorCommand> implements BuildLifeCycleListener {
 
 	@Singleton
-	public static class MonitorCommandProvider implements CommandProvider<MonitorCommand>, org.kercoin.magrit.commands.AbstractCommand.EndCallback<MonitorCommand> {
+	public static class MonitorCommandProvider implements CommandProvider<MonitorCommand>, org.kercoin.magrit.sshd.commands.AbstractCommand.EndCallback<MonitorCommand> {
 
 		private Context ctx;
 		

@@ -34,6 +34,7 @@ import org.apache.commons.cli.PosixParser;
 import org.kercoin.magrit.Configuration.Authentication;
 import org.kercoin.magrit.Service.ConfigurationLogger;
 import org.kercoin.magrit.sshd.Server;
+import org.kercoin.magrit.sshd.SshdModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

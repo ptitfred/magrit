@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.commands;
+package org.kercoin.magrit.sshd.commands;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -30,15 +30,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kercoin.magrit.Context;
 import org.kercoin.magrit.CoreModule;
-import org.kercoin.magrit.SshdModule;
-import org.kercoin.magrit.commands.AbstractCommand.CommandProvider;
-import org.kercoin.magrit.commands.CatBuildCommand.CatBuildCommandProvider;
-import org.kercoin.magrit.commands.GetStatusCommand.GetStatusCommandProvider;
-import org.kercoin.magrit.commands.MonitorCommand.MonitorCommandProvider;
-import org.kercoin.magrit.commands.PingCommand.PingCommandProvider;
-import org.kercoin.magrit.commands.ReceivePackCommand.ReceivePackCommandProvider;
-import org.kercoin.magrit.commands.SendBuildCommand.SendBuildCommandProvider;
-import org.kercoin.magrit.commands.WaitForCommand.WaitForCommandProvider;
+import org.kercoin.magrit.sshd.SshdModule;
+import org.kercoin.magrit.sshd.commands.AbstractCommand.CommandProvider;
+import org.kercoin.magrit.sshd.commands.CatBuildCommand.CatBuildCommandProvider;
+import org.kercoin.magrit.sshd.commands.GetStatusCommand.GetStatusCommandProvider;
+import org.kercoin.magrit.sshd.commands.MonitorCommand.MonitorCommandProvider;
+import org.kercoin.magrit.sshd.commands.PingCommand.PingCommandProvider;
+import org.kercoin.magrit.sshd.commands.ReceivePackCommand.ReceivePackCommandProvider;
+import org.kercoin.magrit.sshd.commands.SendBuildCommand.SendBuildCommandProvider;
+import org.kercoin.magrit.sshd.commands.WaitForCommand.WaitForCommandProvider;
 import org.mockito.Answers;
 import org.mockito.Mock;
 

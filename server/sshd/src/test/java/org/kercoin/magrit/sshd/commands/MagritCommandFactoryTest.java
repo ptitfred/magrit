@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.commands;
+package org.kercoin.magrit.sshd.commands;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -26,15 +26,15 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.commands.CatBuildCommand;
-import org.kercoin.magrit.commands.CommandsProvider;
-import org.kercoin.magrit.commands.GetStatusCommand;
-import org.kercoin.magrit.commands.MagritCommandFactory;
-import org.kercoin.magrit.commands.MonitorCommand;
-import org.kercoin.magrit.commands.PingCommand;
-import org.kercoin.magrit.commands.ReceivePackCommand;
-import org.kercoin.magrit.commands.SendBuildCommand;
-import org.kercoin.magrit.commands.WaitForCommand;
+import org.kercoin.magrit.sshd.commands.CatBuildCommand;
+import org.kercoin.magrit.sshd.commands.CommandsProvider;
+import org.kercoin.magrit.sshd.commands.GetStatusCommand;
+import org.kercoin.magrit.sshd.commands.MagritCommandFactory;
+import org.kercoin.magrit.sshd.commands.MonitorCommand;
+import org.kercoin.magrit.sshd.commands.PingCommand;
+import org.kercoin.magrit.sshd.commands.ReceivePackCommand;
+import org.kercoin.magrit.sshd.commands.SendBuildCommand;
+import org.kercoin.magrit.sshd.commands.WaitForCommand;
 
 import tests.GuiceModulesHolder;
 

@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.commands;
+package org.kercoin.magrit.sshd.commands;
 
 import java.io.PrintStream;
 import java.util.Scanner;

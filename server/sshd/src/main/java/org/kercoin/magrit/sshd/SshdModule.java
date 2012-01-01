@@ -17,12 +17,11 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit;
+package org.kercoin.magrit.sshd;
 
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.PublickeyAuthenticator;
-import org.kercoin.magrit.commands.MagritCommandFactory;
-import org.kercoin.magrit.sshd.GitPublickeyAuthenticator;
+import org.kercoin.magrit.sshd.commands.MagritCommandFactory;
 
 import com.google.inject.AbstractModule;
 

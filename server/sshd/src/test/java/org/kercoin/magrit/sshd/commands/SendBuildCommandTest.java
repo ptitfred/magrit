@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.commands;
+package org.kercoin.magrit.sshd.commands;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -44,6 +44,7 @@ import org.kercoin.magrit.Context;
 import org.kercoin.magrit.services.builds.BuildResult;
 import org.kercoin.magrit.services.builds.QueueService;
 import org.kercoin.magrit.services.utils.UserIdentityService;
+import org.kercoin.magrit.sshd.commands.SendBuildCommand;
 import org.kercoin.magrit.utils.GitUtils;
 import org.kercoin.magrit.utils.UserIdentity;
 import org.mockito.Mock;

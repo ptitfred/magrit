@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.commands;
+package org.kercoin.magrit.sshd.commands;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -40,7 +40,7 @@ public class WaitForCommand extends AbstractCommand<WaitForCommand> implements B
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	public static class WaitForCommandProvider implements CommandProvider<WaitForCommand>,
-	org.kercoin.magrit.commands.AbstractCommand.EndCallback<WaitForCommand>{
+	org.kercoin.magrit.sshd.commands.AbstractCommand.EndCallback<WaitForCommand>{
 		
 		private final Context ctx;
 		
