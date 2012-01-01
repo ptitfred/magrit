@@ -24,10 +24,10 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>../server/target</directory>
+			<directory>../server/main/target</directory>
 			<outputDirectory>/META-INF/packs/</outputDirectory>
 			<includes>
-				<include>magrit-server-*-jar-with-dependencies.jar</include>
+				<include>magrit-server-main-*-jar-with-dependencies.jar</include>
 			</includes>
 		</fileSet>
 	</fileSets>
