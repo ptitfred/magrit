@@ -7,8 +7,6 @@ client/target
 server/.classpath
 server/.project
 server/.settings
-server/key.pem
-server/key.ser
 server/target
 
 server/core/.classpath
@@ -29,6 +27,7 @@ server/httpd/target
 server/main/.classpath
 server/main/.project
 server/main/.settings
+server/main/key.pem
 server/main/target
 
 installer/.classpath
