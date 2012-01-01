@@ -26,10 +26,10 @@ import java.util.Scanner;
 import java.util.Set;
 
 import org.eclipse.jgit.lib.Repository;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.build.BuildLifeCycleListener;
 import org.kercoin.magrit.core.build.QueueService;
 import org.kercoin.magrit.core.build.Status;
-import org.kercoin.magrit.core.model.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

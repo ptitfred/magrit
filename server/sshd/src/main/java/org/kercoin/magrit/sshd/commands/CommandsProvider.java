@@ -22,7 +22,7 @@ package org.kercoin.magrit.sshd.commands;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.sshd.commands.AbstractCommand.CommandProvider;
 import org.kercoin.magrit.sshd.commands.CatBuildCommand.CatBuildCommandProvider;
 import org.kercoin.magrit.sshd.commands.GetStatusCommand.GetStatusCommandProvider;

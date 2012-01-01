@@ -17,39 +17,32 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.model;
+package org.kercoin.magrit.core;
 
-public class UserIdentity {
-	private final String email;
-	private final String name;
-	private final String toString;
+public class Pair<T, U> {
+	private T t;
+	private U u;
 
-	public UserIdentity(String email, String name) {
+	public Pair(T t, U u) {
 		super();
-		this.email = email;
-		this.name = name;
-		this.toString = String.format("\"%s\" <%s>", name, email);
+		this.t = t;
+		this.u = u;
 	}
 	
-	public String getEmail() {
-		return email;
+	public T getT() {
+		return t;
 	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	@Override
-	public String toString() {
-		return toString;
+
+	public U getU() {
+		return u;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((toString == null) ? 0 : toString.hashCode());
+		result = prime * result + ((t == null) ? 0 : t.hashCode());
+		result = prime * result + ((u == null) ? 0 : u.hashCode());
 		return result;
 	}
 
@@ -61,14 +54,19 @@ public class UserIdentity {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		UserIdentity other = (UserIdentity) obj;
-		if (toString == null) {
-			if (other.toString != null)
+		@SuppressWarnings("unchecked")
+		Pair<T, U> other = (Pair<T, U>) obj;
+		if (t == null) {
+			if (other.t != null)
 				return false;
-		} else if (!toString.equals(other.toString))
+		} else if (!t.equals(other.t))
+			return false;
+		if (u == null) {
+			if (other.u != null)
+				return false;
+		} else if (!u.equals(other.u))
 			return false;
 		return true;
 	}
-	
-	
+
 }

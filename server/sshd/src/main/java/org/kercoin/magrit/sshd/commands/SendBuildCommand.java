@@ -30,10 +30,10 @@ import org.apache.sshd.server.Environment;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.build.QueueService;
-import org.kercoin.magrit.core.model.Context;
-import org.kercoin.magrit.core.model.UserIdentity;
-import org.kercoin.magrit.core.utils.UserIdentityService;
+import org.kercoin.magrit.core.user.UserIdentity;
+import org.kercoin.magrit.core.user.UserIdentityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

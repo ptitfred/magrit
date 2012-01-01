@@ -28,7 +28,7 @@ import org.bouncycastle.util.Arrays;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.Repository;
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.utils.GitUtils;
 
 import com.google.inject.Inject;

@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.utils;
+package org.kercoin.magrit.core.user;
 
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -32,8 +32,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kercoin.magrit.core.model.Context;
-import org.kercoin.magrit.core.model.UserIdentity;
+import org.kercoin.magrit.core.Context;
+import org.kercoin.magrit.core.utils.GitUtils;
+import org.kercoin.magrit.core.utils.GitUtilsTest;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)

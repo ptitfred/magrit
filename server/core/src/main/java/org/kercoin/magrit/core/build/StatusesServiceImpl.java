@@ -26,10 +26,10 @@ import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.kercoin.magrit.core.Pair;
 import org.kercoin.magrit.core.build.Pipeline.Key;
 import org.kercoin.magrit.core.build.Pipeline.Task;
 import org.kercoin.magrit.core.dao.BuildDAO;
-import org.kercoin.magrit.core.model.Pair;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

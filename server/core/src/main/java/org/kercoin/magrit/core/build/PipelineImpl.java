@@ -47,7 +47,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

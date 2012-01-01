@@ -19,7 +19,7 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.core.services;
 
-import org.kercoin.magrit.core.model.Configuration;
+import org.kercoin.magrit.core.Configuration;
 
 
 /**

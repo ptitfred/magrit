@@ -23,9 +23,9 @@ import java.io.PrintStream;
 import java.util.Scanner;
 
 import org.eclipse.jgit.lib.Repository;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.build.BuildResult;
 import org.kercoin.magrit.core.dao.BuildDAO;
-import org.kercoin.magrit.core.model.Context;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

@@ -19,7 +19,7 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package tests;
 
-import org.kercoin.magrit.core.model.Configuration;
+import org.kercoin.magrit.core.Configuration;
 
 public class MyAssertions extends org.fest.assertions.Assertions {
 	

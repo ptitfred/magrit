@@ -23,8 +23,8 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 
 import org.eclipse.jgit.lib.Repository;
-import org.kercoin.magrit.core.model.Pair;
-import org.kercoin.magrit.core.model.UserIdentity;
+import org.kercoin.magrit.core.Pair;
+import org.kercoin.magrit.core.user.UserIdentity;
 
 import com.google.inject.ImplementedBy;
 

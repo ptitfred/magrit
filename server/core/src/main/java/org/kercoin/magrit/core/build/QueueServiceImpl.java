@@ -30,13 +30,13 @@ import java.util.concurrent.Future;
 
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.kercoin.magrit.core.Context;
+import org.kercoin.magrit.core.Pair;
 import org.kercoin.magrit.core.build.Pipeline.Filter;
 import org.kercoin.magrit.core.build.Pipeline.Key;
 import org.kercoin.magrit.core.build.Pipeline.Listener;
 import org.kercoin.magrit.core.build.Pipeline.Task;
-import org.kercoin.magrit.core.model.Context;
-import org.kercoin.magrit.core.model.Pair;
-import org.kercoin.magrit.core.model.UserIdentity;
+import org.kercoin.magrit.core.user.UserIdentity;
 import org.kercoin.magrit.core.utils.TimeService;
 
 import com.google.inject.Inject;

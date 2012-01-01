@@ -26,7 +26,7 @@ import java.util.TimeZone;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.kercoin.magrit.core.model.Pair;
+import org.kercoin.magrit.core.Pair;
 import org.kercoin.magrit.core.utils.SimpleTimeService;
 
 

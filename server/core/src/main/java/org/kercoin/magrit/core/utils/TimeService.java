@@ -19,7 +19,7 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.core.utils;
 
-import org.kercoin.magrit.core.model.Pair;
+import org.kercoin.magrit.core.Pair;
 
 import com.google.inject.ImplementedBy;
 

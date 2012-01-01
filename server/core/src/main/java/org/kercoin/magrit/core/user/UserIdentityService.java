@@ -17,11 +17,10 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.utils;
+package org.kercoin.magrit.core.user;
 
 import java.security.AccessControlException;
 
-import org.kercoin.magrit.core.model.UserIdentity;
 
 import com.google.inject.ImplementedBy;
 

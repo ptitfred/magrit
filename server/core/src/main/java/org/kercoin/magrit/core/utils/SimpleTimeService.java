@@ -22,7 +22,7 @@ package org.kercoin.magrit.core.utils;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import org.kercoin.magrit.core.model.Pair;
+import org.kercoin.magrit.core.Pair;
 
 public class SimpleTimeService implements TimeService {
 

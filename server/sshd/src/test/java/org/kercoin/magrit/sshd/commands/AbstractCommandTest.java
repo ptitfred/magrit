@@ -33,7 +33,7 @@ import org.eclipse.jgit.util.io.NullOutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.sshd.commands.AbstractCommand;
 import org.kercoin.magrit.sshd.utils.LoggerInputStream;

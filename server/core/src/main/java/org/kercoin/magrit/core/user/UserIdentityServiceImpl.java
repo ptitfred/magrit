@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.utils;
+package org.kercoin.magrit.core.user;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -27,9 +27,9 @@ import java.util.Properties;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
-import org.kercoin.magrit.core.model.Configuration;
-import org.kercoin.magrit.core.model.Context;
-import org.kercoin.magrit.core.model.UserIdentity;
+import org.kercoin.magrit.core.Configuration;
+import org.kercoin.magrit.core.Context;
+import org.kercoin.magrit.core.utils.GitUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

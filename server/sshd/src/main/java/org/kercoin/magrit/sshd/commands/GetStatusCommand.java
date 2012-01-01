@@ -26,9 +26,9 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.build.Status;
 import org.kercoin.magrit.core.build.StatusesService;
-import org.kercoin.magrit.core.model.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

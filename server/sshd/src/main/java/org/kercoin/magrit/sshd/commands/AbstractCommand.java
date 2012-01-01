@@ -30,7 +30,7 @@ import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 import org.eclipse.jgit.lib.Repository;
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.sshd.utils.LoggerInputStream;
 import org.kercoin.magrit.sshd.utils.LoggerOutputStream;

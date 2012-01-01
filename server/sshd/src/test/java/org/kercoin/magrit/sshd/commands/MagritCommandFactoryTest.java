@@ -25,7 +25,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.sshd.commands.CatBuildCommand;
 import org.kercoin.magrit.sshd.commands.CommandsProvider;
 import org.kercoin.magrit.sshd.commands.GetStatusCommand;

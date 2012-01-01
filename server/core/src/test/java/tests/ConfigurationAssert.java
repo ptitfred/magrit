@@ -24,8 +24,8 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.io.File;
 
 import org.fest.assertions.GenericAssert;
-import org.kercoin.magrit.core.model.Configuration;
-import org.kercoin.magrit.core.model.Configuration.Authentication;
+import org.kercoin.magrit.core.Configuration;
+import org.kercoin.magrit.core.Configuration.Authentication;
 
 public class ConfigurationAssert extends GenericAssert<ConfigurationAssert, Configuration> {
 

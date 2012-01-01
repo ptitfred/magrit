@@ -17,12 +17,12 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.model;
+package org.kercoin.magrit.core;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 import org.junit.Test;
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 
 import tests.GuiceModulesHolder;
 

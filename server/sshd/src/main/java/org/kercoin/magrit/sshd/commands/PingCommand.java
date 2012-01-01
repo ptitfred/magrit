@@ -19,7 +19,7 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.sshd.commands;
 
-import org.kercoin.magrit.core.model.Context;
+import org.kercoin.magrit.core.Context;
 
 import com.google.inject.Inject;
 
