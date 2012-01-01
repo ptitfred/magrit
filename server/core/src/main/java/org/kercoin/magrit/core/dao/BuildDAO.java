@@ -17,17 +17,17 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit.core.dao;
 
-import org.kercoin.magrit.core.CoreModule;
+import java.util.List;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import org.eclipse.jgit.lib.Repository;
+import org.kercoin.magrit.core.build.BuildResult;
 
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new CoreModule());
-	}
-	
+import com.google.inject.ImplementedBy;
+
+@ImplementedBy(BuildDAOImpl.class)
+public interface BuildDAO {
+	BuildResult getLast(Repository repo, String sha1);
+	List<BuildResult> getAll(Repository repo, String sha1);
 }
