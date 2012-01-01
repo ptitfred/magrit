@@ -11,6 +11,21 @@ server/key.pem
 server/key.ser
 server/target
 
+server/core/.classpath
+server/core/.project
+server/core/.settings
+server/core/target
+
+server/sshd/.classpath
+server/sshd/.project
+server/sshd/.settings
+server/sshd/target
+
+server/main/.classpath
+server/main/.project
+server/main/.settings
+server/main/target
+
 installer/.classpath
 installer/.project
 installer/.settings

@@ -22,8 +22,6 @@ package org.kercoin.magrit.sshd;
 import java.io.IOException;
 import java.security.PublicKey;
 
-import org.apache.sshd.common.Digest;
-import org.apache.sshd.common.digest.SHA1;
 import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 import org.bouncycastle.util.Arrays;

@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +47,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.mina.util.ConcurrentHashSet;
 import org.kercoin.magrit.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,7 @@ public class PipelineImpl implements Pipeline {
 		slots = new Semaphore(ctx.configuration().getSlots());
 		tasks = new ConcurrentHashMap<Pipeline.Key, Pipeline.Task<BuildResult>>();
 		futures = new ConcurrentHashMap<Pipeline.Key, Future<BuildResult>>();
-		workings = new ConcurrentHashSet<Pipeline.Key>();
+		workings = Collections.newSetFromMap(new ConcurrentHashMap<Pipeline.Key, Boolean>());
 		dispatcher = new DispatcherThreadPool(ctx.configuration().getSlots(), new PriorityBlockingQueue<Runnable>());
 		edt = Executors.newSingleThreadExecutor();
 	}

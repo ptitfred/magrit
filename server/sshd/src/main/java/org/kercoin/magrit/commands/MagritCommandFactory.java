@@ -17,14 +17,10 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit;
+package org.kercoin.magrit.commands;
 
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
-import org.kercoin.magrit.commands.AbstractCommand;
-import org.kercoin.magrit.commands.CommandsProvider;
-import org.kercoin.magrit.commands.ReceivePackCommand;
-import org.kercoin.magrit.commands.SyntaxErrorCommand;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

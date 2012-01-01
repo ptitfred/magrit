@@ -17,18 +17,23 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package tests;
+package org.kercoin.magrit;
 
-import org.kercoin.magrit.MagritModule;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
 
-public class GuiceModulesHolder {
-	public static final Injector MAGRIT_MODULE;
-	static {
-		MAGRIT_MODULE = Guice.createInjector(new MagritModule());
+/**
+ * @author ptitfred
+ *
+ */
+public class CoreModule extends AbstractModule {
+
+	@Override
+	protected void configure() {
+		bind(ExecutorService.class).annotatedWith(Names.named("commandRunnerPool")).toInstance(Executors.newCachedThreadPool());
 	}
-	
-	
+
 }

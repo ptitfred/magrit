@@ -29,7 +29,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.kercoin.magrit.Context;
-import org.kercoin.magrit.MagritModule;
+import org.kercoin.magrit.SshdModule;
 import org.kercoin.magrit.commands.AbstractCommand.CommandProvider;
 import org.kercoin.magrit.commands.CatBuildCommand.CatBuildCommandProvider;
 import org.kercoin.magrit.commands.GetStatusCommand.GetStatusCommandProvider;
@@ -53,8 +53,8 @@ public class CommandsProviderTest {
 	@Before
 	public void setUp() throws Exception {
 		initMocks(this);
-		Injector magritModule = Guice.createInjector(new MagritModule());
-		given(ctx.getInjector()).willReturn(magritModule);
+		Injector sshdModule = Guice.createInjector(new SshdModule());
+		given(ctx.getInjector()).willReturn(sshdModule);
 		this.commandsProvider = new CommandsProvider(ctx);
 	}
 

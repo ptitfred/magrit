@@ -51,7 +51,7 @@ public final class Magrit {
 	}
 
 	void bootStrap() {
-		guice = Guice.createInjector(new MagritModule());
+		guice = Guice.createInjector(new CoreModule(), new SshdModule());
 		
 		ctx = guice.getInstance(Context.class);
 		ctx.setInjector(guice);
