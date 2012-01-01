@@ -35,7 +35,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.core.Pair;
-import org.kercoin.magrit.core.build.Pipeline.Key;
+import org.kercoin.magrit.core.build.pipeline.Filters;
+import org.kercoin.magrit.core.build.pipeline.Key;
+import org.kercoin.magrit.core.build.pipeline.Pipeline;
 import org.kercoin.magrit.core.dao.BuildDAO;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.core.utils.GitUtilsTest;
@@ -108,13 +110,13 @@ public class StatusesServiceImplTest {
 	}
 
 	private void givenRunning(String sha1) {
-		given(pipeline.list(PipelineImpl.running())).willReturn(Arrays.asList(key));
+		given(pipeline.list(Filters.running())).willReturn(Arrays.asList(key));
 		given(task.getTarget()).willReturn(new Pair<Repository, String>(null, sha1));
 		given(pipeline.get(key)).willReturn(task);
 	}
 
 	private void givenPending(String sha1) {
-		given(pipeline.list(PipelineImpl.pending())).willReturn(Arrays.asList(key));
+		given(pipeline.list(Filters.pending())).willReturn(Arrays.asList(key));
 		given(task.getTarget()).willReturn(new Pair<Repository, String>(null, sha1));
 		given(pipeline.get(key)).willReturn(task);
 	}

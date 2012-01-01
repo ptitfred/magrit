@@ -27,8 +27,10 @@ import java.util.List;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.kercoin.magrit.core.Pair;
-import org.kercoin.magrit.core.build.Pipeline.Key;
-import org.kercoin.magrit.core.build.Pipeline.Task;
+import org.kercoin.magrit.core.build.pipeline.Filters;
+import org.kercoin.magrit.core.build.pipeline.Key;
+import org.kercoin.magrit.core.build.pipeline.Pipeline;
+import org.kercoin.magrit.core.build.pipeline.Task;
 import org.kercoin.magrit.core.dao.BuildDAO;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.slf4j.Logger;
@@ -74,7 +76,7 @@ public class StatusesServiceImpl implements StatusesService {
 			if (commit == null) {
 				return Arrays.asList(Status.UNKNOWN);
 			}
-			for (Key k : pipeline.list(PipelineImpl.running())) {
+			for (Key k : pipeline.list(Filters.running())) {
 				Task<BuildResult> task = pipeline.get(k);
 				if (task instanceof BuildTask) {
 					Pair<Repository, String> target = ((BuildTask) task).getTarget();
@@ -84,7 +86,7 @@ public class StatusesServiceImpl implements StatusesService {
 					}
 				}
 			}
-			for(Key k : pipeline.list(PipelineImpl.pending())) {
+			for(Key k : pipeline.list(Filters.pending())) {
 				Task<BuildResult> task = pipeline.get(k);
 				if (task instanceof BuildTask) {
 					Pair<Repository, String> target = ((BuildTask) task).getTarget();

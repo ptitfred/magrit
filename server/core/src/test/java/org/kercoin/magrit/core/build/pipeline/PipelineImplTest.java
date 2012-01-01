@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.build;
+package org.kercoin.magrit.core.build.pipeline;
 
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -37,11 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.core.Context;
-import org.kercoin.magrit.core.build.Pipeline.CriticalResource;
-import org.kercoin.magrit.core.build.Pipeline.Filter;
-import org.kercoin.magrit.core.build.Pipeline.Key;
-import org.kercoin.magrit.core.build.Pipeline.Listener;
-import org.kercoin.magrit.core.build.Pipeline.Task;
+import org.kercoin.magrit.core.build.BuildResult;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -98,7 +94,7 @@ public class PipelineImplTest {
 
 	}
 
-	Map<String, CriticalResource> locks = new HashMap<String, Pipeline.CriticalResource>();
+	Map<String, CriticalResource> locks = new HashMap<String, CriticalResource>();
 
 	private CriticalResource getLock(String repoPath) {
 		if (locks.get(repoPath) == null) {
@@ -107,7 +103,7 @@ public class PipelineImplTest {
 		return locks.get(repoPath);
 	}
 
-	class TestTask implements Pipeline.Task<BuildResult> {
+	class TestTask implements Task<BuildResult> {
 
 		private final int ms;
 		private final CriticalResource lock;
@@ -158,7 +154,7 @@ public class PipelineImplTest {
 
 	}
 
-	private Pipeline.Task<BuildResult> createTask(String path, int durationMs) {
+	private Task<BuildResult> createTask(String path, int durationMs) {
 		return new TestTask(path, durationMs);
 	}
 
@@ -168,25 +164,17 @@ public class PipelineImplTest {
 		pipeline = new PipelineImpl(ctx);
 	}
 
-	Date now() {
-		try {
-			return new Date();
-		} finally {
-			try { Thread.sleep(1); } catch (InterruptedException e) {}
-		}
-	}
-
 	@Test
 	public void cancel() throws Exception {
 		Task<BuildResult> t = createTask("/", 5000);
-		assertThat(pipeline.list(PipelineImpl.pending())).isEmpty();
+		assertThat(pipeline.list(Filters.pending())).isEmpty();
 		Key k = pipeline.submit(t);
 		Thread.sleep(20); // Let the scheduler start the task
-		assertThat(pipeline.list(PipelineImpl.running())).containsOnly(k);
-		assertThat(pipeline.list(PipelineImpl.pending())).isEmpty();
+		assertThat(pipeline.list(Filters.running())).containsOnly(k);
+		assertThat(pipeline.list(Filters.pending())).isEmpty();
 		pipeline.cancel(t.getKey());
-		assertThat(pipeline.list(PipelineImpl.running())).isEmpty();
-		assertThat(pipeline.list(PipelineImpl.pending())).isEmpty();
+		assertThat(pipeline.list(Filters.running())).isEmpty();
+		assertThat(pipeline.list(Filters.pending())).isEmpty();
 		long l0 = System.currentTimeMillis();
 		pipeline.waitFor(1, TimeUnit.SECONDS, k);
 		long l1 = System.currentTimeMillis();
@@ -215,20 +203,20 @@ public class PipelineImplTest {
 		
 		Thread.sleep(5);
 		
-		List<Key> running1 = pipeline.list(PipelineImpl.running());
-		List<Key> pending1 = pipeline.list(PipelineImpl.pending());
+		List<Key> running1 = pipeline.list(Filters.running());
+		List<Key> pending1 = pipeline.list(Filters.pending());
 		
 		pipeline.waitFor(k1, k2);
 		Thread.sleep(5);
 
-		List<Key> running2 = pipeline.list(PipelineImpl.running());
-		List<Key> pending2 = pipeline.list(PipelineImpl.pending());
+		List<Key> running2 = pipeline.list(Filters.running());
+		List<Key> pending2 = pipeline.list(Filters.pending());
 
 		pipeline.waitFor(k3, k4);
 		Thread.sleep(5);
 
-		List<Key> running3 = pipeline.list(PipelineImpl.running());
-		List<Key> pending3 = pipeline.list(PipelineImpl.pending());
+		List<Key> running3 = pipeline.list(Filters.running());
+		List<Key> pending3 = pipeline.list(Filters.pending());
 
 		// then ----------------------------------
 		assertThat(pending1).containsOnly(k3, k4);
@@ -254,19 +242,19 @@ public class PipelineImplTest {
 		Task<BuildResult> t2 = createTask(R2, 100);
 		Key k1 = pipeline.submit(t1);
 		Key k2 = pipeline.submit(t2);
-		assertThat(pipeline.list(PipelineImpl.running())).isEmpty();
-		assertThat(pipeline.list(PipelineImpl.pending())).containsOnly(k1, k2);
+		assertThat(pipeline.list(Filters.running())).isEmpty();
+		assertThat(pipeline.list(Filters.pending())).containsOnly(k1, k2);
 		repo1.getLock().unlock();
 		Thread.sleep(5); // give time for the task to start
-		assertThat(pipeline.list(PipelineImpl.running())).containsOnly(k1);
-		assertThat(pipeline.list(PipelineImpl.pending())).containsOnly(k2);
+		assertThat(pipeline.list(Filters.running())).containsOnly(k1);
+		assertThat(pipeline.list(Filters.pending())).containsOnly(k2);
 		repo2.getLock().unlock();
 		pipeline.waitFor(k1);
-		assertThat(pipeline.list(PipelineImpl.pending())).isEmpty();
-		assertThat(pipeline.list(PipelineImpl.running())).containsOnly(k2);
+		assertThat(pipeline.list(Filters.pending())).isEmpty();
+		assertThat(pipeline.list(Filters.running())).containsOnly(k2);
 		pipeline.waitFor(k2);
-		assertThat(pipeline.list(PipelineImpl.running())).isEmpty();
-		assertThat(pipeline.list(PipelineImpl.pending())).isEmpty();
+		assertThat(pipeline.list(Filters.running())).isEmpty();
+		assertThat(pipeline.list(Filters.pending())).isEmpty();
 	}
 
 	@Test
@@ -281,30 +269,6 @@ public class PipelineImplTest {
 		assertThat(pipeline.cat(k1)).isNotNull();
 		Thread.sleep(100); // task should have done
 		assertThat(pipeline.cat(k1)).isNull();
-	}
-
-	@Test
-	public void filters_byDates() throws InterruptedException {
-		Date d0 = now();
-		Date ref1 = now();
-		Date d1 = now();
-		Date ref2 = now();
-		Date d2 = now();
-
-		Filter between = PipelineImpl.between(ref1, ref2);
-		assertThat(between.matches(true, d0)).isFalse();
-		assertThat(between.matches(true, d1)).isTrue();
-		assertThat(between.matches(true, d2)).isFalse();
-
-		Filter since = PipelineImpl.since(ref1);
-		assertThat(since.matches(true, d0)).isFalse();
-		assertThat(since.matches(true, d1)).isTrue();
-		assertThat(since.matches(true, d2)).isTrue();
-
-		Filter until = PipelineImpl.until(ref1);
-		assertThat(until.matches(true, d0)).isTrue();
-		assertThat(until.matches(true, d1)).isFalse();
-		assertThat(until.matches(true, d2)).isFalse();
 	}
 
 	class LogListener implements Listener {
