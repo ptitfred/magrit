@@ -12,7 +12,7 @@
 	<artifactId>magrit-server-sshd</artifactId>
 	<packaging>jar</packaging>
 
-	<name>magrit-server</name>
+	<name>magrit-server-sshd</name>
 
 	<properties>
 		<sshd.version>0.5.1-r1095809</sshd.version>
