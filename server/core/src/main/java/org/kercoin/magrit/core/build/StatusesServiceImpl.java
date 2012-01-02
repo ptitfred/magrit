@@ -25,10 +25,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.kercoin.magrit.core.Pair;
-import org.kercoin.magrit.core.build.Pipeline.Key;
-import org.kercoin.magrit.core.build.Pipeline.Task;
+import org.kercoin.magrit.core.build.pipeline.Filter;
+import org.kercoin.magrit.core.build.pipeline.Filters;
+import org.kercoin.magrit.core.build.pipeline.Key;
+import org.kercoin.magrit.core.build.pipeline.Pipeline;
+import org.kercoin.magrit.core.build.pipeline.Task;
 import org.kercoin.magrit.core.dao.BuildDAO;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.slf4j.Logger;
@@ -57,6 +59,8 @@ public class StatusesServiceImpl implements StatusesService {
 		this.pipeline = pipeline;
 	}
 
+	private static enum State { RUNNING, PENDING, NONE }
+
 	@Override
 	public List<Status> getStatus(Repository repository, String sha1) {
 		if (repository == null) {
@@ -65,59 +69,65 @@ public class StatusesServiceImpl implements StatusesService {
 		if (sha1 == null) {
 			throw new NullPointerException("SHA1 can't be null");
 		}
-		log.info("Checking status for {} @ {}", repository.getDirectory(), sha1);
-		boolean running = false;
-		boolean pending = false;
-		List<Status> statuses = new ArrayList<Status>();
-		try {
-			RevCommit commit = gitUtils.getCommit(repository, sha1);
-			if (commit == null) {
-				return Arrays.asList(Status.UNKNOWN);
-			}
-			for (Key k : pipeline.list(PipelineImpl.running())) {
-				Task<BuildResult> task = pipeline.get(k);
-				if (task instanceof BuildTask) {
-					Pair<Repository, String> target = ((BuildTask) task).getTarget();
-					if (sha1.equals(target.getU())) {
-						running = true;
-						break;
-					}
-				}
-			}
-			for(Key k : pipeline.list(PipelineImpl.pending())) {
-				Task<BuildResult> task = pipeline.get(k);
-				if (task instanceof BuildTask) {
-					Pair<Repository, String> target = ((BuildTask) task).getTarget();
-					if (sha1.equals(target.getU())) {
-						pending = true;
-						break;
-					}
-				}
-			}
 
-			List<BuildResult> results = dao.getAll(repository, sha1);
-			if (results.size() == 0) {
-				if (!running && !pending) {
-					statuses.add(Status.NEW);
-				}
-			} else {
-				for (BuildResult result: results) {
-					statuses.add(result.getExitCode() == 0 ? Status.OK : Status.ERROR);
+		log.info("Checking status for {} @ {}", repository.getDirectory(), sha1);
+		if (!containsCommit(repository, sha1)) {
+			log.warn(String.format("Commit %s unknown in repository %s", sha1, repository.getDirectory()));
+			return Arrays.asList(Status.UNKNOWN);
+		}
+
+		List<Status> statuses = new ArrayList<Status>();
+
+		for (BuildResult result: dao.getAll(repository, sha1)) {
+			statuses.add(result.getExitCode() == 0 ? Status.OK : Status.ERROR);
+		}
+
+		switch (getState(sha1)) {
+		case RUNNING:
+			statuses.add(Status.RUNNING);
+			break;
+		case PENDING:
+			statuses.add(Status.PENDING);
+			break;
+		case NONE:
+			if (statuses.isEmpty()) {
+				statuses.add(Status.NEW);
+			}
+			break;
+		}
+
+		return statuses;
+	}
+
+	private boolean containsCommit(Repository repository, String sha1) {
+		try {
+			return gitUtils.getCommit(repository, sha1) != null;
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
+	private State getState(String sha1) {
+		if (isInPipeline(sha1, Filters.pending())) {
+			return State.PENDING;
+		}
+		if (isInPipeline(sha1, Filters.running())) {
+			return State.RUNNING;
+		}
+		return State.NONE;
+	}
+	
+	private boolean isInPipeline(String sha1, Filter filter) {
+		for(Key k : pipeline.list(filter)) {
+			Task<BuildResult> task = pipeline.get(k);
+			if (task instanceof BuildTask) {
+				Pair<Repository, String> target = ((BuildTask) task).getTarget();
+				if (sha1.equals(target.getU())) {
+					return true;
 				}
 			}
-		} catch (IOException e) {
-			log.warn(e.getMessage());
 		}
-		if (running) {
-			statuses.add(Status.RUNNING);
-		}
-		if (pending) {
-			statuses.add(Status.PENDING);
-		}
-		if (statuses.isEmpty()) {
-			statuses.add(Status.UNKNOWN);
-		}
-		return statuses;
+		return false;
 	}
 
 }

@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.build;
+package org.kercoin.magrit.core.build.pipeline;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -33,7 +33,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -48,6 +47,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.kercoin.magrit.core.Context;
+import org.kercoin.magrit.core.build.BuildResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +63,8 @@ public class PipelineImpl implements Pipeline {
 
 	private AtomicInteger keyId = new AtomicInteger(0);
 
-	private ExecutorService dispatcher;
-	private ExecutorService edt;
+	private final ExecutorService dispatcher;
+	private final Notifier notifier = new Notifier();
 
 	private volatile Map<Key, Future<BuildResult>> futures;
 	// @GuardedBy(main)
@@ -75,11 +75,11 @@ public class PipelineImpl implements Pipeline {
 	public PipelineImpl(Context ctx) {
 		log.info("{} cores", ctx.configuration().getSlots());
 		slots = new Semaphore(ctx.configuration().getSlots());
-		tasks = new ConcurrentHashMap<Pipeline.Key, Pipeline.Task<BuildResult>>();
-		futures = new ConcurrentHashMap<Pipeline.Key, Future<BuildResult>>();
-		workings = Collections.newSetFromMap(new ConcurrentHashMap<Pipeline.Key, Boolean>());
+		tasks = new ConcurrentHashMap<Key, Task<BuildResult>>();
+		futures = new ConcurrentHashMap<Key, Future<BuildResult>>();
+		workings = Collections.newSetFromMap(new ConcurrentHashMap<Key, Boolean>());
 		dispatcher = new DispatcherThreadPool(ctx.configuration().getSlots(), new PriorityBlockingQueue<Runnable>());
-		edt = Executors.newSingleThreadExecutor();
+		addListener(accumulator);
 	}
 
 	private static final class DispatcherThreadPool extends ThreadPoolExecutor {
@@ -234,25 +234,27 @@ public class PipelineImpl implements Pipeline {
 			try {
 				lock.lockInterruptibly();
 				Key k = t.getKey();
+				boolean hasAcquired = false;
 				try {
-					boolean hasAcquired = false;
 					do {
 						hasAcquired = slots.tryAcquire(WORKER_TIMER_SECONDS, TimeUnit.SECONDS);
 					} while (!hasAcquired);
 					main.writeLock().lockInterruptibly();
 					workings.add(k);
 					main.writeLock().unlock();
-					justStarted(k);
+					notifier.justStarted(k);
 					return t.call();
 				} finally {
-					if (!main.writeLock().isHeldByCurrentThread()) {
-						main.writeLock().lockInterruptibly();
+					if (hasAcquired) {
+						if (!main.writeLock().isHeldByCurrentThread()) {
+							main.writeLock().lockInterruptibly();
+						}
+						tasks.remove(k);
+						workings.remove(k);
+						main.writeLock().unlock();
+						slots.release();
+						notifier.justEnded(k);
 					}
-					tasks.remove(k);
-					workings.remove(k);
-					main.writeLock().unlock();
-					slots.release();
-					justEnded(k);
 				}
 			} finally {
 				lock.unlock();
@@ -275,7 +277,7 @@ public class PipelineImpl implements Pipeline {
 			tasks.put(k, task);
 
 			futures.put(k, dispatcher.submit(w(task)));
-			justSubmitted(k);
+			notifier.justSubmitted(k);
 			return k;
 		} finally {
 			main.writeLock().unlock();
@@ -336,126 +338,14 @@ public class PipelineImpl implements Pipeline {
 		return tasks.get(task).openStdout();
 	}
 
-	private static final Filter ANY = new Filter() {
-		
-		@Override
-		public boolean matches(boolean isRunning, Date submissionDate) {
-			return true;
-		}
-	};
-	private static final Filter PENDING = new Filter() {
-		public boolean matches(boolean r, Date d) {
-			return !r;
-		}
-	};
-	private static final Filter RUNNING = new Filter() {
-		public boolean matches(boolean r, Date d) {
-			return r;
-		}
-	};
-	
-	public static Filter any() {
-		return ANY;
-	}
-
-	public static Filter pending() {
-		return PENDING;
-	}
-
-	public static Filter running() {
-		return RUNNING;
-	}
-
-	public static Filter since(final Date from) {
-		return between(from, null);
-	}
-
-	public static Filter until(final Date to) {
-		return between(null, to);
-	}
-
-	public static Filter between(final Date from, final Date to) {
-		if (from == null && to == null) {
-			throw new IllegalArgumentException("Both dates can't be null.");
-		}
-		if (from != null && to != null && from.after(to)) {
-			throw new IllegalArgumentException("from must be before to");
-		}
-		return new Filter() {
-			@Override
-			public boolean matches(boolean isRunning, Date submissionDate) {
-				return (from == null || submissionDate.after(from))
-						&& (to == null || submissionDate.before(to));
-			}
-		};
-	}
-
-	void justStarted(Key k) {
-		fire(EventType.STARTED, k);
-	}
-	void justEnded(Key k) {
-		fire(EventType.ENDED, k);
-	}
-	void justSubmitted(Key k) {
-		fire(EventType.SUBMITTED, k);
-	}
-
-	void fire(EventType t, Key k) {
-		edt.execute(new Event(t, k));
-	}
-
-	enum EventType {
-		STARTED, ENDED, SUBMITTED
-	}
-
-	class Event implements Runnable {
-
-		private EventType type;
-		private Key key;
-
-		public Event(EventType type, Key key) {
-			super();
-			this.type = type;
-			this.key = key;
-		}
-
-		@Override
-		public void run() {
-			synchronized (listeners) {
-				for (Listener l : listeners) {
-					switch (type) {
-					case STARTED:
-						l.onStart(key);
-						break;
-					case ENDED:
-						l.onDone(key);
-						break;
-					case SUBMITTED:
-						l.onSubmit(key);
-						break;
-					default:
-						throw new IllegalStateException("Unknown EventType");
-					}
-				}
-			}
-		}
-
-	}
-
-	private Set<Listener> listeners = new HashSet<Listener>();
-
 	@Override
 	public void addListener(Listener listener) {
-		synchronized (listeners) {
-			listeners.add(listener);
-		}
+		notifier.addListener(listener);
 	}
 
 	@Override
 	public void removeListener(Listener listener) {
-		synchronized (listeners) {
-			listeners.remove(listener);
-		}
+		notifier.removeListener(listener);
 	}
 
 	private final Lock waitForHeartBeat = new ReentrantLock();
@@ -479,10 +369,6 @@ public class PipelineImpl implements Pipeline {
 			signal();
 		}
 	};
-
-	{
-		addListener(accumulator);
-	}
 
 	@Override
 	public void waitFor(Key... k) throws InterruptedException {
@@ -536,6 +422,6 @@ public class PipelineImpl implements Pipeline {
 	}
 
 	boolean awaitEventDispatching(long timeout, TimeUnit unit) throws InterruptedException {
-		return edt.awaitTermination(timeout, unit);
+		return notifier.await(timeout, unit);
 	}
 }

@@ -17,15 +17,14 @@ You should have received a copy of the GNU Affero General Public
 License along with Magrit.
 If not, see <http://www.gnu.org/licenses/>.
 */
-package org.kercoin.magrit.core.build;
+package org.kercoin.magrit.core.build.pipeline;
 
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
+
+import org.kercoin.magrit.core.build.BuildResult;
 
 import com.google.inject.ImplementedBy;
 
@@ -34,50 +33,6 @@ import com.google.inject.ImplementedBy;
  */
 @ImplementedBy(PipelineImpl.class)
 public interface Pipeline {
-
-	public static interface CriticalResource {
-		Lock getLock();
-	}
-
-	public static interface Task<E> extends Callable<E> {
-		Key getKey();
-		void setKey(Key k);
-		Date getSubmitDate();
-		void setSubmitDate(Date d);
-		CriticalResource getUnderlyingResource();
-		InputStream openStdout();
-	}
-
-	public static interface Listener {
-		void onSubmit(Key k);
-		void onStart(Key k);
-		void onDone(Key k);
-	}
-
-	public static interface Key extends Comparable<Key> {
-		/**
-		 * An uniq id, doesn't have any sense for client of the pipeline.
-		 * @return
-		 */
-		int uniqId();
-		/**
-		 * Tells if the key is valid or not. A non valid task avoids the use of <code>null</code> magic value.
-		 * @return
-		 */
-		boolean isValid();
-	}
-
-	public static interface Filter {
-
-		/**
-		 * Allows the user refine the list of tasks he is looking for.
-		 * @param s
-		 * @param submissionDate
-		 * @return
-		 * @see Pipeline#list(Filter...)
-		 */
-		boolean matches(boolean isRunning, Date submissionDate);
-	}
 
 	/**
 	 * Submits tasks to the pipeline. If the tasks is accepted, the returned key will be valid.

@@ -32,10 +32,12 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.Pair;
-import org.kercoin.magrit.core.build.Pipeline.Filter;
-import org.kercoin.magrit.core.build.Pipeline.Key;
-import org.kercoin.magrit.core.build.Pipeline.Listener;
-import org.kercoin.magrit.core.build.Pipeline.Task;
+import org.kercoin.magrit.core.build.pipeline.Filter;
+import org.kercoin.magrit.core.build.pipeline.Filters;
+import org.kercoin.magrit.core.build.pipeline.Key;
+import org.kercoin.magrit.core.build.pipeline.Listener;
+import org.kercoin.magrit.core.build.pipeline.Pipeline;
+import org.kercoin.magrit.core.build.pipeline.Task;
 import org.kercoin.magrit.core.user.UserIdentity;
 import org.kercoin.magrit.core.utils.TimeService;
 
@@ -172,7 +174,7 @@ public class QueueServiceImpl implements QueueService {
 
 	@Override
 	public Collection<Pair<Repository, String>> getCurrentTasks() {
-		return get(PipelineImpl.running());
+		return get(Filters.running());
 	}
 
 	private Collection<Pair<Repository, String>> get(Filter filter) {
@@ -189,7 +191,7 @@ public class QueueServiceImpl implements QueueService {
 
 	@Override
 	public Collection<Pair<Repository, String>> getScheduledTasks() {
-		return get(PipelineImpl.pending());
+		return get(Filters.pending());
 	}
 
 }

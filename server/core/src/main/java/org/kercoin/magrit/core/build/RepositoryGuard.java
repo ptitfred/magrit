@@ -26,7 +26,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.jgit.lib.Repository;
-import org.kercoin.magrit.core.build.Pipeline.CriticalResource;
+import org.kercoin.magrit.core.build.pipeline.CriticalResource;
 
 import com.google.inject.Singleton;
 
