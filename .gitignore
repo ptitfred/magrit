@@ -23,6 +23,7 @@ server/main/.classpath
 server/main/.project
 server/main/.settings
 server/main/key.pem
+server/main/magrit.log
 server/main/target
 
 installer/.classpath
