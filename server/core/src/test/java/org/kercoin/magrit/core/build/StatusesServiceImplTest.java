@@ -35,7 +35,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.core.Pair;
-import org.kercoin.magrit.core.build.Pipeline.Key;
+import org.kercoin.magrit.core.build.pipeline.Filters;
+import org.kercoin.magrit.core.build.pipeline.Key;
+import org.kercoin.magrit.core.build.pipeline.Pipeline;
 import org.kercoin.magrit.core.dao.BuildDAO;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.core.utils.GitUtilsTest;
@@ -88,40 +90,36 @@ public class StatusesServiceImplTest {
 	
 	@Test
 	public void testGetStatus_withBuilds() {
-		check();
 		assertThat(service.getStatus(test, "c92788de607fa1375b05c8075814711c145d8dae")).containsExactly(Status.OK);
 		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(Status.OK, Status.ERROR);
 	}
 
 	@Test
 	public void testGetStatus_withBuilds_running() {
-		check();
 		givenRunning("0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208");
 		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(Status.OK, Status.ERROR, Status.RUNNING);
 	}
 
 	@Test
 	public void testGetStatus_withBuilds_pending() {
-		check();
 		givenPending("0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208");
 		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(Status.OK, Status.ERROR, Status.PENDING);
 	}
 
 	private void givenRunning(String sha1) {
-		given(pipeline.list(PipelineImpl.running())).willReturn(Arrays.asList(key));
+		given(pipeline.list(Filters.running())).willReturn(Arrays.asList(key));
 		given(task.getTarget()).willReturn(new Pair<Repository, String>(null, sha1));
 		given(pipeline.get(key)).willReturn(task);
 	}
 
 	private void givenPending(String sha1) {
-		given(pipeline.list(PipelineImpl.pending())).willReturn(Arrays.asList(key));
+		given(pipeline.list(Filters.pending())).willReturn(Arrays.asList(key));
 		given(task.getTarget()).willReturn(new Pair<Repository, String>(null, sha1));
 		given(pipeline.get(key)).willReturn(task);
 	}
 
 	@Test
 	public void testGetStatus_unknown() {
-		check();
 		assertThat(service.getStatus(test, "1111111111111111111111111111111111111111")).containsExactly(Status.UNKNOWN);
 	}
 
@@ -129,27 +127,26 @@ public class StatusesServiceImplTest {
 
 	@Test
 	public void testGetStatus_new_running() {
-		check();
 		givenRunning("ab879396392ba0dd6b45160e5cc94213116fa041");
 		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(Status.RUNNING);
 	}
 
 	@Test
 	public void testGetStatus_new_pending() {
-		check();
 		givenPending("ab879396392ba0dd6b45160e5cc94213116fa041");
 		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(Status.PENDING);
 	}
 
 	@Test
 	public void testGetStatus_withoutBuild() {
-		check();
 		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(Status.NEW);
 	}
 
-	private void check() {
+	@Before
+	public void check() {
 		if (test == null) {
 		    Assert.fail("Repository not loaded, can't test");
 		}
 	}
+
 }
