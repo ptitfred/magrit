@@ -27,9 +27,19 @@
 
 struct magrit : public generic_command
 {
-  void run ()
+  void
+  process_parsed_options
+  ( int argc, const char* const* argv, const boost::program_options::variables_map& vm )
+  throw ( DoNotContinue )
   {
-    
+    if ( argc == 1 )
+    {
+      help();
+    }
+    else
+    {
+      generic_command::process_parsed_options ( argc, argv, vm );
+    }
   }
 
   boost::program_options::positional_options_description

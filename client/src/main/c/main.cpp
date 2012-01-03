@@ -26,5 +26,11 @@ int main ( int argc, char** argv )
 {
   magrit ma;
 
-  ma.run();
+  try
+  {
+    ma.run ( argc, argv );
+  }
+  catch ( const DoNotContinue& e )
+  {
+  }
 }
