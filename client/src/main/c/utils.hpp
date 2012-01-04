@@ -35,6 +35,13 @@ struct DoNotContinue
 struct generic_command
 {
   /**
+   * Name of the command as it appears in the command line.
+   *
+   * @return Name of the command.
+   */
+  virtual const char* get_name() const = 0;
+
+  /**
    * Runs the command. The default behavior is to parse the command line
    * supplied and pass the parsed command line to
    * generic_command::process_parsed_options.
@@ -77,6 +84,8 @@ struct generic_command
     if ( vm.count("help") )
     {
       help();
+
+      throw DoNotContinue();
     }
     else if ( vm.count("version") )
     {
@@ -138,10 +147,33 @@ struct generic_command
     return null_positional_options_desc; 
   }
 
-  virtual void help () throw ( DoNotContinue )
+  /**
+   * Prints the help notice.
+   */
+  virtual void help ()
   {
     std::cout << create_options();
-
-    throw DoNotContinue();
   }
-}; 
+
+  /**
+   * Joins the first command to the vector of commands.
+   * The result is written as a char* array passed as
+   * input (warning: the scope of command_line is the same
+   * as command and command_args).
+   */
+  static void join
+  (
+    const std::string& command,
+    const std::vector<std::string>& command_args,
+    const char** command_line
+  ) 
+  {
+    command_line[0] = command.c_str(); 
+
+    for ( uint i = 0; i < command_args.size(); ++i )
+    {
+      command_line[i+1] = command_args[i].c_str(); 
+    }
+  }
+};
+

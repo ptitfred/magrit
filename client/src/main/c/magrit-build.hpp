@@ -19,23 +19,62 @@
  */
 ///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
-#include "magrit-send-build.hpp"
-#include "magrit-cat-build.hpp"
+//#include "magrit-send-build.hpp"
+//#include "magrit-cat-build.hpp"
 ///////////////////////////////////////////////////////////////////////////
 
 struct build
 {
-  static void run ()
+  const char* get_name() const
   {
-    /* 
-    action=$1
-    shift 1
+    return "magrit-build"; 
+  } 
 
-    if [ $action = "send" ]; then
-      magrit send-build $*
-    elif [ $action = "cat-log" ]; then
-      magrit cat-build $*
-    fi
-    */
+  void
+  process_parsed_options
+  ( int argc, const char* const* argv, const boost::program_options::variables_map& vm )
+  throw ( DoNotContinue )
+  {
+    generic_command::process_parsed_options ( argc, argv, vm );
+
+    const std::string command = vm["command"].as < std::string > ();
+
+    std::vector <std::string> command_args
+      = vm["command-arguments"].as < std::vector< std::string> > ();
+
+    size_t length = command_args.size() + 1 ;
+
+    const char* command_line[length];
+
+    join ( command, command_args, command_line );      
+
+    if ( command == "send" )
+    {
+      // magrit_send_build cmd;
+      // cmd.run ( length, command_line ); 
+    }
+    else if ( command == "cat-log" )
+    {
+      // magrit_cat_build cmd;
+      // cmd.run ( length, command_line ); 
+    }
+    else
+    {
+      help();
+
+      throw DoNotContinue();
+    }
+  }
+
+  boost::program_options::positional_options_description
+    create_positional_options ()
+  {
+    // Command to execute
+    boost::program_options::positional_options_description
+      positional_options_desc;
+
+    positional_options_desc.add("command",1).add("command-arguments",-1);
+
+    return positional_options_desc; 
   }
 };
