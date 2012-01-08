@@ -23,7 +23,11 @@
 /////////////////////////////////////////////////////////////////////////
 // BOOST
 #include <boost/program_options.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 /////////////////////////////////////////////////////////////////////////
+
+#define sh_ptr boost::shared_ptr 
 
 struct DoNotContinue
 {
@@ -49,7 +53,7 @@ struct generic_command
    * @throws boost::program_options::unknown_option if one of the
    *         given command line switches is not allowed.
    */
-  virtual void run ( int argc, const char* const * argv )
+  virtual void run ( int argc, const char* const * argv ) const
   {
     boost::program_options::variables_map vm;
 
@@ -79,7 +83,7 @@ struct generic_command
   virtual void
   process_parsed_options
   ( int argc, const char* const* arg, const boost::program_options::variables_map& vm )
-  throw ( DoNotContinue )
+  const throw ( DoNotContinue )
   {
     if ( vm.count("help") )
     {
@@ -119,8 +123,12 @@ struct generic_command
    *
    * @return boost::program_options::options_description
    */
-  virtual boost::program_options::options_description create_options ()
+  virtual boost::program_options::options_description
+  create_options () const 
   {
+    boost::program_options::options_description
+      parent_options_desc ("");
+
     boost::program_options::options_description
       generic_options_desc ( "Main options" );
 
@@ -128,7 +136,20 @@ struct generic_command
       ("help,h", "produces this help message")
       ("version,v", "version of the application");
 
-    return generic_options_desc;    
+    boost::program_options::options_description
+      positional_options_desc ( "Positional options" );
+
+    positional_options_desc.add_options()
+      ("command","positional parameter 0")
+      ("command-arguments",
+        boost::program_options::value<std::vector<std::string> >(),
+       "positional parameter 1..N");
+
+    parent_options_desc
+      .add ( generic_options_desc )
+      .add ( positional_options_desc );
+
+    return parent_options_desc;    
   }
 
   /**
@@ -138,19 +159,20 @@ struct generic_command
    * @return boost::program_options::positional_options_description
    */ 
   virtual boost::program_options::positional_options_description
-    create_positional_options ()
+  create_positional_options () const
   {
-    // Command to execute
     boost::program_options::positional_options_description
-      null_positional_options_desc;
+      positional_options_desc;
 
-    return null_positional_options_desc; 
+    return positional_options_desc
+      .add("command",1)
+      .add("command-arguments",-1);
   }
 
   /**
    * Prints the help notice.
    */
-  virtual void help ()
+  virtual void help () const
   {
     std::cout << create_options();
   }

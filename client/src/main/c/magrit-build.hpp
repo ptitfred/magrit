@@ -23,24 +23,38 @@
 //#include "magrit-cat-build.hpp"
 ///////////////////////////////////////////////////////////////////////////
 
-struct build
+struct build : public generic_command
 {
   const char* get_name() const
   {
-    return "magrit-build"; 
+    return "build"; 
   } 
 
   void
   process_parsed_options
   ( int argc, const char* const* argv, const boost::program_options::variables_map& vm )
-  throw ( DoNotContinue )
+  const throw ( DoNotContinue )
   {
+    if ( argc == 1 )
+    {
+      help();
+
+      throw DoNotContinue();
+    }
+
+    std::cout << "[build(" << argc << ")]" << std::endl;
+
     generic_command::process_parsed_options ( argc, argv, vm );
 
     const std::string command = vm["command"].as < std::string > ();
 
-    std::vector <std::string> command_args
-      = vm["command-arguments"].as < std::vector< std::string> > ();
+    std::vector <std::string> command_args;
+
+    if ( vm.count("command-arguments") )
+    {
+      command_args
+        = vm["command-arguments"].as < std::vector< std::string> > ();
+    }
 
     size_t length = command_args.size() + 1 ;
 
@@ -52,11 +66,13 @@ struct build
     {
       // magrit_send_build cmd;
       // cmd.run ( length, command_line ); 
+      std::cout << "[build send]" << std::endl;
     }
     else if ( command == "cat-log" )
     {
       // magrit_cat_build cmd;
       // cmd.run ( length, command_line ); 
+      std::cout << "[build cat-log]" << std::endl;
     }
     else
     {
@@ -64,17 +80,5 @@ struct build
 
       throw DoNotContinue();
     }
-  }
-
-  boost::program_options::positional_options_description
-    create_positional_options ()
-  {
-    // Command to execute
-    boost::program_options::positional_options_description
-      positional_options_desc;
-
-    positional_options_desc.add("command",1).add("command-arguments",-1);
-
-    return positional_options_desc; 
   }
 };

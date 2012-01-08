@@ -20,6 +20,7 @@
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
 #include "utils.hpp"
+#include "magrit-build.hpp"
 /////////////////////////////////////////////////////////////////////////
 // STD
 #include <forward_list>
@@ -41,7 +42,7 @@ struct magrit : public generic_command
   void
   process_parsed_options
   ( int argc, const char* const* argv, const boost::program_options::variables_map& vm )
-  throw ( DoNotContinue )
+  const throw ( DoNotContinue )
   {
     if ( argc == 1 )
     {
@@ -49,53 +50,48 @@ struct magrit : public generic_command
 
       throw DoNotContinue();
     }
-    else
+
+    generic_command::process_parsed_options ( argc, argv, vm );
+
+    const std::string command = vm["command"].as < std::string > ();
+
+    std::vector <std::string> command_args;
+
+    if ( vm.count("command-arguments") )
     {
-      generic_command::process_parsed_options ( argc, argv, vm );
+      command_args = vm["command-arguments"]
+        .as < std::vector< std::string> > ();
+    }
 
-      const std::string command = vm["command"].as < std::string > ();
+    std::forward_list< sh_ptr<generic_command> > commands
+      = get_commands ();
 
-      std::vector <std::string> command_args
-        = vm["command-arguments"].as < std::vector< std::string> > ();
-
-      std::vector<generic_command> commands
-        = get_commands ();
-
-      BOOST_FOREACH ( generic_command& command_obj, commands )
+    BOOST_FOREACH ( const sh_ptr<generic_command> command_obj, commands )
+    {
+      std::cout << "[build::process_parsed_options2 get_name='" << command_obj->get_name() << "' command='" << command  << "']" << std::endl;
+      if ( command_obj->get_name() == command )
       {
-        if ( command_obj.get_name() == command )
-        {
-          size_t length = command_args.size() + 1 ;
+        size_t length = command_args.size() + 1 ;
 
-          const char* command_line[length];
+        const char* command_line[length];
 
-          join ( command, command_args, command_line );
+        join ( command, command_args, command_line );
 
-          command_obj.run ( length , command_line );
-        }
+        command_obj->run ( length , command_line );
+
+        return;
       }
     }
+
+    std::cerr << "Command '" << command << "' not found" << std::endl;
   }
 
-  boost::program_options::positional_options_description
-    create_positional_options ()
+  std::forward_list< sh_ptr<generic_command> > get_commands () const
   {
-    // Command to execute
-    boost::program_options::positional_options_description
-      positional_options_desc;
+    std::forward_list< sh_ptr<generic_command> > commands;
 
-    positional_options_desc.add("command",1).add("command-arguments",-1);
+    commands.push_front ( sh_ptr<generic_command>( new build() ) );
 
-    return positional_options_desc; 
-  }
-
-  std::vector<generic_command> get_commands ()
-  {
-    std::vector<generic_command> commands;
-
-    // TODO:
-    //commands.add ();
-
-    return commands;   
+    return commands;
   }
 };
