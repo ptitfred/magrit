@@ -32,7 +32,7 @@ struct build : public generic_command
 
   void
   process_parsed_options
-  ( int argc, const char* const* argv, const boost::program_options::variables_map& vm )
+  ( int argc, char** argv, const boost::program_options::variables_map& vm )
   const throw ( DoNotContinue )
   {
     if ( argc == 1 )
@@ -42,33 +42,25 @@ struct build : public generic_command
       throw DoNotContinue();
     }
 
-    std::cout << "[build(" << argc << ")]" << std::endl;
-
     generic_command::process_parsed_options ( argc, argv, vm );
 
-    const std::string command = vm["command"].as < std::string > ();
+    char* command = argv[0];
 
-    std::vector <std::string> command_args;
+    uint command_args_length = argc - 1;
 
-    if ( vm.count("command-arguments") )
-    {
-      command_args
-        = vm["command-arguments"].as < std::vector< std::string> > ();
-    }
+    char** command_args = &argv[1];
 
-    size_t length = command_args.size() + 1 ;
+    char* command_line[command_args_length+1];
 
-    const char* command_line[length];
+    join ( command, command_args, command_args_length, command_line );      
 
-    join ( command, command_args, command_line );      
-
-    if ( command == "send" )
+    if ( std::string(command) == "send" )
     {
       // magrit_send_build cmd;
       // cmd.run ( length, command_line ); 
       std::cout << "[build send]" << std::endl;
     }
-    else if ( command == "cat-log" )
+    else if ( std::string(command) == "cat-log" )
     {
       // magrit_cat_build cmd;
       // cmd.run ( length, command_line ); 

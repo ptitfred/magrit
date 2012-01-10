@@ -20,6 +20,7 @@
 /////////////////////////////////////////////////////////////////////////
 // STD
 #include <stdexcept>
+#include <iostream>
 /////////////////////////////////////////////////////////////////////////
 // BOOST
 #include <boost/program_options.hpp>
@@ -53,7 +54,7 @@ struct generic_command
    * @throws boost::program_options::unknown_option if one of the
    *         given command line switches is not allowed.
    */
-  virtual void run ( int argc, const char* const * argv ) const
+  virtual void run ( int argc, char** argv ) const
   {
     boost::program_options::variables_map vm;
 
@@ -82,7 +83,7 @@ struct generic_command
    */
   virtual void
   process_parsed_options
-  ( int argc, const char* const* arg, const boost::program_options::variables_map& vm )
+  ( int argc, char** arg, const boost::program_options::variables_map& vm )
   const throw ( DoNotContinue )
   {
     if ( vm.count("help") )
@@ -185,16 +186,17 @@ struct generic_command
    */
   static void join
   (
-    const std::string& command,
-    const std::vector<std::string>& command_args,
-    const char** command_line
+    char* command,
+    char** command_args,
+    uint command_args_length,
+    char** command_line
   ) 
   {
-    command_line[0] = command.c_str(); 
+    command_line[0] = command; 
 
-    for ( uint i = 0; i < command_args.size(); ++i )
+    for ( uint i = 0; i < command_args_length; ++i )
     {
-      command_line[i+1] = command_args[i].c_str(); 
+      command_line[i+1] = command_args[i]; 
     }
   }
 };

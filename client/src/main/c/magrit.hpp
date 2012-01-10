@@ -41,7 +41,7 @@ struct magrit : public generic_command
 
   void
   process_parsed_options
-  ( int argc, const char* const* argv, const boost::program_options::variables_map& vm )
+  ( int argc, char** argv, const boost::program_options::variables_map& vm )
   const throw ( DoNotContinue )
   {
     if ( argc == 1 )
@@ -52,32 +52,26 @@ struct magrit : public generic_command
     }
 
     generic_command::process_parsed_options ( argc, argv, vm );
-
-    const std::string command = vm["command"].as < std::string > ();
-
-    std::vector <std::string> command_args;
-
-    if ( vm.count("command-arguments") )
-    {
-      command_args = vm["command-arguments"]
-        .as < std::vector< std::string> > ();
-    }
-
+    
     std::forward_list< sh_ptr<generic_command> > commands
       = get_commands ();
 
+    char* command = argv[1];
+
     BOOST_FOREACH ( const sh_ptr<generic_command> command_obj, commands )
     {
-      std::cout << "[build::process_parsed_options2 get_name='" << command_obj->get_name() << "' command='" << command  << "']" << std::endl;
-      if ( command_obj->get_name() == command )
+      if ( command_obj->get_name() == std::string(command) )
       {
-        size_t length = command_args.size() + 1 ;
+        // TODO: if other command line options are added (other than
+        //       --help and --version that will be catched by process_parsed_options),
+        //       argv[0] might not hold the command (e.g: ./magrit --debug build send ).
+        //       process_parsed_options must return a pointer to unprocessed options.
+        char** command_args = argc > 2? &argv[2]: NULL;
+        char* new_command_line[argc - 1];
 
-        const char* command_line[length];
+        join ( command, command_args, std::max(argc - 2,0), new_command_line );
 
-        join ( command, command_args, command_line );
-
-        command_obj->run ( length , command_line );
+        command_obj->run ( argc - 1, new_command_line );
 
         return;
       }
