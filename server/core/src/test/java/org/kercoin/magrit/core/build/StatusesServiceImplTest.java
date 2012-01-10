@@ -90,20 +90,20 @@ public class StatusesServiceImplTest {
 	
 	@Test
 	public void testGetStatus_withBuilds() {
-		assertThat(service.getStatus(test, "c92788de607fa1375b05c8075814711c145d8dae")).containsExactly(Status.OK);
-		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(Status.OK, Status.ERROR);
+		assertThat(service.getStatus(test, "4eca6198233ff74ed225744c8f325bfb074c9f29")).containsExactly(Status.OK);
+		assertThat(service.getStatus(test, "7dec669f77b48e6420785e523e71e461ba58dc72")).containsExactly(Status.OK, Status.ERROR);
 	}
 
 	@Test
 	public void testGetStatus_withBuilds_running() {
-		givenRunning("0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208");
-		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(Status.OK, Status.ERROR, Status.RUNNING);
+		givenRunning("7dec669f77b48e6420785e523e71e461ba58dc72");
+		assertThat(service.getStatus(test, "7dec669f77b48e6420785e523e71e461ba58dc72")).containsExactly(Status.OK, Status.ERROR, Status.RUNNING);
 	}
 
 	@Test
 	public void testGetStatus_withBuilds_pending() {
-		givenPending("0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208");
-		assertThat(service.getStatus(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208")).containsExactly(Status.OK, Status.ERROR, Status.PENDING);
+		givenPending("7dec669f77b48e6420785e523e71e461ba58dc72");
+		assertThat(service.getStatus(test, "7dec669f77b48e6420785e523e71e461ba58dc72")).containsExactly(Status.OK, Status.ERROR, Status.PENDING);
 	}
 
 	private void givenRunning(String sha1) {
@@ -127,19 +127,19 @@ public class StatusesServiceImplTest {
 
 	@Test
 	public void testGetStatus_new_running() {
-		givenRunning("ab879396392ba0dd6b45160e5cc94213116fa041");
-		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(Status.RUNNING);
+		givenRunning("ac61d48e3020f61c4d7a19709494f37065c87d34");
+		assertThat(service.getStatus(test, "ac61d48e3020f61c4d7a19709494f37065c87d34")).containsExactly(Status.RUNNING);
 	}
 
 	@Test
 	public void testGetStatus_new_pending() {
-		givenPending("ab879396392ba0dd6b45160e5cc94213116fa041");
-		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(Status.PENDING);
+		givenPending("ac61d48e3020f61c4d7a19709494f37065c87d34");
+		assertThat(service.getStatus(test, "ac61d48e3020f61c4d7a19709494f37065c87d34")).containsExactly(Status.PENDING);
 	}
 
 	@Test
 	public void testGetStatus_withoutBuild() {
-		assertThat(service.getStatus(test, "ab879396392ba0dd6b45160e5cc94213116fa041")).containsExactly(Status.NEW);
+		assertThat(service.getStatus(test, "ac61d48e3020f61c4d7a19709494f37065c87d34")).containsExactly(Status.NEW);
 	}
 
 	@Before

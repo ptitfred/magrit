@@ -39,7 +39,6 @@ import org.kercoin.magrit.core.build.pipeline.Listener;
 import org.kercoin.magrit.core.build.pipeline.Pipeline;
 import org.kercoin.magrit.core.build.pipeline.Task;
 import org.kercoin.magrit.core.user.UserIdentity;
-import org.kercoin.magrit.core.utils.TimeService;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -48,22 +47,17 @@ import com.google.inject.Singleton;
 public class QueueServiceImpl implements QueueService {
 
 	private final Context context;
-	private final TimeService timeService;
-
 	private final StatusesService statusService;
-
 	private final Pipeline pipeline;
-
-	private final RepositoryGuard guard;
+	private final BuildTaskProvider builder;
 
 	@Inject
-	public QueueServiceImpl(Context context, TimeService timeService,
-			StatusesService statusService, Pipeline pipeline, RepositoryGuard guard) {
+	public QueueServiceImpl(Context context, StatusesService statusService, Pipeline pipeline,
+			BuildTaskProvider builder) {
 		this.context = context;
-		this.timeService = timeService;
 		this.statusService = statusService;
 		this.pipeline = pipeline;
-		this.guard = guard;
+		this.builder = builder;
 	}
 
 	private Map<Key, Pair<Repository, String>> tracker = new HashMap<Key, Pair<Repository, String>>();
@@ -76,7 +70,7 @@ public class QueueServiceImpl implements QueueService {
 		}
 
 		Pair<Repository, String> target = new Pair<Repository, String>(findBuildPlace(repository), sha1);
-		Task<BuildResult> task = new BuildTask(context, guard, committer, timeService, repository, target, command);
+		Task<BuildResult> task = builder.get(committer, repository, target, command);
 		Key k = pipeline.submit(task);
 		tracker.put(k, target);
 		return pipeline.getFuture(k);

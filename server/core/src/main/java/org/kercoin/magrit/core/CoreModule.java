@@ -22,6 +22,9 @@ package org.kercoin.magrit.core;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.kercoin.magrit.core.dao.BuildDAO;
+import org.kercoin.magrit.core.dao.BuildDAOImpl;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
@@ -33,6 +36,7 @@ public class CoreModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
+		bind(BuildDAO.class).to(BuildDAOImpl.class);
 		bind(ExecutorService.class).annotatedWith(Names.named("commandRunnerPool")).toInstance(Executors.newCachedThreadPool());
 	}
 

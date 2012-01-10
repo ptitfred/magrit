@@ -22,12 +22,11 @@ package org.kercoin.magrit.core.dao;
 import java.util.List;
 
 import org.eclipse.jgit.lib.Repository;
+import org.kercoin.magrit.core.Pair;
 import org.kercoin.magrit.core.build.BuildResult;
 
-import com.google.inject.ImplementedBy;
-
-@ImplementedBy(BuildDAOImpl.class)
 public interface BuildDAO {
+	void save(BuildResult buildResult, Repository repo, String userName, Pair<Long,Integer> when);
 	BuildResult getLast(Repository repo, String sha1);
 	List<BuildResult> getAll(Repository repo, String sha1);
 }
