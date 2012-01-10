@@ -24,11 +24,10 @@
 /////////////////////////////////////////////////////////////////////////
 // BOOST
 #include <boost/program_options.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 /////////////////////////////////////////////////////////////////////////
 
-#define sh_ptr boost::shared_ptr 
+#define sh_ptr std::shared_ptr
 
 struct DoNotContinue
 {
