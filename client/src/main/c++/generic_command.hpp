@@ -58,11 +58,33 @@ struct generic_command
   {
     boost::program_options::variables_map vm;
 
+    boost::program_options::options_description
+      parent_options_desc ("");
+
+    parent_options_desc
+      .add ( create_options() );
+
+    // Positional commands have to be added to the
+    // line parser.
+    if ( get_subcommands().size() > 0 )
+    {
+      boost::program_options::options_description
+        positional_options_desc ( "Positional options" );
+
+      positional_options_desc.add_options()
+        ("command","positional parameter 0")
+        ("command-arguments",
+          boost::program_options::value<std::vector<std::string> >(),
+         "positional parameter 1..N");
+
+      parent_options_desc.add ( positional_options_desc );
+    } 
+
     boost::program_options::store
     (
       boost::program_options::command_line_parser( argc, argv )
-        .options ( create_options() )
-        .positional( create_positional_options() )
+        .options ( parent_options_desc )
+        .positional ( create_positional_options() )
         .run (),
       vm
     );
@@ -127,8 +149,6 @@ struct generic_command
   virtual boost::program_options::options_description
   create_options () const 
   {
-    boost::program_options::options_description
-      parent_options_desc ("");
 
     boost::program_options::options_description
       generic_options_desc ( "Main options" );
@@ -137,39 +157,7 @@ struct generic_command
       ("help,h", "produces this help message")
       ("version,v", "version of the application");
 
-    /*
-    boost::program_options::options_description
-      positional_options_desc ( "Positional options" );
-
-    positional_options_desc.add_options()
-      ("command","positional parameter 0")
-      ("command-arguments",
-        boost::program_options::value<std::vector<std::string> >(),
-       "positional parameter 1..N");
-    */
-
-    parent_options_desc
-      .add ( generic_options_desc )
-      /*.add ( positional_options_desc ) */ ;
-    
-    return parent_options_desc;    
-  }
-
-  /**
-   * Redefine this method if you have to parse positional parameters
-   * at the end of the command line.
-   *
-   * @return boost::program_options::positional_options_description
-   */ 
-  virtual boost::program_options::positional_options_description
-  create_positional_options () const
-  {
-    boost::program_options::positional_options_description
-      positional_options_desc;
-
-    return positional_options_desc
-      .add("command",1)
-      .add("command-arguments",-1);
+    return generic_options_desc;
   }
 
   /**
@@ -212,16 +200,42 @@ struct generic_command
       }
     );
 
-    cout << endl << endl;
+    cout << " <subcommand arguments>" << endl << endl;
+
+    cout << "For subcommand's arguments help, ";
+    cout << "call the desired command with --help" << endl << endl;
 
     cout << ((cmds.size() > 0)? "Commands:":"") << endl;
 
     for (uint i = 0; i < cmds.size(); ++i )
     {
-      cout << " " << cmds[i]->get_name() << ":  " << cmds_desc[i] << endl;
+      cout << "  " << cmds[i]->get_name() << ":  " << cmds_desc[i] << endl;
     }
 
-    std::cout <<  create_options() ;
+    cout << endl;
+  
+    cout <<  create_options() ;
+  }
+
+  /**
+   * Defines the positional options. 
+   *
+   * @return boost::program_options::positional_options_description
+   */ 
+  boost::program_options::positional_options_description
+  create_positional_options () const
+  {
+    boost::program_options::positional_options_description
+      positional_options_desc;
+
+    if ( get_subcommands().size() > 0 )
+    {
+      positional_options_desc
+        .add("command",1)
+        .add("command-arguments",-1);
+    }
+
+    return positional_options_desc;
   }
 };
 

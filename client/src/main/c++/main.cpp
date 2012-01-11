@@ -33,4 +33,8 @@ int main ( int argc, char** argv )
   catch ( const DoNotContinue& e )
   {
   }
+  catch ( boost::program_options::unknown_option& e )
+  {
+    std::cerr << "Unknown option '" << e.get_option_name() << "'" << std::endl;
+  }
 }
