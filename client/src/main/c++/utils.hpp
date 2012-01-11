@@ -1,5 +1,6 @@
 /**
  * Copyright 2011 Frederic Menou
+ * Copyright 2012 Daniel Perez
  *
  * This file is part of Magrit.
  *

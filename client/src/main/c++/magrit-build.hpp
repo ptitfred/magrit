@@ -1,5 +1,6 @@
 /**
  * Copyright 2011 Frederic Menou
+ * Copyright 2012 Daniel Perez
  *
  * This file is part of Magrit.
  *
@@ -20,63 +21,15 @@
 ///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
 #include "generic_command.hpp"
-//#include "magrit-send-build.hpp"
-//#include "magrit-cat-build.hpp"
-/////////////////////////////////////////////////////////////////////////
-// BOOST
-#include <boost/program_options.hpp>
 ///////////////////////////////////////////////////////////////////////////
 
 struct build : public generic_command
 {
+  /**
+   * @see generic_command::get_name
+   */
   const char* get_name() const
   {
     return "build"; 
   } 
-
-  void
-  process_parsed_options
-  ( int argc, char** argv, const boost::program_options::variables_map& vm )
-  const throw ( DoNotContinue )
-  {
-    if ( argc == 1 )
-    {
-      print_help();
-
-      throw DoNotContinue();
-    }
-
-    generic_command::process_parsed_options ( argc, argv, vm );
-
-    char* command = argv[0];
-
-    /*
-    uint command_args_length = argc - 1;
-
-    char** command_args = &argv[1];
-
-    char* command_line[command_args_length+1];
-
-    join ( command, command_args, command_args_length, command_line );      
-    */
-
-    if ( std::string(command) == "send" )
-    {
-      // magrit_send_build cmd;
-      // cmd.run ( length, command_line ); 
-      std::cout << "[build send]" << std::endl;
-    }
-    else if ( std::string(command) == "cat-log" )
-    {
-      // magrit_cat_build cmd;
-      // cmd.run ( length, command_line ); 
-      std::cout << "[build cat-log]" << std::endl;
-    }
-    else
-    {
-      print_help();
-
-      throw DoNotContinue();
-    }
-  }
 };

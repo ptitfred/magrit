@@ -59,5 +59,4 @@ struct magrit : public generic_command
 
     return commands;
   }
-
 };

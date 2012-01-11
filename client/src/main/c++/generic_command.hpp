@@ -92,6 +92,33 @@ struct generic_command
     boost::program_options::notify ( vm );
 
     process_parsed_options ( argc, argv, vm );
+
+    process_parsed_positional_options ( argc, argv, vm );
+  }
+
+  /**
+   * Processes positional options. By default dispatches the
+   * subcommands. 
+   */
+  virtual void
+  process_parsed_positional_options
+  ( int argc, char** argv, const boost::program_options::variables_map& vm )
+  const throw ( DoNotContinue )
+  {
+    if ( get_subcommands().size() > 0 )
+    {
+      for ( uint i = 0; i < get_subcommands().size(); ++i )
+      {
+        const generic_command& cmd = *get_subcommands()[i];
+
+        if ( vm["command"].as<std::string>() == cmd.get_name() )
+        {
+          cmd.run ( argc, argv );
+
+          return;
+        }
+      }  
+    }
   }
 
   /**
@@ -181,7 +208,7 @@ struct generic_command
    */
   virtual void print_help () const
   {
-    // Template method was not liking the :: ??
+    // Template method was not liking the "::" ?
     using namespace std;
 
     auto cmds      = get_subcommands();
@@ -200,7 +227,7 @@ struct generic_command
       }
     );
 
-    cout << " <subcommand arguments>" << endl << endl;
+    cout << ((cmds.size() > 0)? " <subcommand>":"") << endl << endl;
 
     cout << "For subcommand's arguments help, ";
     cout << "call the desired command with --help" << endl << endl;
