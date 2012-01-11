@@ -19,184 +19,130 @@
  */
 /////////////////////////////////////////////////////////////////////////
 // STD
-#include <stdexcept>
-#include <iostream>
-/////////////////////////////////////////////////////////////////////////
-// BOOST
-#include <boost/program_options.hpp>
+#include <functional>
 #include <memory>
 /////////////////////////////////////////////////////////////////////////
 
 #define sh_ptr std::shared_ptr
 
-struct DoNotContinue
-{
-};
+/**
+ * Joins the input iterator starting from begin_input and ending at end_input
+ * using separator to separate the elements in the input container.
+ * The result is written to output iterator. 
+ * 
+ * A function can be passed to transform the input before writing it to the
+ * output iterator.
+ * 
+ * @param separator Element to use to separate input.
+ * @param begin_input Container's first element iterator.
+ * @param end_input Container's end element iterator.
+ * @param output Output iterator (the result is written starting
+ *        by here).
+ * @param func Applies this function to each element before writing
+ *        it to the output iterator.       
+ * @return Iterator pointing to the position after the last written.
+ */
+template <typename T, typename InputIterator, typename OutputIterator>
+OutputIterator
+join
+( 
+  const T&       separator,
+  InputIterator  begin_input,
+  InputIterator  end_input,
+  OutputIterator output,
+  std::function<T(typename InputIterator::value_type)> func
+)   
+{ 
+  while ( begin_input != end_input )
+  {
+    *output++ = func(*begin_input++);
+
+    if ( begin_input != end_input )
+    {
+      *output++ = separator;
+    }
+  }
+  
+  return output; 
+} 
 
 /**
- * Base class for all the magrit's commands.
+ * See the previous one. This is just a convenient method to
+ * use a container instead of iterators. 
  */
-struct generic_command
+template <typename T, typename Container, typename OutputIterator>
+OutputIterator
+join
+( 
+  const T&       separator,
+  Container      container,
+  OutputIterator output,
+  std::function<T(typename Container::value_type)> func
+)   
 {
-  /**
-   * Name of the command as it appears in the command line.
-   *
-   * @return Name of the command.
-   */
-  virtual const char* get_name() const = 0;
+  typename Container::const_iterator begin_input = container.begin();
+  typename Container::const_iterator end_input = container.end();
 
-  /**
-   * Runs the command. The default behavior is to parse the command line
-   * supplied and pass the parsed command line to
-   * generic_command::process_parsed_options.
-   *
-   * @throws boost::program_options::unknown_option if one of the
-   *         given command line switches is not allowed.
-   */
-  virtual void run ( int argc, char** argv ) const
-  {
-    boost::program_options::variables_map vm;
+  return join<T,typename Container::const_iterator,OutputIterator>
+           ( separator, begin_input, end_input, output, func );
+} 
 
-    boost::program_options::store
-    (
-      boost::program_options::command_line_parser( argc, argv )
-        .options ( create_options() )
-        .positional( create_positional_options() )
-        .run (),
-      vm
-    );
 
-    boost::program_options::notify ( vm );
-
-    process_parsed_options ( argc, argv, vm );
-  }
-
-  /**
-   * The supplied variables_map contains correctly parsed
-   * variables. You will probably want to redefine this method,
-   * by default it only processes generic_command::create_options
-   * options.
-   *
-   * @throw DoNotContinue If a switch parsed doesn't require
-   *        further action (e.g.: --help, --version ). 
-   */
-  virtual void
-  process_parsed_options
-  ( int argc, char** arg, const boost::program_options::variables_map& vm )
-  const throw ( DoNotContinue )
-  {
-    if ( vm.count("help") )
-    {
-      help();
-
-      throw DoNotContinue();
-    }
-    else if ( vm.count("version") )
-    {
-      static const char* LICENSE =
-      "Copyright 2011 Frederic Menou                                    \n"
-      "                                                                 \n"
-      "Magrit is free software: you can redistribute it and/or modify   \n"
-      "it under the terms of the GNU Affero General Public License as   \n"
-      "published by the Free Software Foundation, either version 3 of   \n"
-      "the License, or (at your option) any later version.              \n"
-      "                                                                 \n"
-      "Magrit is distributed in the hope that it will be useful,        \n"
-      "but WITHOUT ANY WARRANTY; without even the implied warranty of   \n"
-      "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the    \n"
-      "GNU Affero General Public License for more details.              \n"
-      "                                                                 \n"
-      "You should have received a copy of the GNU Affero General Public \n"
-      "License along with Magrit.                                       \n"
-      "If not, see <http://www.gnu.org/licenses/>.                      \n";
-
-      std::cout << LICENSE << std::endl;
-      std::cout << "Version version.num.not.implemented.yet" << std::endl;
-      throw DoNotContinue();
-    }
-  }
-
-  /**
-   * Defines the command line options used by this command. Redefine
-   * in the subclass to tailor to your need. Call this method in your
-   * subclass if you want to have access to --help and --version switches.
-   *
-   * @return boost::program_options::options_description
-   */
-  virtual boost::program_options::options_description
-  create_options () const 
-  {
-    boost::program_options::options_description
-      parent_options_desc ("");
-
-    boost::program_options::options_description
-      generic_options_desc ( "Main options" );
-
-    generic_options_desc.add_options()
-      ("help,h", "produces this help message")
-      ("version,v", "version of the application");
-
-    boost::program_options::options_description
-      positional_options_desc ( "Positional options" );
-
-    positional_options_desc.add_options()
-      ("command","positional parameter 0")
-      ("command-arguments",
-        boost::program_options::value<std::vector<std::string> >(),
-       "positional parameter 1..N");
-
-    parent_options_desc
-      .add ( generic_options_desc )
-      .add ( positional_options_desc );
-
-    return parent_options_desc;    
-  }
-
-  /**
-   * Redefine this method if you have to parse positional parameters
-   * at the end of the command line.
-   *
-   * @return boost::program_options::positional_options_description
-   */ 
-  virtual boost::program_options::positional_options_description
-  create_positional_options () const
-  {
-    boost::program_options::positional_options_description
-      positional_options_desc;
-
-    return positional_options_desc
-      .add("command",1)
-      .add("command-arguments",-1);
-  }
-
-  /**
-   * Prints the help notice.
-   */
-  virtual void help () const
-  {
-    std::cout << create_options();
-  }
-
-  /**
-   * Joins the first command to the vector of commands.
-   * The result is written as a char* array passed as
-   * input (warning: the scope of command_line is the same
-   * as command and command_args).
-   */
-  static void join
+/**
+ * Joins the input iterator starting from begin_input and ending at end_input
+ * using separator as string to separate the elements in the input container.
+ * The result is written to output iterator.
+ * 
+ * @param separator Element to use to separate input.
+ * @param begin_input Container's first element iterator.
+ * @param end_input Container's end element iterator.
+ * @param output Output iterator (the result is written starting
+ *        by here).
+ * @return Iterator pointing to the position after the last written.
+ */
+template <typename T, typename InputIterator, typename OutputIterator>
+OutputIterator
+join
+(
+  const T&       separator,
+  InputIterator  begin_input,
+  InputIterator  end_input,
+  OutputIterator output
+)
+{
+  return join<T,InputIterator,OutputIterator>
   (
-    char* command,
-    char** command_args,
-    uint command_args_length,
-    char** command_line
-  ) 
-  {
-    command_line[0] = command; 
-
-    for ( uint i = 0; i < command_args_length; ++i )
+    separator,
+    begin_input,
+    end_input,output,
+    [](const T& elem) -> const T& 
     {
-      command_line[i+1] = command_args[i]; 
+      return elem;
     }
+  );
+}
+
+/**
+ * Joins the first command to the vector of commands.
+ * The result is written as a char* array passed as
+ * input (warning: the scope of command_line is the same
+ * as command and command_args).
+ */
+/*
+static void join
+(
+  char* command,
+  char** command_args,
+  uint command_args_length,
+  char** command_line
+) 
+{
+  command_line[0] = command; 
+
+  for ( uint i = 0; i < command_args_length; ++i )
+  {
+    command_line[i+1] = command_args[i]; 
   }
-};
+}
+*/
 

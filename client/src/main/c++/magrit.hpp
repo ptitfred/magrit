@@ -23,69 +23,41 @@
 #include "magrit-build.hpp"
 /////////////////////////////////////////////////////////////////////////
 // STD
-#include <forward_list>
 #include <vector>
-#include <algorithm>
-/////////////////////////////////////////////////////////////////////////
-// BOOST
-#include <boost/program_options.hpp>
-#include <boost/foreach.hpp>
 /////////////////////////////////////////////////////////////////////////
 
 struct magrit : public generic_command
 {
+  /**
+   * @see generic_command::get_name
+   */
   const char* get_name() const
   {
     return "magrit"; 
   } 
 
-  void
-  process_parsed_options
-  ( int argc, char** argv, const boost::program_options::variables_map& vm )
-  const throw ( DoNotContinue )
+  /**
+   * @see generic_command::get_subcommands
+   */
+  std::vector< sh_ptr<generic_command> > get_subcommands() const
   {
-    if ( argc == 1 )
-    {
-      help();
+    std::vector< sh_ptr<generic_command> > commands;
 
-      throw DoNotContinue();
-    }
-
-    generic_command::process_parsed_options ( argc, argv, vm );
-    
-    std::forward_list< sh_ptr<generic_command> > commands
-      = get_commands ();
-
-    char* command = argv[1];
-
-    BOOST_FOREACH ( const sh_ptr<generic_command> command_obj, commands )
-    {
-      if ( command_obj->get_name() == std::string(command) )
-      {
-        // TODO: if other command line options are added (other than
-        //       --help and --version that will be catched by process_parsed_options),
-        //       argv[0] might not hold the command (e.g: ./magrit --debug build send ).
-        //       process_parsed_options must return a pointer to unprocessed options.
-        char** command_args = argc > 2? &argv[2]: NULL;
-        char* new_command_line[argc - 1];
-
-        join ( command, command_args, std::max(argc - 2,0), new_command_line );
-
-        command_obj->run ( argc - 1, new_command_line );
-
-        return;
-      }
-    }
-
-    std::cerr << "Command '" << command << "' not found" << std::endl;
-  }
-
-  std::forward_list< sh_ptr<generic_command> > get_commands () const
-  {
-    std::forward_list< sh_ptr<generic_command> > commands;
-
-    commands.push_front ( sh_ptr<generic_command>( new build() ) );
+    commands.push_back ( sh_ptr<generic_command>( new build() ) );
 
     return commands;
   }
+
+  /**
+   * @see generic_command::get_subcommands_desc
+   */
+  virtual std::vector<std::string> get_subcommands_desc() const
+  {
+    std::vector<std::string> commands;
+
+    commands.push_back ( std::string("Description to be written.") );
+
+    return commands;
+  }
+
 };

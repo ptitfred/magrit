@@ -19,6 +19,7 @@
  */
 ///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
+#include "generic_command.hpp"
 //#include "magrit-send-build.hpp"
 //#include "magrit-cat-build.hpp"
 /////////////////////////////////////////////////////////////////////////
@@ -40,7 +41,7 @@ struct build : public generic_command
   {
     if ( argc == 1 )
     {
-      help();
+      print_help();
 
       throw DoNotContinue();
     }
@@ -49,6 +50,7 @@ struct build : public generic_command
 
     char* command = argv[0];
 
+    /*
     uint command_args_length = argc - 1;
 
     char** command_args = &argv[1];
@@ -56,6 +58,7 @@ struct build : public generic_command
     char* command_line[command_args_length+1];
 
     join ( command, command_args, command_args_length, command_line );      
+    */
 
     if ( std::string(command) == "send" )
     {
@@ -71,7 +74,7 @@ struct build : public generic_command
     }
     else
     {
-      help();
+      print_help();
 
       throw DoNotContinue();
     }
