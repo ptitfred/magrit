@@ -33,12 +33,13 @@
 
 /** Some C++11 stuff are only available in gcc 4.7 */
 #if GCC_VERSION > 40700
+  template <typename T>
+  using sh_ptr = std::shared_pt<T>;
 #else
-  /** Declares a method to be overriding a super class method */
   #define override 
+  #define sh_ptr std::shared_ptr
 #endif
 
-#define sh_ptr std::shared_ptr
 
 /**
  * Specific case of string concat. I didn't get it to work in the

@@ -23,6 +23,12 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
+magrit::magrit ()
+{
+  _subcommands.push_back ( sh_ptr<generic_command>( new build() ) );
+}
+
+/////////////////////////////////////////////////////////////////////////
 const char*
 magrit::get_name() const
 {
@@ -30,14 +36,10 @@ magrit::get_name() const
 } 
 
 /////////////////////////////////////////////////////////////////////////
-std::vector< sh_ptr<generic_command> >
+const std::vector< sh_ptr<generic_command> >&
 magrit::get_subcommands() const
 {
-  std::vector< sh_ptr<generic_command> > commands;
-
-  commands.push_back ( sh_ptr<generic_command>( new build() ) );
-
-  return commands;
+  return generic_command::get_subcommands();
 }
 
 /////////////////////////////////////////////////////////////////////////

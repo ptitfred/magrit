@@ -30,6 +30,9 @@
 
 struct magrit : public generic_command
 {
+
+  magrit ();
+
   /**
    * @see generic_command::get_name
    */
@@ -38,7 +41,7 @@ struct magrit : public generic_command
   /**
    * @see generic_command::get_subcommands
    */
-  std::vector< sh_ptr<generic_command> > get_subcommands() const override;
+  const std::vector< sh_ptr<generic_command>>& get_subcommands() const override;
 
   /**
    * @see generic_command::get_subcommands_desc

@@ -53,6 +53,8 @@ struct OptionNotRecognized : public std::runtime_error
  */
 struct generic_command
 {
+  std::vector<sh_ptr<generic_command>> _subcommands;
+
   /**
    * Name of the command as it appears in the command line.
    *
@@ -121,9 +123,16 @@ struct generic_command
   create_options () const;
 
   /**
-   * Subcommands implemented by the command. None by default.
+   * Subcommands implemented by the command. Empty vector by default.
    */
-  virtual std::vector< sh_ptr<generic_command> > get_subcommands() const;
+  virtual const std::vector< sh_ptr<generic_command>>& get_subcommands() const;
+
+  /**
+   * Returns the subcommand with the given name or
+   * end() if none exists.
+   */
+  std::vector< sh_ptr<generic_command>>::const_iterator
+  get_subcommand ( const std::string& name ) const;
 
   /**
    * Subcommand description. Same order as get_subcommands. None by default.

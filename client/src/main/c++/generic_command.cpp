@@ -67,23 +67,21 @@ const
   std::vector<std::string> unregistered
     = bpo::collect_unrecognized ( options, bpo::include_positional );
 
-  auto command = first_command ( unregistered );
+  auto subcommand = first_command ( unregistered );
 
-  if ( get_subcommands().size() == 0 && command == unregistered.end() )
+  if ( get_subcommands().size() == 0 && subcommand == unregistered.end() )
   {
     // No unprocessed arguments. Everything ok!
   }
-  else if ( get_subcommands().size() > 0 && command != unregistered.end() )
+  else if ( get_subcommands().size() > 0 && subcommand != unregistered.end() )
   {
     // Still arguments to be processed by a subcommand
-    for ( uint i = 0; i < get_subcommands().size(); ++i )
-    {
-      sh_ptr<generic_command> cmd = get_subcommands()[i];
+    auto subcmd_it = get_subcommand ( *subcommand );
 
-      if ( cmd->get_name() == *command )
-      {
-        cmd->run ( arguments );
-      }
+    if ( subcmd_it != get_subcommands().end() )
+    {
+      std::cout << "Executing subcommand " << *subcommand << std::endl;
+      (*subcmd_it)->run ( arguments );
     }
   }
   else
@@ -102,6 +100,26 @@ const
   }
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+std::vector<sh_ptr<generic_command>>::const_iterator
+generic_command::get_subcommand ( const std::string& name ) const
+{
+  std::cout << "get_subcommands has " << get_subcommands().size() << std::endl;
+
+  return std::find_if
+  (
+    get_subcommands().begin(),
+    get_subcommands().end(),
+    [&] ( sh_ptr<generic_command> cmd )
+    {
+      std::cout << get_name() << std::endl;
+      std::cout << "name is "<< name << std::endl;
+      return cmd->get_name() == name;
+    }
+  );
+}
+
 /////////////////////////////////////////////////////////////////////////
 void
 generic_command::process_parsed_options
@@ -113,7 +131,7 @@ const
 {
   if ( vm.count("help") )
   {
-    print_help();
+    print_help ();
 
     throw DoNotContinue();
   }
@@ -159,10 +177,10 @@ generic_command::create_options () const
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector< sh_ptr<generic_command>>
+const std::vector< sh_ptr<generic_command>>&
 generic_command::get_subcommands() const
 {
-  return std::vector< sh_ptr<generic_command> >();
+  return _subcommands;
 }
 
 /////////////////////////////////////////////////////////////////////////
