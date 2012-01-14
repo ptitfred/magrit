@@ -36,6 +36,12 @@ magrit::get_name() const
 } 
 
 /////////////////////////////////////////////////////////////////////////
+const char* magrit::get_description() const
+{
+  return "Command-line client for Magrit build system";
+}
+
+/////////////////////////////////////////////////////////////////////////
 std::vector<std::string>
 magrit::get_subcommands_desc() const override
 {

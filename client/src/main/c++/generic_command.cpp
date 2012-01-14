@@ -80,7 +80,6 @@ const
 
     if ( subcmd_it != get_subcommands().end() )
     {
-      std::cout << "Executing subcommand " << *subcommand << std::endl;
       (*subcmd_it)->run ( arguments );
     }
   } 
@@ -111,16 +110,12 @@ const
 std::vector<sh_ptr<generic_command>>::const_iterator
 generic_command::get_subcommand ( const std::string& name ) const
 {
-  std::cout << "get_subcommands has " << get_subcommands().size() << std::endl;
-
   return std::find_if
   (
     get_subcommands().begin(),
     get_subcommands().end(),
     [&] ( sh_ptr<generic_command> cmd )
     {
-      std::cout << get_name() << std::endl;
-      std::cout << "name is "<< name << std::endl;
       return cmd->get_name() == name;
     }
   );
@@ -190,50 +185,59 @@ generic_command::get_subcommands() const
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector<std::string> generic_command::get_subcommands_desc() const
+void generic_command::print_help () const
 {
-  return std::vector<std::string>();
+  using namespace std;
+
+  cout << "Use: " << get_name() << " <options> ";
+
+  print_help_subcommands ();
+
+  cout << ((get_subcommands().size() > 0)? " <subcommand arguments>":"") << endl << endl;
+
+  cout << "Commands:" << endl << endl;
+
+  print_help_subcommands_description ();
+
+  cout << endl;
+
+  cout << "For subcommand's arguments help, ";
+  cout << "call the desired subcommand with --help" << endl << endl;
+
+  cout <<  create_options() ;
 }
 
 /////////////////////////////////////////////////////////////////////////
-void generic_command::print_help () const
+void generic_command::print_help_subcommands () const
 {
-  // Template method was not liking the "::" ?
+  // join template capture list was not liking the "::" ?
   using namespace std;
-
-  auto cmds      = get_subcommands();
-  auto cmds_desc = get_subcommands_desc();
-
-  cout << "Use: " << get_name() << " <options> ";
 
   join<string,vector<sh_ptr<generic_command> > >
   (
     " | ",
-    cmds,
+    get_subcommands(),
     ostream_iterator<string>( cout ),
     []( sh_ptr<generic_command> cmd ) -> string
     {
       return cmd->get_name(); 
     }
   );
+}
 
-  cout << ((cmds.size() > 0)? " <subcommand arguments>":"") << endl << endl;
-
-  cout << "For subcommand's arguments help, ";
-  cout << "call the desired subcommand with --help" << endl << endl;
-
-  /*
-  cout << ((cmds.size() > 0)? "Commands:":"") << endl;
-
-  for (uint i = 0; i < cmds.size(); ++i )
-  {
-    cout << "  " << cmds[i]->get_name() << ":  " << cmds_desc[i] << endl;
-  }
-
-  cout << endl;
-  */
-
-  cout <<  create_options() ;
+/////////////////////////////////////////////////////////////////////////
+void generic_command::print_help_subcommands_description () const
+{
+  std::for_each
+  (
+    get_subcommands().begin(),
+    get_subcommands().end(),
+    [] ( sh_ptr<generic_command> cmd )
+    {
+      std::cout << "  " << cmd->get_name() << ":  "
+                << cmd->get_description() << std::endl;
+    }
+  );
 }
 
 /////////////////////////////////////////////////////////////////////////

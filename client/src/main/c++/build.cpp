@@ -29,3 +29,8 @@ build::get_name() const
   return "build"; 
 } 
 
+/////////////////////////////////////////////////////////////////////////
+const char* build::get_description() const
+{
+  return "sends and retrieves Information about builds";
+}

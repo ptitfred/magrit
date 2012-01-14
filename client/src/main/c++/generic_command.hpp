@@ -1,6 +1,5 @@
 /**
  * Copyright 2012 Frederic Menou
- * Copyright 2012 Daniel Perez
  *
  * This file is part of Magrit.
  *
@@ -61,6 +60,11 @@ struct generic_command
    * @return Name of the command.
    */
   virtual const char* get_name() const = 0;
+
+  /**
+   * Returns the description of the command.
+   */
+  virtual const char* get_description() const = 0;
 
   /**
    * Runs the command. The default behavior is to parse the command line
@@ -135,13 +139,18 @@ struct generic_command
   get_subcommand ( const std::string& name ) const;
 
   /**
-   * Subcommand description. Same order as get_subcommands. None by default.
+   * Prints the help notice.
    */
-  virtual std::vector<std::string> get_subcommands_desc() const;
+  virtual void print_help () const;
 
   /**
    * Prints the help notice.
    */
-  virtual void print_help () const;
+  virtual void print_help_subcommands () const;
+
+  /**
+   * Prints the help notice.
+   */
+  virtual void print_help_subcommands_description () const;
 };
 #endif

@@ -1,6 +1,5 @@
 /**
  * Copyright 2011 Frederic Menou
- * Copyright 2012 Daniel Perez
  *
  * This file is part of Magrit.
  *
@@ -31,5 +30,11 @@ struct build : public generic_command
    * @see generic_command::get_name
    */
   const char* get_name() const override;
+
+  /**
+   * @see generic_command::get_description
+   */
+  const char* get_description() const override;
 };
+
 #endif
