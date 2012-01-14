@@ -168,28 +168,4 @@ join
     }
   );
 }
-
-/**
- * Joins the first command to the vector of commands.
- * The result is written as a char* array passed as
- * input (warning: the scope of command_line is the same
- * as command and command_args).
- */
-/*
-static void join
-(
-  char* command,
-  char** command_args,
-  uint command_args_length,
-  char** command_line
-) 
-{
-  command_line[0] = command; 
-
-  for ( uint i = 0; i < command_args_length; ++i )
-  {
-    command_line[i+1] = command_args[i]; 
-  }
-}
-*/
 #endif

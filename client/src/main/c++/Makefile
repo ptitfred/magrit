@@ -1,5 +1,14 @@
-magrit: main.cpp magrit.hpp
-	g++ -o magrit *.cpp -lboost_program_options -Wall -Werror -std=c++0x -g
+SOURCES=$(wildcard *.cpp)
+OBJECTS=$(SOURCES:.cpp=.o)
+EXECUTABLE=magrit
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	g++ -lboost_program_options $(OBJECTS) -o $@ 
+
+.cpp.o:
+	g++ -Wall -Werror -std=c++0x -g -c $<
 
 clean:
-	rm magrit
+	rm magrit *.o -f

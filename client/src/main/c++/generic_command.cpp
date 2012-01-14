@@ -24,7 +24,7 @@
 
 /////////////////////////////////////////////////////////////////////////
 void
-generic_command::run ( int argc, char** argv ) const
+generic_command::run ( const std::vector<std::string>& arguments ) const
 {
   namespace bpo = boost::program_options;
 
@@ -37,7 +37,7 @@ generic_command::run ( int argc, char** argv ) const
     .add ( create_options() );
 
   bpo::parsed_options parsed =
-    bpo::command_line_parser( argc, argv )
+    bpo::command_line_parser( arguments )
       .options ( parent_options_desc )
       .allow_unregistered()
       .run ();
@@ -46,38 +46,16 @@ generic_command::run ( int argc, char** argv ) const
 
   bpo::notify ( vm );
 
-  process_unregistered_options ( argc, argv, parsed.options, vm );
+  process_unregistered_options ( arguments, parsed.options, vm );
 
-  process_parsed_options ( argc, argv, vm );
-}
-
-/////////////////////////////////////////////////////////////////////////
-std::vector<std::string>::const_iterator
-generic_command::first_command ( const std::vector<std::string>& arguments )
-const
-{
-  return find_if ( 
-                   arguments.begin(), arguments.end(),
-                   [](const std::string& elem)
-                   {
-                     if ( elem[0] == '-' )
-                     {
-                       return false;
-                     }
-                     else
-                     {
-                       return true;
-                     }
-                   }
-                 );
+  process_parsed_options ( arguments, vm );
 }
 
 /////////////////////////////////////////////////////////////////////////
 void
 generic_command::process_unregistered_options
 (
-  int argc,
-  char** argv,
+  const std::vector<std::string>& arguments,
   const std::vector< boost::program_options::basic_option<char> >&
     options,
   const boost::program_options::variables_map& vm
@@ -100,18 +78,17 @@ const
     // Still arguments to be processed by a subcommand
     for ( uint i = 0; i < get_subcommands().size(); ++i )
     {
-      const generic_command& cmd = *get_subcommands()[i];
+      sh_ptr<generic_command> cmd = get_subcommands()[i];
 
-      if ( cmd.get_name() == *command )
+      if ( cmd->get_name() == *command )
       {
-
-        cmd.run ( argc, argv );
+        cmd->run ( arguments );
       }
     }
   }
   else
   {
-    // Expected subcommand and no extra arguments passed or
+    // Expected a subcommand and no extra arguments passed, or
     // the opposite.
     throw OptionNotRecognized
           ( 
@@ -128,7 +105,10 @@ const
 /////////////////////////////////////////////////////////////////////////
 void
 generic_command::process_parsed_options
-( int argc, char** arg, const boost::program_options::variables_map& vm )
+(
+  const std::vector<std::string>& arguments,
+  const boost::program_options::variables_map& vm
+)
 const
 {
   if ( vm.count("help") )
@@ -230,5 +210,26 @@ void generic_command::print_help () const
   */
 
   cout <<  create_options() ;
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::vector<std::string>::const_iterator
+generic_command::first_command ( const std::vector<std::string>& arguments )
+const
+{
+  return find_if ( 
+                   arguments.begin(), arguments.end(),
+                   [](const std::string& elem)
+                   {
+                     if ( elem[0] == '-' )
+                     {
+                       return false;
+                     }
+                     else
+                     {
+                       return true;
+                     }
+                   }
+                 );
 }
 

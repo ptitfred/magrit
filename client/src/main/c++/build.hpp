@@ -1,5 +1,6 @@
 /**
  * Copyright 2011 Frederic Menou
+ * Copyright 2012 Daniel Perez
  *
  * This file is part of Magrit.
  *
@@ -17,15 +18,18 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-/////////////////////////////////////////////////////////////////////////
+#ifndef __MAGRIT_BUILD__
+#define __MAGRIT_BUILD__
+///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
-#include "magrit-build.hpp"
-/////////////////////////////////////////////////////////////////////////
+#include "generic_command.hpp"
+///////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////
-const char*
-build::get_name() const
+struct build : public generic_command
 {
-  return "build"; 
-} 
-
+  /**
+   * @see generic_command::get_name
+   */
+  const char* get_name() const override;
+};
+#endif

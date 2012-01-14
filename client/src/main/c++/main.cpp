@@ -21,6 +21,9 @@
 // MAGRIT 
 #include "magrit.hpp"
 /////////////////////////////////////////////////////////////////////////
+// STD 
+#include <algorithm>
+/////////////////////////////////////////////////////////////////////////
 
 int main ( int argc, char** argv )
 {
@@ -28,7 +31,11 @@ int main ( int argc, char** argv )
 
   try
   {
-    ma.run ( argc, argv );
+    std::vector<std::string> arguments;
+
+    std::copy ( argv, argv+argc*sizeof(char*), std::back_inserter(arguments) );
+    
+    ma.run ( arguments );
   }
   catch ( const DoNotContinue& e )
   {
