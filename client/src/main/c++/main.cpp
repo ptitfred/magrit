@@ -33,7 +33,7 @@ int main ( int argc, char** argv )
   {
     std::vector<std::string> arguments;
 
-    std::copy ( argv, argv+argc, std::back_inserter(arguments) );
+    std::copy ( argv+1, argv+argc, std::back_inserter(arguments) );
    
     ma.run ( arguments );
   }
@@ -46,6 +46,10 @@ int main ( int argc, char** argv )
   }
   catch ( boost::program_options::unknown_option& e )
   {
-    std::cerr << "Unknown option '" << e.get_option_name() << "'" << std::endl;
+    std::cerr << "Unknown option (boost::program_options::unknown_option) '" << e.get_option_name() << "'" << std::endl;
+  }
+  catch ( std::exception& e )
+  {
+    std::cerr << "Error: " << e.what() << "'" << std::endl;
   }
 }

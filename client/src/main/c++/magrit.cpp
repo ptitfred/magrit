@@ -36,13 +36,6 @@ magrit::get_name() const
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const std::vector< sh_ptr<generic_command> >&
-magrit::get_subcommands() const
-{
-  return generic_command::get_subcommands();
-}
-
-/////////////////////////////////////////////////////////////////////////
 std::vector<std::string>
 magrit::get_subcommands_desc() const override
 {
@@ -53,3 +46,15 @@ magrit::get_subcommands_desc() const override
   return commands;
 }
 
+/////////////////////////////////////////////////////////////////////////
+void magrit::run ( const std::vector<std::string>& arguments ) const
+{
+  if ( arguments.size() == 0 )
+  {
+    print_help ();
+  }
+  else
+  {
+    generic_command::run ( arguments );
+  }
+}

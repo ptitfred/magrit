@@ -39,14 +39,13 @@ struct magrit : public generic_command
   const char* get_name() const override;
 
   /**
-   * @see generic_command::get_subcommands
-   */
-  const std::vector< sh_ptr<generic_command>>& get_subcommands() const override;
-
-  /**
    * @see generic_command::get_subcommands_desc
    */
   virtual std::vector<std::string> get_subcommands_desc() const override;
 
+  /**
+   * @see generic_command::run
+   */
+  virtual void run ( const std::vector<std::string>& arguments ) const;
 };
 #endif

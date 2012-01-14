@@ -46,9 +46,9 @@ generic_command::run ( const std::vector<std::string>& arguments ) const
 
   bpo::notify ( vm );
 
-  process_unregistered_options ( arguments, parsed.options, vm );
-
   process_parsed_options ( arguments, vm );
+
+  process_unregistered_options ( arguments, parsed.options, vm );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -71,9 +71,9 @@ const
 
   if ( get_subcommands().size() == 0 && subcommand == unregistered.end() )
   {
-    // No unprocessed arguments. Everything ok!
+    // No unprocessed arguments. We stop rambling.
   }
-  else if ( get_subcommands().size() > 0 && subcommand != unregistered.end() )
+  else if ( get_subcommands().size() != 0 && subcommand != unregistered.end() )
   {
     // Still arguments to be processed by a subcommand
     auto subcmd_it = get_subcommand ( *subcommand );
@@ -83,11 +83,17 @@ const
       std::cout << "Executing subcommand " << *subcommand << std::endl;
       (*subcmd_it)->run ( arguments );
     }
+  } 
+  else if ( get_subcommands().size() != 0 && subcommand == unregistered.end() )
+  {
+    // Expected a subcommand and no extra arguments passed:
+    // up to the specific command to print help or
+    // do any action.
   }
   else
   {
-    // Expected a subcommand and no extra arguments passed, or
-    // the opposite.
+    // Extra arguments passed but none was expected
+    // ( get_subcommands().size() == 0 && subcommand != unregistered.end() )
     throw OptionNotRecognized
           ( 
             join<std::string>
@@ -211,10 +217,10 @@ void generic_command::print_help () const
     }
   );
 
-  cout << ((cmds.size() > 0)? " <subcommand>":"") << endl << endl;
+  cout << ((cmds.size() > 0)? " <subcommand arguments>":"") << endl << endl;
 
   cout << "For subcommand's arguments help, ";
-  cout << "call the desired command with --help" << endl << endl;
+  cout << "call the desired subcommand with --help" << endl << endl;
 
   /*
   cout << ((cmds.size() > 0)? "Commands:":"") << endl;
