@@ -33,8 +33,8 @@ int main ( int argc, char** argv )
   {
     std::vector<std::string> arguments;
 
-    std::copy ( argv, argv+argc*sizeof(char*), std::back_inserter(arguments) );
-    
+    std::copy ( argv, argv+argc, std::back_inserter(arguments) );
+   
     ma.run ( arguments );
   }
   catch ( const DoNotContinue& e )
