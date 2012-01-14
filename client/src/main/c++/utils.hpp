@@ -18,13 +18,57 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef __MAGRIT_UTILS__
+#define __MAGRIT_UTILS__
 /////////////////////////////////////////////////////////////////////////
 // STD
 #include <functional>
 #include <memory>
+#include <string>
 /////////////////////////////////////////////////////////////////////////
 
+#define GCC_VERSION (__GNUC__ * 10000 \
+    + __GNUC_MINOR__ * 100 \
+    + __GNUC_PATCHLEVEL__)
+
+/** Some C++11 stuff are only available in gcc 4.7 */
+#if GCC_VERSION > 40700
+#else
+  /** Declares a method to be overriding a super class method */
+  #define override 
+#endif
+
 #define sh_ptr std::shared_ptr
+
+/**
+ * Specific case of string concat. I didn't get it to work in the
+ * general case.
+ */
+template <typename T, typename InputIterator>
+std::string
+join
+( 
+  const T&      separator,
+  InputIterator begin_input,
+  InputIterator end_input
+)
+{ 
+  std::string output;
+
+  if ( begin_input != end_input )
+  {
+    output += *begin_input;
+
+    if ( ++begin_input != end_input )
+    {
+      output += separator;
+    }
+
+    output += join ( separator, begin_input, end_input);
+  }
+
+  return output;
+} 
 
 /**
  * Joins the input iterator starting from begin_input and ending at end_input
@@ -52,7 +96,7 @@ join
   InputIterator  end_input,
   OutputIterator output,
   std::function<T(typename InputIterator::value_type)> func
-)   
+)
 { 
   while ( begin_input != end_input )
   {
@@ -115,8 +159,10 @@ join
   (
     separator,
     begin_input,
-    end_input,output,
-    [](const T& elem) -> const T& 
+    end_input,
+    output,
+    [](const typename InputIterator::value_type& elem)
+      -> const typename InputIterator::value_type& 
     {
       return elem;
     }
@@ -146,4 +192,4 @@ static void join
   }
 }
 */
-
+#endif

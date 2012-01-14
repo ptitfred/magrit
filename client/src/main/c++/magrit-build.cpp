@@ -17,33 +17,15 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __MAGRIT_MAIN__
-#define __MAGRIT_MAIN__
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
-#include "utils.hpp"
 #include "magrit-build.hpp"
 /////////////////////////////////////////////////////////////////////////
-// STD
-#include <vector>
+
 /////////////////////////////////////////////////////////////////////////
-
-struct magrit : public generic_command
+const char*
+build::get_name() const
 {
-  /**
-   * @see generic_command::get_name
-   */
-  const char* get_name() const override;
+  return "build"; 
+} 
 
-  /**
-   * @see generic_command::get_subcommands
-   */
-  std::vector< sh_ptr<generic_command> > get_subcommands() const override;
-
-  /**
-   * @see generic_command::get_subcommands_desc
-   */
-  virtual std::vector<std::string> get_subcommands_desc() const override;
-
-};
-#endif

@@ -18,8 +18,11 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef __MAGRIT_BUILD__
+#define __MAGRIT_BUILD__
 ///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
+#include "utils.hpp"
 #include "generic_command.hpp"
 ///////////////////////////////////////////////////////////////////////////
 
@@ -28,8 +31,6 @@ struct build : public generic_command
   /**
    * @see generic_command::get_name
    */
-  const char* get_name() const
-  {
-    return "build"; 
-  } 
+  const char* get_name() const override;
 };
+#endif

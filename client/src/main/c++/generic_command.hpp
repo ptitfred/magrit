@@ -18,10 +18,13 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef __MAGRIT_GENERIC__
+#define __MAGRIT_GENERIC__
 /////////////////////////////////////////////////////////////////////////
 // STD
 #include <stdexcept>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <vector>
 /////////////////////////////////////////////////////////////////////////
@@ -32,6 +35,14 @@
 
 struct DoNotContinue
 {
+};
+
+struct OptionNotRecognized : public std::runtime_error
+{
+  OptionNotRecognized (const std::string& what)
+    : std::runtime_error ( what )
+  {
+  }
 };
 
 /**
@@ -51,49 +62,34 @@ struct generic_command
    * supplied and pass the parsed command line to
    * generic_command::process_parsed_options.
    *
-   * @throws boost::program_options::unknown_option if one of the
+   * @throws bpo::unknown_option if one of the
    *         given command line switches is not allowed.
    */
   virtual void run ( int argc, char** argv ) const
   {
-    boost::program_options::variables_map vm;
+    namespace bpo = boost::program_options;
 
-    boost::program_options::options_description
+    bpo::variables_map vm;
+
+    bpo::options_description
       parent_options_desc ("");
 
     parent_options_desc
       .add ( create_options() );
 
-    // Positional commands have to be added to the
-    // line parser.
-    if ( get_subcommands().size() > 0 )
-    {
-      boost::program_options::options_description
-        positional_options_desc ( "Positional options" );
-
-      positional_options_desc.add_options()
-        ("command","positional parameter 0")
-        ("command-arguments",
-          boost::program_options::value<std::vector<std::string> >(),
-         "positional parameter 1..N");
-
-      parent_options_desc.add ( positional_options_desc );
-    } 
-
-    boost::program_options::store
-    (
-      boost::program_options::command_line_parser( argc, argv )
+    bpo::parsed_options parsed =
+      bpo::command_line_parser( argc, argv )
         .options ( parent_options_desc )
-        .positional ( create_positional_options() )
-        .run (),
-      vm
-    );
+        .allow_unregistered()
+        .run ();
 
-    boost::program_options::notify ( vm );
+    bpo::store ( parsed, vm );
+
+    bpo::notify ( vm );
+
+    process_unregistered_options ( argc, argv, parsed.options, vm );
 
     process_parsed_options ( argc, argv, vm );
-
-    process_parsed_positional_options ( argc, argv, vm );
   }
 
   /**
@@ -101,12 +97,24 @@ struct generic_command
    * subcommands. 
    */
   virtual void
-  process_parsed_positional_options
-  ( int argc, char** argv, const boost::program_options::variables_map& vm )
-  const throw ( DoNotContinue )
+  process_unregistered_options
+  (
+    int argc,
+    char** argv,
+    const std::vector< boost::program_options::basic_option<char> >&
+      options,
+    const boost::program_options::variables_map& vm
+  )
+  const
   {
+    namespace bpo = boost::program_options;
+
+    std::vector<std::string> unregistered
+      = bpo::collect_unrecognized ( options, bpo::include_positional );
+
     if ( get_subcommands().size() > 0 )
     {
+      /*
       for ( uint i = 0; i < get_subcommands().size(); ++i )
       {
         const generic_command& cmd = *get_subcommands()[i];
@@ -114,11 +122,27 @@ struct generic_command
         if ( vm["command"].as<std::string>() == cmd.get_name() )
         {
           cmd.run ( argc, argv );
-
++    namespace bpo = boost::program_options;
+ 
           return;
         }
-      }  
+      }
+      */ 
     }
+    else
+    {
+      std::string not_recognized
+        = join<std::string>
+          (
+            " ",
+            unregistered.begin(),
+            unregistered.end()
+          );
+
+      throw OptionNotRecognized ( not_recognized ); 
+    }
+
+    
   }
 
   /**
@@ -133,7 +157,7 @@ struct generic_command
   virtual void
   process_parsed_options
   ( int argc, char** arg, const boost::program_options::variables_map& vm )
-  const throw ( DoNotContinue )
+  const
   {
     if ( vm.count("help") )
     {
@@ -171,13 +195,14 @@ struct generic_command
    * in the subclass to tailor to your need. Call this method in your
    * subclass if you want to have access to --help and --version switches.
    *
-   * @return boost::program_options::options_description
+   * @return bpo::options_description
    */
   virtual boost::program_options::options_description
   create_options () const 
   {
+    namespace bpo = boost::program_options;
 
-    boost::program_options::options_description
+    bpo::options_description
       generic_options_desc ( "Main options" );
 
     generic_options_desc.add_options()
@@ -232,37 +257,18 @@ struct generic_command
     cout << "For subcommand's arguments help, ";
     cout << "call the desired command with --help" << endl << endl;
 
+    /*
     cout << ((cmds.size() > 0)? "Commands:":"") << endl;
 
     for (uint i = 0; i < cmds.size(); ++i )
     {
       cout << "  " << cmds[i]->get_name() << ":  " << cmds_desc[i] << endl;
     }
-
+ 
     cout << endl;
+    */
   
     cout <<  create_options() ;
   }
-
-  /**
-   * Defines the positional options. 
-   *
-   * @return boost::program_options::positional_options_description
-   */ 
-  boost::program_options::positional_options_description
-  create_positional_options () const
-  {
-    boost::program_options::positional_options_description
-      positional_options_desc;
-
-    if ( get_subcommands().size() > 0 )
-    {
-      positional_options_desc
-        .add("command",1)
-        .add("command-arguments",-1);
-    }
-
-    return positional_options_desc;
-  }
 };
-
+#endif

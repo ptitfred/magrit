@@ -17,33 +17,37 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __MAGRIT_MAIN__
-#define __MAGRIT_MAIN__
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
-#include "utils.hpp"
-#include "magrit-build.hpp"
-/////////////////////////////////////////////////////////////////////////
-// STD
-#include <vector>
+#include "magrit.hpp"
 /////////////////////////////////////////////////////////////////////////
 
-struct magrit : public generic_command
+/////////////////////////////////////////////////////////////////////////
+const char*
+magrit::get_name() const
 {
-  /**
-   * @see generic_command::get_name
-   */
-  const char* get_name() const override;
+  return "magrit"; 
+} 
 
-  /**
-   * @see generic_command::get_subcommands
-   */
-  std::vector< sh_ptr<generic_command> > get_subcommands() const override;
+/////////////////////////////////////////////////////////////////////////
+std::vector< sh_ptr<generic_command> >
+magrit::get_subcommands() const
+{
+  std::vector< sh_ptr<generic_command> > commands;
 
-  /**
-   * @see generic_command::get_subcommands_desc
-   */
-  virtual std::vector<std::string> get_subcommands_desc() const override;
+  commands.push_back ( sh_ptr<generic_command>( new build() ) );
 
-};
-#endif
+  return commands;
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::vector<std::string>
+magrit::get_subcommands_desc() const override
+{
+  std::vector<std::string> commands;
+
+  commands.push_back ( std::string("Description to be written.") );
+
+  return commands;
+}
+
