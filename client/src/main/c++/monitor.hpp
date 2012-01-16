@@ -17,21 +17,15 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __MAGRIT_MAIN__
-#define __MAGRIT_MAIN__
-/////////////////////////////////////////////////////////////////////////
+#ifndef __MAGRIT_MONITOR__
+#define __MAGRIT_MONITOR__
+///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
-#include "utils.hpp"
-/////////////////////////////////////////////////////////////////////////
-// STD
-#include <vector>
-/////////////////////////////////////////////////////////////////////////
+#include "generic_command.hpp"
+///////////////////////////////////////////////////////////////////////////
 
-struct magrit : public generic_command
+struct monitor : public generic_command
 {
-
-  magrit ();
-
   /**
    * @see generic_command::get_name
    */
@@ -41,10 +35,10 @@ struct magrit : public generic_command
    * @see generic_command::get_description
    */
   const char* get_description() const override;
-
-  /**
-   * @see generic_command::run
-   */
-   void run ( const std::vector<std::string>& arguments ) const override;
 };
+
 #endif
+
+
+
+

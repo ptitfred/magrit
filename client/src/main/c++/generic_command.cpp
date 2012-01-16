@@ -215,7 +215,7 @@ void generic_command::print_help_subcommands () const
 
   join<string,vector<sh_ptr<generic_command> > >
   (
-    " | ",
+    "|",
     get_subcommands(),
     ostream_iterator<string>( cout ),
     []( sh_ptr<generic_command> cmd ) -> string
@@ -234,7 +234,7 @@ void generic_command::print_help_subcommands_description () const
     get_subcommands().end(),
     [] ( sh_ptr<generic_command> cmd )
     {
-      std::cout << "  " << cmd->get_name() << ":  "
+      std::cout << "  " << cmd->get_name() << "  \t "
                 << cmd->get_description() << std::endl;
     }
   );

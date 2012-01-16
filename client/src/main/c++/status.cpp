@@ -19,46 +19,24 @@
  */
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
-#include "magrit.hpp"
-#include "build.hpp"
-#include "config.hpp"
-#include "monitor.hpp"
-#include "share.hpp"
 #include "status.hpp"
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
-magrit::magrit ()
-{
-  _subcommands.push_back ( sh_ptr<generic_command>( new build() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new config() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new monitor() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new share() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new status() ) );
-}
-
-/////////////////////////////////////////////////////////////////////////
 const char*
-magrit::get_name() const
+status::get_name() const
 {
-  return "magrit"; 
+  return "status"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* magrit::get_description() const
+const char* status::get_description() const
 {
-  return "Command-line client for Magrit build system";
+  return "<description to be written>";
 }
 
-/////////////////////////////////////////////////////////////////////////
-void magrit::run ( const std::vector<std::string>& arguments ) const
-{
-  if ( arguments.size() == 0 )
-  {
-    print_help ();
-  }
-  else
-  {
-    generic_command::run ( arguments );
-  }
-}
+
+
+
+
+

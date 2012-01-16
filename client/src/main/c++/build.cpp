@@ -32,5 +32,5 @@ build::get_name() const
 /////////////////////////////////////////////////////////////////////////
 const char* build::get_description() const
 {
-  return "sends and retrieves Information about builds";
+  return "<description to be written>";
 }
