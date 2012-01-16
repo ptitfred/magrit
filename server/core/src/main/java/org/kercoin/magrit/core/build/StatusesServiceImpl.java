@@ -19,7 +19,6 @@ If not, see <http://www.gnu.org/licenses/>.
 */
 package org.kercoin.magrit.core.build;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -100,11 +99,7 @@ public class StatusesServiceImpl implements StatusesService {
 	}
 
 	private boolean containsCommit(Repository repository, String sha1) {
-		try {
-			return gitUtils.getCommit(repository, sha1) != null;
-		} catch (IOException e) {
-			return false;
-		}
+		return gitUtils.containsCommit(repository, sha1);
 	}
 
 	private State getState(String sha1) {
@@ -117,17 +112,24 @@ public class StatusesServiceImpl implements StatusesService {
 		return State.NONE;
 	}
 	
-	private boolean isInPipeline(String sha1, Filter filter) {
+	private boolean isInPipeline(String commitSha1, Filter filter) {
 		for(Key k : pipeline.list(filter)) {
 			Task<BuildResult> task = pipeline.get(k);
 			if (task instanceof BuildTask) {
 				Pair<Repository, String> target = ((BuildTask) task).getTarget();
-				if (sha1.equals(target.getU())) {
+				final Repository repository = target.getT();
+				final String myTreeSha1 = getTreeSha1(repository, commitSha1);
+				final String otherTreeSha1 = getTreeSha1(repository, target.getU());
+				if (myTreeSha1 != null && myTreeSha1.equals(otherTreeSha1)) {
 					return true;
 				}
 			}
 		}
 		return false;
+	}
+
+	private String getTreeSha1(Repository repo, String commitSha1) {
+		return gitUtils.getTree(repo, commitSha1);
 	}
 
 }
