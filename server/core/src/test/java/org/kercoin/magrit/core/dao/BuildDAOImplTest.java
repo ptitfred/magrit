@@ -25,8 +25,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.eq;
 
 import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
+import junit.framework.Assert;
+
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
 import org.junit.AfterClass;
@@ -34,9 +39,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kercoin.magrit.core.Pair;
 import org.kercoin.magrit.core.build.BuildResult;
+import org.kercoin.magrit.core.user.UserIdentity;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.core.utils.GitUtilsTest;
+import org.kercoin.magrit.core.utils.TimeService;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -65,7 +73,9 @@ public class BuildDAOImplTest {
 			test = null;
 		}
 	}
-	
+
+	private static final String SHA1 = "12345";
+
 	BuildDAOImpl dao;
 	
 	@Mock Note note;
@@ -73,31 +83,29 @@ public class BuildDAOImplTest {
 	@Mock Repository repo;
 
 	@Mock GitUtils gitUtils;
+	@Mock TimeService time;
+	
+	UserIdentity misterExample = new UserIdentity("user@example.org", "Mister Example");
 	
 	@Before
 	public void setUp() throws Exception {
-		dao = new BuildDAOImpl(gitUtils);
+		dao = new BuildDAOImpl(gitUtils, time);
 	}
 
-	@Test
-	public void testGetNote() throws Exception {
-		// given ---------------------------------
-		dao = new BuildDAOImpl(new GitUtils());
-
-		// when ----------------------------------
-		Note n = dao.getNote(test, "c92788de607fa1375b05c8075814711c145d8dae");
-
-		// then ----------------------------------
-		assertThat(n).isNotNull();
+	@Before
+	public void check() {
+		if (test == null) {
+		    Assert.fail("Repository not loaded, can't test");
+		}
 	}
-	
+
 	@Test
 	public void testGetLast() throws Exception {
 		// given ---------------------------------
-		dao = new BuildDAOImpl(new GitUtils());
+		dao = new BuildDAOImpl(new GitUtils(), time);
 
 		// when ----------------------------------
-		BuildResult result = dao.getLast(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208");
+		BuildResult result = dao.getLast(test, "7dec669f77b48e6420785e523e71e461ba58dc72");
 
 		// then ----------------------------------
 		assertThat(result).isNotNull();
@@ -107,10 +115,10 @@ public class BuildDAOImplTest {
 	@Test
 	public void testGetAll() throws Exception {
 		// given ---------------------------------
-		dao = new BuildDAOImpl(new GitUtils());
+		dao = new BuildDAOImpl(new GitUtils(), time);
 
 		// when ----------------------------------
-		List<BuildResult> results = dao.getAll(test, "0c33eefaaf70e4ed3d0b65cba1d92ee62f2bd208");
+		List<BuildResult> results = dao.getAll(test, "7dec669f77b48e6420785e523e71e461ba58dc72");
 
 		// then ----------------------------------
 		assertThat(results).hasSize(2);
@@ -153,7 +161,47 @@ public class BuildDAOImplTest {
 		assertThat(buildResult.getCommitSha1()).isEqualTo("47b999bbdad3f33878f51b5a21cb71fda557324c");
 		assertThat(buildResult.getExitCode()).isEqualTo(38);
 		assertThat(buildResult.getLog()).isEqualTo(log.getBytes());
-		
 	}
-	
+
+	@Test
+	public void testSerializeBuildResult_nominal() throws Exception {
+		// given
+		final BuildResult buildResult = new BuildResult(SHA1);
+		buildResult.setStartDate(date(2011, Calendar.SEPTEMBER, 7, 1, 18, 35));
+		buildResult.setExitCode(3);
+		buildResult.setLog("Oh. Yeah.".getBytes("UTF-8"));
+		final Pair<Long, Integer> when = new Pair<Long, Integer>(123450000000L, 120);
+		final String who = misterExample.toString();
+		final ObjectId logs = ObjectId.fromString("c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3");
+		given(time.offsetToString(120)).willReturn("+0200");
+
+		// when
+		String text = dao.serializeResult(buildResult, who, when, logs);
+
+		// then
+		assertThat(text).isEqualTo( //
+				"build 12345" + "\n" + //
+				"log c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3" + "\n" + //
+				"return-code 3" + "\n" + //
+				"author \"Mister Example\" <user@example.org>" + "\n" + //
+				"when 123450000000 +0200\n" //
+				);
+	}
+
+	@Test
+	public void testSerializeNote() throws Exception {
+		String text = dao.serializeBuildNote(ObjectId.fromString("c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3"));
+		assertThat(text).isEqualTo("magrit:built-by c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3c4f3b4b3");
+	}
+
+	@Test
+	public void testConcatenateNote() {
+		assertThat(dao.concatenateNotes("blabla", "bloblo")).isEqualTo("blabla\n\nbloblo");
+	}
+
+	@SuppressWarnings("deprecation")
+	private Date date(int year, int month, int date, int hrs, int min, int sec) {
+		return new Date(year, month, date, hrs, min, sec);
+	}
+
 }

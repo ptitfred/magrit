@@ -30,6 +30,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 
 import com.google.inject.Singleton;
@@ -45,10 +46,12 @@ public class GitUtils {
 		if (!remoteRepo.isBare()) {
 			dest = dest.getParentFile();
 		}
-		toConfigure.getConfig().setString("remote", name, "fetch", refSpec );
-		toConfigure.getConfig().setString("remote", name, "url", dest.getAbsolutePath());
-		// write down configuration in .git/config
-		toConfigure.getConfig().save();
+		synchronized (toConfigure) {
+			toConfigure.getConfig().setString("remote", name, "fetch", refSpec );
+			toConfigure.getConfig().setString("remote", name, "url", dest.getAbsolutePath());
+			// write down configuration in .git/config
+			toConfigure.getConfig().save();
+		}
 	}
 
 	public RevCommit getCommit(Repository repo, String revstr)
@@ -60,6 +63,13 @@ public class GitUtils {
 		return walk.parseCommit(ref);
 	}
 
+	public boolean containsCommit(Repository repository, String revstr) {
+		try {
+			return getCommit(repository, revstr) != null;
+		} catch (IOException e) {
+			return false;
+		}
+	}
 	public byte[] showBytes(Repository repository, String revstr) throws AmbiguousObjectException, IOException {
 		ObjectId ref = repository.resolve(revstr);
 		if (ref == null) {
@@ -87,5 +97,26 @@ public class GitUtils {
 		RepositoryBuilder builder = new RepositoryBuilder();
 		builder.setGitDir(fullPath);
 		return builder.build();
+	}
+
+	/**
+	 * @param any
+	 * @param commitSha1
+	 * @return
+	 */
+	public String getTree(Repository repo, String commitSha1) {
+		try {
+			RevCommit commit = getCommit(repo, commitSha1);
+			if (commit == null) {
+				return null;
+			}
+			final RevTree tree = commit.getTree();
+			if (tree == null) {
+				return null;
+			}
+			return tree.getName();
+		} catch (IOException e) {
+			return null;
+		}
 	}
 }

@@ -20,6 +20,8 @@ If not, see <http://www.gnu.org/licenses/>.
 package org.kercoin.magrit.core.dao;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,26 +32,33 @@ import java.util.regex.Pattern;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectInserter;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.notes.Note;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.kercoin.magrit.core.Pair;
 import org.kercoin.magrit.core.build.BuildResult;
 import org.kercoin.magrit.core.utils.GitUtils;
+import org.kercoin.magrit.core.utils.TimeService;
 
 import com.google.inject.Inject;
 
 public class BuildDAOImpl implements BuildDAO {
 
 	private final GitUtils gitUtils;
-	
+	private final TimeService timeService;
+
 	@Inject
-	public BuildDAOImpl(GitUtils gitUtils) {
+	public BuildDAOImpl(GitUtils gitUtils, TimeService timeService) {
 		this.gitUtils = gitUtils;
+		this.timeService = timeService;
 	}
 
 	@Override
 	public BuildResult getLast(Repository repo, String sha1) {
-		Note note = getNote(repo, sha1);
+		Note note = readNote(repo, sha1);
 		if (note == null) return null;
 		try {
 			List<String> sha1s = parseNoteListing(gitUtils.show(repo, note.getData().getName()));
@@ -58,18 +67,6 @@ public class BuildDAOImpl implements BuildDAO {
 			return parseNote(repo, sha1, data);
 		} catch (AmbiguousObjectException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	Note getNote(Repository repository, String commitSha1) {
-		try {
-			RevCommit commit = gitUtils.getCommit(repository, commitSha1);
-			if (commit == null) return null;
-			Note note = Git.wrap(repository).notesShow().setObjectId(commit).call();
-			return note;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -118,7 +115,7 @@ public class BuildDAOImpl implements BuildDAO {
 	@Override
 	public List<BuildResult> getAll(Repository repo, String sha1) {
 		List<BuildResult> results = new ArrayList<BuildResult>();
-		Note note = getNote(repo, sha1);
+		Note note = readNote(repo, sha1);
 		if (note == null) return Collections.emptyList();
 		try {
 			List<String> sha1s = parseNoteListing(gitUtils.show(repo, note.getData().getName()));
@@ -135,6 +132,101 @@ public class BuildDAOImpl implements BuildDAO {
 		}
 		return results;
 
+	}
+
+	private static final char NL = '\n';
+	private static final Charset UTF8 = Charset.forName("UTF-8");
+
+	@Override
+	public void save(BuildResult buildResult, Repository repo, String userName, Pair<Long,Integer> when) {
+		ObjectInserter db = null;
+		try {
+			db = repo.getObjectDatabase().newInserter();
+			RevCommit commitId = gitUtils.getCommit(repo, buildResult.getCommitSha1());
+			
+			ObjectId logSha1 = writeBlob(db, buildResult.getLog());
+			String content = serializeResult(buildResult, userName, when, logSha1);
+			ObjectId resultBlobId = writeBlob(db, content.getBytes(UTF8));
+
+			String noteContent = buildNoteContent(repo, commitId, resultBlobId);
+			writeNote(repo, commitId, noteContent);
+
+			db.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (db != null) {
+				db.release();
+			}
+		}
+	}
+
+	private String buildNoteContent(Repository repo, RevCommit commitId, ObjectId resultBlobId)
+			throws AmbiguousObjectException, IOException {
+		String noteContent = serializeBuildNote(resultBlobId);
+		Note note = readNote(repo, commitId);
+		if (note != null) {
+			String previousNoteContent = gitUtils.show(repo, note.getData().name());
+			return concatenateNotes(noteContent, previousNoteContent);
+		}
+		return noteContent;
+	}
+
+	String concatenateNotes(String noteContent, String previousNoteContent) {
+		return noteContent + NL + NL + previousNoteContent;
+	}
+
+	String serializeBuildNote(ObjectId resultBlobId) {
+		return "magrit:built-by "+resultBlobId.name();
+	}
+
+	String serializeResult(BuildResult buildResult, String userName,
+			Pair<Long, Integer> when, ObjectId logSha1)
+			throws UnsupportedEncodingException {
+		StringBuilder content = new StringBuilder();
+		content.append("build ").append(buildResult.getCommitSha1()).append(NL);
+		content.append("log ").append(logSha1.name()).append(NL);
+		content.append("return-code ").append(buildResult.getExitCode()).append(NL);
+		content.append("author ").append(userName).append(NL);
+		content.append("when ").append(when.getT()).append(" ").append(timeService.offsetToString(when.getU())).append(NL);
+		return content.toString();
+	}
+
+	private Note readNote(Repository repository, String commitSha1) {
+		try {
+			RevCommit commit = gitUtils.getCommit(repository, commitSha1);
+			return readNote(repository, commit);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private Note readNote(Repository repo, RevCommit commitId) {
+		if (commitId == null || commitId.getTree() == null) {
+			return null;
+		}
+		return wrap(repo)
+				.notesShow()
+				.setObjectId(commitId.getTree()).call();
+	}
+	
+	private void writeNote(Repository repo, RevCommit commitId,
+			final String noteText) {
+		wrap(repo)
+				.notesAdd()
+				.setMessage(noteText)
+				.setObjectId(commitId.getTree())
+				.call();
+	}
+
+	private ObjectId writeBlob(ObjectInserter db, byte[] bytes)
+			throws IOException {
+		return db.insert(Constants.OBJ_BLOB, bytes);
+	}
+
+	Git wrap(Repository repo) {
+		return Git.wrap(repo);
 	}
 
 }

@@ -20,7 +20,11 @@ If not, see <http://www.gnu.org/licenses/>.
 package org.kercoin.magrit.core.build;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.kercoin.magrit.core.build.Status.*;
+import static org.kercoin.magrit.core.build.Status.ERROR;
+import static org.kercoin.magrit.core.build.Status.NEW;
+import static org.kercoin.magrit.core.build.Status.OK;
+import static org.kercoin.magrit.core.build.Status.PENDING;
+import static org.kercoin.magrit.core.build.Status.RUNNING;
 import static org.mockito.BDDMockito.given;
 
 import java.util.Arrays;
@@ -32,11 +36,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kercoin.magrit.core.Context;
-import org.kercoin.magrit.core.build.BuildResult;
-import org.kercoin.magrit.core.build.QueueServiceImpl;
-import org.kercoin.magrit.core.build.Status;
-import org.kercoin.magrit.core.build.StatusesService;
 import org.kercoin.magrit.core.build.pipeline.PipelineImpl;
+import org.kercoin.magrit.core.dao.BuildDAO;
 import org.kercoin.magrit.core.user.UserIdentity;
 import org.kercoin.magrit.core.utils.GitUtils;
 import org.kercoin.magrit.core.utils.TimeService;
@@ -59,18 +60,23 @@ public class QueueServiceImplTest {
 	
 	UserIdentity committer;
 
-	@Before
-	public void createBuildQueueServiceImpl() throws Exception {
-		context= new Context(null, null);
-		repo = GitTestsUtils.open(context, "/r1");
-		committer = new UserIdentity("ptitfred@localhost", "ptitfred");
-		
-		buildQueueServiceImpl = new QueueServiceImpl(context, timeService,
-				statusService, new PipelineImpl(context), new RepositoryGuard());
-	}
+	BuildTaskProvider buildTaskProvider;
+	@Mock BuildDAO dao;
 
 	@Before
-	public void setUp() throws Exception {
+	public void createBuildQueueServiceImpl() throws Exception {
+		context = new Context(null, null);
+		repo = GitTestsUtils.open(context, "/r1");
+		committer = new UserIdentity("ptitfred@localhost", "ptitfred");
+		PipelineImpl pipeline = new PipelineImpl(context);
+		buildTaskProvider = new BuildTaskProvider(context, new RepositoryGuard(), timeService, dao);
+		
+		buildQueueServiceImpl = new QueueServiceImpl(
+				context,
+				statusService,
+				pipeline,
+				buildTaskProvider
+			);
 	}
 
 	@Test
