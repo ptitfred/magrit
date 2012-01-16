@@ -45,10 +45,12 @@ public class GitUtils {
 		if (!remoteRepo.isBare()) {
 			dest = dest.getParentFile();
 		}
-		toConfigure.getConfig().setString("remote", name, "fetch", refSpec );
-		toConfigure.getConfig().setString("remote", name, "url", dest.getAbsolutePath());
-		// write down configuration in .git/config
-		toConfigure.getConfig().save();
+		synchronized (toConfigure) {
+			toConfigure.getConfig().setString("remote", name, "fetch", refSpec );
+			toConfigure.getConfig().setString("remote", name, "url", dest.getAbsolutePath());
+			// write down configuration in .git/config
+			toConfigure.getConfig().save();
+		}
 	}
 
 	public RevCommit getCommit(Repository repo, String revstr)
