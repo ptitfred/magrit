@@ -29,15 +29,14 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.InvalidRefNameException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.kercoin.magrit.core.Context;
 import org.kercoin.magrit.core.Pair;
 import org.kercoin.magrit.core.build.pipeline.CriticalResource;
@@ -84,45 +83,19 @@ public class BuildTask implements Task<BuildResult> {
 
 	@Override
 	public BuildResult call() throws Exception {
-		if (this.repository.isBare()) {
-			throw new IllegalArgumentException(
-					"Repository is bare, can't build on this.");
-		}
-
-		ObjectId commitId = this.repository.resolve(target.getU());
-		if (commitId == null) {
-			throw new IllegalArgumentException(
-					String.format(
-							"Supplied sha1 %s doesn't match any commit the repository %s",
-							target.getU(), repository.getDirectory()));
-		}
+		checkRequest();
+		enforceCommitFromRequestInBuildRepository();
 
 		ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-
-		RevWalk walk = new RevWalk(repository);
-		try {
-			commit = walk.parseCommit(commitId);
-		} catch (MissingObjectException e) {
-			gitUtils.addRemote(this.repository, "magrit", this.remote);
-			Git.wrap(this.repository).fetch().setRemote("magrit").call();
-			commit = walk.parseCommit(commitId);
-		}
-
-		if (!this.repository.getRepositoryState().canCheckout()) {
-			throw new IllegalStateException(String.format(
-					"Can't checkout on this repository %s", this.repository
-					.getDirectory().getAbsolutePath()));
-		}
+		PrintStream printOut = new PrintStream(stdout);
 
 		BuildResult buildResult = new BuildResult(this.target.getU());
 		try {
 			buildResult.setStartDate(new Date());
 
-			PrintStream printOut = new PrintStream(stdout);
 			checkout(printOut);
 
 			int exitCode = build(stdout, printOut);
-			
 			endOfTreatment(buildResult, exitCode, true);
 			return buildResult;
 		} catch (ExecuteException ex) {
@@ -131,6 +104,47 @@ public class BuildTask implements Task<BuildResult> {
 		} finally {
 			buildResult.setLog(stdout.toByteArray());
 			writeToRepository(buildResult);
+		}
+	}
+
+	private void enforceCommitFromRequestInBuildRepository()
+			throws IncorrectObjectTypeException, AmbiguousObjectException,
+			IOException, InvalidRemoteException, Exception {
+		try {
+			commit = gitUtils.getCommit(repository, target.getU());
+		} catch (MissingObjectException e) {
+			gitUtils.addRemote(this.repository, "magrit", this.remote);
+			gitUtils.fetch(this.repository, "magrit");
+			try {
+				commit = gitUtils.getCommit(repository, target.getU());
+			} catch (MissingObjectException e2) {
+				throw new Exception(
+						String.format(
+							"Can't find the commit %s in the repository %s, even after a fresh fetch.",
+							target.getU(), repository.getDirectory()
+						)
+					);
+			}
+		}
+	}
+
+	private void checkRequest() {
+		if (this.repository.isBare()) {
+			throw new IllegalArgumentException(
+					"Repository is bare, can't build on this.");
+		}
+
+		if (!gitUtils.containsCommit(this.repository, target.getU())) {
+			throw new IllegalArgumentException(
+					String.format(
+							"Supplied sha1 %s doesn't match any commit the repository %s",
+							target.getU(), repository.getDirectory()));
+		}
+
+		if (!this.repository.getRepositoryState().canCheckout()) {
+			throw new IllegalStateException(String.format(
+					"Can't checkout on this repository %s", this.repository
+					.getDirectory().getAbsolutePath()));
 		}
 	}
 
@@ -151,14 +165,7 @@ public class BuildTask implements Task<BuildResult> {
 		String sha1 = commit.getName();
 		String branchName = "magrit/build/" + sha1;
 		printOut.println(String.format("Checking out sha1 %s as %s", sha1, branchName));
-		try {
-			Git.wrap(repository).checkout()
-			.setCreateBranch(true)
-			.setName(branchName)
-			.setStartPoint(commit).call();
-		} catch (RefAlreadyExistsException e) {
-			// It's ok!
-		}
+		gitUtils.checkoutAsBranch(repository, sha1, branchName);
 	}
 
 	void endOfTreatment(BuildResult buildResult, int exitCode, boolean success) {

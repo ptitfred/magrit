@@ -23,6 +23,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.InvalidRefNameException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -54,13 +60,21 @@ public class GitUtils {
 		}
 	}
 
+	public void fetch(Repository repository, String remote) throws JGitInternalException, InvalidRemoteException {
+		Git.wrap(repository).fetch().setRemote(remote).call();
+	}
+
 	public RevCommit getCommit(Repository repo, String revstr)
 			throws MissingObjectException, IncorrectObjectTypeException,
 			AmbiguousObjectException, IOException {
-		RevWalk walk = new RevWalk(repo);
 		ObjectId ref = repo.resolve(revstr);
 		if (ref==null) return null;
-		return walk.parseCommit(ref);
+		RevWalk walk = new RevWalk(repo);
+		try {
+			return walk.parseCommit(ref);
+		} finally {
+			walk.dispose();
+		}
 	}
 
 	public boolean containsCommit(Repository repository, String revstr) {
@@ -70,6 +84,7 @@ public class GitUtils {
 			return false;
 		}
 	}
+
 	public byte[] showBytes(Repository repository, String revstr) throws AmbiguousObjectException, IOException {
 		ObjectId ref = repository.resolve(revstr);
 		if (ref == null) {
@@ -99,11 +114,6 @@ public class GitUtils {
 		return builder.build();
 	}
 
-	/**
-	 * @param any
-	 * @param commitSha1
-	 * @return
-	 */
 	public String getTree(Repository repo, String commitSha1) {
 		try {
 			RevCommit commit = getCommit(repo, commitSha1);
@@ -117,6 +127,17 @@ public class GitUtils {
 			return tree.getName();
 		} catch (IOException e) {
 			return null;
+		}
+	}
+
+	public void checkoutAsBranch(Repository repository, String commitSha1,
+			String branchName) throws RefNotFoundException,
+			InvalidRefNameException {
+		try {
+			Git.wrap(repository).checkout().setCreateBranch(true)
+					.setName(branchName).setStartPoint(commitSha1).call();
+		} catch (RefAlreadyExistsException e) {
+			// It's ok!
 		}
 	}
 }
