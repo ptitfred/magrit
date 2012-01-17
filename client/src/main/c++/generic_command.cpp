@@ -24,7 +24,8 @@
 
 /////////////////////////////////////////////////////////////////////////
 void
-generic_command::run ( const std::vector<std::string>& arguments ) const
+generic_command::run
+  ( const std::vector<std::string>& arguments ) const
 {
   namespace bpo = boost::program_options;
 
@@ -46,14 +47,17 @@ generic_command::run ( const std::vector<std::string>& arguments ) const
 
   bpo::notify ( vm );
 
-  process_parsed_options ( arguments, vm );
+  // The logic of commands is implemented from here on:
 
-  process_unregistered_options ( arguments, parsed.options, vm );
+  if ( !process_subcommands ( arguments, parsed.options, vm))
+  {
+    process_parsed_options ( arguments, vm );
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////
-void
-generic_command::process_unregistered_options
+bool
+generic_command::process_subcommands
 (
   const std::vector<std::string>& arguments,
   const std::vector< boost::program_options::basic_option<char> >&
@@ -64,61 +68,38 @@ const
 {
   namespace bpo = boost::program_options;
 
-  std::vector<std::string> unregistered
-    = bpo::collect_unrecognized ( options, bpo::include_positional );
+  auto subcommand = first_command ( arguments );
 
-  auto subcommand = first_command ( unregistered );
-
-  if ( get_subcommands().size() == 0 && subcommand == unregistered.end() )
+  if ( get_subcommands().size() == 0 && subcommand == arguments.end() )
   {
     // No unprocessed arguments. We stop rambling.
   }
-  else if ( get_subcommands().size() != 0 && subcommand != unregistered.end() )
+  else if ( get_subcommands().size() != 0 && subcommand != arguments.end() )
   {
     // Still arguments to be processed by a subcommand
     auto subcmd_it = get_subcommand ( *subcommand );
 
     if ( subcmd_it != get_subcommands().end() )
     {
-      (*subcmd_it)->run ( arguments );
+      (*subcmd_it)->run ( remove_argument ( arguments, *subcommand ) );
     }
   } 
-  else if ( get_subcommands().size() != 0 && subcommand == unregistered.end() )
+  else if ( get_subcommands().size() != 0 && subcommand == arguments.end() )
   {
     // Expected a subcommand and no extra arguments passed:
-    // up to the specific command to print help or
-    // do any action.
+    // up to the specific command to print help or do any
+    // action if the command can be called without subcommands too.
   }
   else
   {
     // Extra arguments passed but none was expected
-    // ( get_subcommands().size() == 0 && subcommand != unregistered.end() )
+    // ( get_subcommands().size() == 0 && subcommand != arguments.end() )
     throw OptionNotRecognized
-          ( 
-            join<std::string>
-            (
-              " ",
-              unregistered.begin(),
-              unregistered.end()
-            ) 
-          ); 
+      ( join<std::string> ( " ", arguments.begin(), arguments.end() ) );
   }
-}
 
-
-/////////////////////////////////////////////////////////////////////////
-std::vector<sh_ptr<generic_command>>::const_iterator
-generic_command::get_subcommand ( const std::string& name ) const
-{
-  return std::find_if
-  (
-    get_subcommands().begin(),
-    get_subcommands().end(),
-    [&] ( sh_ptr<generic_command> cmd )
-    {
-      return cmd->get_name() == name;
-    }
-  );
+  // Only if we processed any command
+  return get_subcommands().size() != 0 && subcommand != arguments.end();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -159,6 +140,21 @@ const
     std::cout << "Version 0.0.1" << std::endl;
     throw DoNotContinue();
   }
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::vector<sh_ptr<generic_command>>::const_iterator
+generic_command::get_subcommand ( const std::string& name ) const
+{
+  return std::find_if
+  (
+    get_subcommands().begin(),
+    get_subcommands().end(),
+    [&] ( sh_ptr<generic_command> cmd )
+    {
+      return cmd->get_name() == name;
+    }
+  );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -238,6 +234,21 @@ void generic_command::print_help_subcommands_description () const
                 << cmd->get_description() << std::endl;
     }
   );
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::vector<std::string> generic_command::remove_argument
+  ( const std::vector<std::string>& arguments, const std::string& arg ) const
+{
+  std::vector<std::string> output;
+
+  std::remove_copy_if
+  (
+    arguments.begin(), arguments.end(), std::back_inserter(output),
+    [&arg](const std::string& current) { return current == arg; }
+  );
+
+  return output;
 }
 
 /////////////////////////////////////////////////////////////////////////

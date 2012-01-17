@@ -43,8 +43,14 @@ struct magrit : public generic_command
   const char* get_description() const override;
 
   /**
-   * @see generic_command::run
+   * @see generic_command::process_parsed_options
    */
-   void run ( const std::vector<std::string>& arguments ) const override;
+  void
+  process_parsed_options
+  (
+    const std::vector<std::string>& arguments,
+    const boost::program_options::variables_map& vm
+  )
+  const override;
 };
 #endif

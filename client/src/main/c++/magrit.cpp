@@ -51,7 +51,13 @@ const char* magrit::get_description() const
 }
 
 /////////////////////////////////////////////////////////////////////////
-void magrit::run ( const std::vector<std::string>& arguments ) const
+void
+magrit::process_parsed_options
+(
+  const std::vector<std::string>& arguments,
+  const boost::program_options::variables_map& vm
+)
+const
 {
   if ( arguments.size() == 0 )
   {
@@ -59,6 +65,6 @@ void magrit::run ( const std::vector<std::string>& arguments ) const
   }
   else
   {
-    generic_command::run ( arguments );
+    generic_command::process_parsed_options ( arguments, vm );
   }
 }
