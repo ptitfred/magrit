@@ -27,30 +27,32 @@
 #include <vector>
 /////////////////////////////////////////////////////////////////////////
 
-struct magrit : public generic_command
+namespace magrit
 {
+  struct magrit : public generic_command
+  {
+    magrit ();
 
-  magrit ();
+    /**
+     * @see generic_command::get_name
+     */
+    const char* get_name() const override;
 
-  /**
-   * @see generic_command::get_name
-   */
-  const char* get_name() const override;
+    /**
+     * @see generic_command::get_description
+     */
+    const char* get_description() const override;
 
-  /**
-   * @see generic_command::get_description
-   */
-  const char* get_description() const override;
-
-  /**
-   * @see generic_command::process_parsed_options
-   */
-  void
-  process_parsed_options
-  (
-    const std::vector<std::string>& arguments,
-    const boost::program_options::variables_map& vm
-  )
-  const override;
+    /**
+     * @see generic_command::process_parsed_options
+     */
+    void
+    process_parsed_options
+    (
+      const std::vector<std::string>& arguments,
+      const boost::program_options::variables_map& vm
+    )
+    const override;
+  };
 };
 #endif

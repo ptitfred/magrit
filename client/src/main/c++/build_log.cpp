@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-log::get_name() const
+magrit::log::get_name() const
 {
   return "log"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* log::get_description() const
+const char* magrit::log::get_description() const
 {
   return "prints the log of builds";
 }

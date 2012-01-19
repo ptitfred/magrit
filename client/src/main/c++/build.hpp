@@ -24,17 +24,21 @@
 #include "generic_command.hpp"
 ///////////////////////////////////////////////////////////////////////////
 
-struct build : public generic_command
+namespace magrit
 {
-  /**
-   * @see generic_command::get_name
-   */
-  const char* get_name() const override;
+  struct build : public generic_command
+  {
+    build();
 
-  /**
-   * @see generic_command::get_description
-   */
-  const char* get_description() const override;
+    /**
+     * @see generic_command::get_name
+     */
+    const char* get_name() const override;
+
+    /**
+     * @see generic_command::get_description
+     */
+    const char* get_description() const override;
+  };
 };
-
 #endif

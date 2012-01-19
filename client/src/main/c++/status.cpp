@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-status::get_name() const
+magrit::status::get_name() const
 {
   return "status"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* status::get_description() const
+const char* magrit::status::get_description() const
 {
   return "<description to be written>";
 }

@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-config_add::get_name() const
+magrit::config_add::get_name() const
 {
   return "add"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* config_add::get_description() const
+const char* magrit::config_add::get_description() const
 {
   return "Adds a new repo";
 }

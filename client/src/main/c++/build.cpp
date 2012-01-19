@@ -20,17 +20,27 @@
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
 #include "build.hpp"
+#include "build_send.hpp"
+#include "build_log.hpp"
+#include "utils.hpp"
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
+magrit::build::build()
+{
+  _subcommands.push_back ( sh_ptr<generic_command> ( new send() ) );
+  //_subcommands.push_back ( sh_ptr<generic_command> ( new log() ) );
+}
+
+/////////////////////////////////////////////////////////////////////////
 const char*
-build::get_name() const
+magrit::build::get_name() const
 {
   return "build"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* build::get_description() const
+const char* magrit::build::get_description() const
 {
   return "<description to be written>";
 }

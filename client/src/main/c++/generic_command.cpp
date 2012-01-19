@@ -24,45 +24,39 @@
 
 /////////////////////////////////////////////////////////////////////////
 void
-generic_command::run
+magrit::generic_command::run
   ( const std::vector<std::string>& arguments ) const
 {
   namespace bpo = boost::program_options;
 
-  bpo::variables_map vm;
-
-  bpo::options_description
-    parent_options_desc ("");
-
-  parent_options_desc
-    .add ( create_options() );
-
-  bpo::parsed_options parsed =
-    bpo::command_line_parser( arguments )
-      .options ( parent_options_desc )
-      .allow_unregistered()
-      .run ();
-
-  bpo::store ( parsed, vm );
-
-  bpo::notify ( vm );
-
-  // The logic of commands is implemented from here on:
-
-  if ( !process_subcommands ( arguments, parsed.options, vm))
+  if ( !process_subcommands ( arguments ) )
   {
+    bpo::variables_map vm;
+
+    bpo::options_description
+      parent_options_desc ("");
+
+    parent_options_desc
+      .add ( create_options() );
+
+    bpo::parsed_options parsed =
+      bpo::command_line_parser( arguments )
+        .options ( parent_options_desc )
+        .run ();
+
+    bpo::store ( parsed, vm );
+
+    bpo::notify ( vm );
+
     process_parsed_options ( arguments, vm );
   }
 }
 
 /////////////////////////////////////////////////////////////////////////
 bool
-generic_command::process_subcommands
+magrit::generic_command::process_subcommands
 (
-  const std::vector<std::string>& arguments,
-  const std::vector< boost::program_options::basic_option<char> >&
-    options,
-  const boost::program_options::variables_map& vm
+  const std::vector<std::string>& arguments
 )
 const
 {
@@ -94,7 +88,9 @@ const
   {
     // Extra arguments passed but none was expected
     // ( get_subcommands().size() == 0 && subcommand != arguments.end() )
-    throw OptionNotRecognized
+    print_help();
+
+    throw option_not_recognized
       ( join<std::string> ( " ", arguments.begin(), arguments.end() ) );
   }
 
@@ -104,7 +100,7 @@ const
 
 /////////////////////////////////////////////////////////////////////////
 void
-generic_command::process_parsed_options
+magrit::generic_command::process_parsed_options
 (
   const std::vector<std::string>& arguments,
   const boost::program_options::variables_map& vm
@@ -115,7 +111,7 @@ const
   {
     print_help ();
 
-    throw DoNotContinue();
+    throw do_not_continue();
   }
   else if ( vm.count("version") )
   {
@@ -138,13 +134,13 @@ const
 
     std::cout << LICENSE << std::endl;
     std::cout << "Version 0.0.1" << std::endl;
-    throw DoNotContinue();
+    throw do_not_continue();
   }
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector<sh_ptr<generic_command>>::const_iterator
-generic_command::get_subcommand ( const std::string& name ) const
+std::vector<sh_ptr<magrit::generic_command>>::const_iterator
+magrit::generic_command::get_subcommand ( const std::string& name ) const
 {
   return std::find_if
   (
@@ -159,7 +155,7 @@ generic_command::get_subcommand ( const std::string& name ) const
 
 /////////////////////////////////////////////////////////////////////////
 boost::program_options::options_description
-generic_command::create_options () const 
+magrit::generic_command::create_options () const 
 {
   namespace bpo = boost::program_options;
 
@@ -174,55 +170,48 @@ generic_command::create_options () const
 }
 
 /////////////////////////////////////////////////////////////////////////
-const std::vector< sh_ptr<generic_command>>&
-generic_command::get_subcommands() const
+const std::vector< sh_ptr<magrit::generic_command>>&
+magrit::generic_command::get_subcommands() const
 {
   return _subcommands;
 }
 
 /////////////////////////////////////////////////////////////////////////
-void generic_command::print_help () const
+void magrit::generic_command::print_help () const
 {
   using namespace std;
 
   cout << "Use: " << get_name() << " <options> ";
 
-  print_help_subcommands ();
+  if ( get_subcommands().size() > 0 )
+  {
+    cout << (
+              (get_subcommands().size() > 0)?
+                "[command] <subcommand arguments>"
+                :
+                ""
+            )
+         << endl << endl;
 
-  cout << ((get_subcommands().size() > 0)? " <subcommand arguments>":"") << endl << endl;
+    cout << "Commands:" << endl << endl;
 
-  cout << "Commands:" << endl << endl;
+    print_help_subcommands_description ();
 
-  print_help_subcommands_description ();
+    cout << endl;
 
-  cout << endl;
-
-  cout << "For subcommand's arguments help, ";
-  cout << "call the desired subcommand with --help" << endl << endl;
+    cout << "For subcommand's arguments help, ";
+    cout << "call the desired subcommand with --help" << endl << endl;
+  }
+  else
+  {
+    cout << endl << endl;
+  }
 
   cout <<  create_options() ;
 }
 
 /////////////////////////////////////////////////////////////////////////
-void generic_command::print_help_subcommands () const
-{
-  // join template capture list was not liking the "::" ?
-  using namespace std;
-
-  join<string,vector<sh_ptr<generic_command> > >
-  (
-    "|",
-    get_subcommands(),
-    ostream_iterator<string>( cout ),
-    []( sh_ptr<generic_command> cmd ) -> string
-    {
-      return cmd->get_name(); 
-    }
-  );
-}
-
-/////////////////////////////////////////////////////////////////////////
-void generic_command::print_help_subcommands_description () const
+void magrit::generic_command::print_help_subcommands_description () const
 {
   std::for_each
   (
@@ -237,7 +226,7 @@ void generic_command::print_help_subcommands_description () const
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector<std::string> generic_command::remove_argument
+std::vector<std::string> magrit::generic_command::remove_argument
   ( const std::vector<std::string>& arguments, const std::string& arg ) const
 {
   std::vector<std::string> output;
@@ -253,7 +242,7 @@ std::vector<std::string> generic_command::remove_argument
 
 /////////////////////////////////////////////////////////////////////////
 std::vector<std::string>::const_iterator
-generic_command::first_command ( const std::vector<std::string>& arguments )
+magrit::generic_command::first_command ( const std::vector<std::string>& arguments )
 const
 {
   return find_if ( 

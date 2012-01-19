@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-share::get_name() const
+magrit::share::get_name() const
 {
   return "share"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* share::get_description() const
+const char* magrit::share::get_description() const
 {
   return "<description to be written>";
 }

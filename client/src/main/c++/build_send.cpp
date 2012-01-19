@@ -24,14 +24,14 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-send::get_name() const
+magrit::send::get_name() const
 {
   return "send"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* send::get_description() const
+const char* magrit::send::get_description() const
 {
-  return "sends a new build";
+  return "<description to be written>";
 }
 

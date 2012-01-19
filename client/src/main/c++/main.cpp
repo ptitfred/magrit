@@ -27,7 +27,7 @@
 
 int main ( int argc, char** argv )
 {
-  magrit ma;
+  magrit::magrit ma;
 
   try
   {
@@ -37,16 +37,16 @@ int main ( int argc, char** argv )
    
     ma.run ( arguments );
   }
-  catch ( const DoNotContinue& e )
+  catch ( const magrit::do_not_continue& e )
   {
   }
-  catch ( const OptionNotRecognized& e )
+  catch ( const magrit::option_not_recognized& e )
   {
-    std::cerr << "Unknown option '" << e.what() << "'" << std::endl;
+    std::cerr << "Unknown args '" << e.what() << "'" << std::endl;
   }
   catch ( boost::program_options::unknown_option& e )
   {
-    std::cerr << "Unknown option (boost::program_options::unknown_option) '" << e.get_option_name() << "'" << std::endl;
+    std::cerr << "Unknown option '" << e.get_option_name() << "'" << std::endl;
   }
   catch ( std::exception& e )
   {

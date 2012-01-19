@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-config::get_name() const
+magrit::config::get_name() const
 {
   return "config"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* config::get_description() const
+const char* magrit::config::get_description() const
 {
   return "<description to be written>";
 }

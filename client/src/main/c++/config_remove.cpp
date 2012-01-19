@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-config_remove::get_name() const
+magrit::config_remove::get_name() const
 {
   return "rm"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* config_remove::get_description() const
+const char* magrit::config_remove::get_description() const
 {
   return "Removes an existing repo from magrit's config";
 }

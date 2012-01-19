@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-config_use::get_name() const
+magrit::config_use::get_name() const
 {
   return "rm"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* config_use::get_description() const
+const char* magrit::config_use::get_description() const
 {
   return "Tells magrit to start using the given repo";
 }

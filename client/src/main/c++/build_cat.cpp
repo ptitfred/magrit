@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-cat::get_name() const
+magrit::cat::get_name() const
 {
   return "cat"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* cat::get_description() const
+const char* magrit::cat::get_description() const
 {
   return "<to be written>";
 }

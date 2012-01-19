@@ -35,162 +35,161 @@
 #include <iterator>
 /////////////////////////////////////////////////////////////////////////
 
-struct DoNotContinue
+namespace magrit
 {
-};
 
-struct OptionNotRecognized : public std::runtime_error
-{
-  OptionNotRecognized (const std::string& what)
-    : std::runtime_error ( what )
+  struct do_not_continue 
   {
-  }
-};
+  };
 
-/**
- * Base class for all magrit commands.
- */
-class generic_command
-{
-  public:
+  struct option_not_recognized : public std::runtime_error
+  {
+    option_not_recognized (const std::string& what)
+      : std::runtime_error ( what )
+    {
+    }
+  };
 
-    /**
-     * @name Main methods you will have to redefine.
-     */
-    ///@{
+  /**
+   * Base class for all magrit commands.
+   */
+  class generic_command
+  {
+    public:
 
-    /**
-     * Name of the command as it appears in the command line.
-     *
-     * @return Name of the command.
-     */
-    virtual const char* get_name() const = 0;
+      /**
+       * @name Main methods you will have to redefine.
+       */
+      ///@{
+      /**
+       * Name of the command as it appears in the command line.
+       *
+       * @return Name of the command.
+       */
+      virtual const char* get_name() const = 0;
 
-    /**
-     * Returns the description of the command.
-     */
-    virtual const char* get_description() const = 0;
-    ///@}
+      /**
+       * Returns the description of the command.
+       */
+      virtual const char* get_description() const = 0;
 
-  public:
+      /**
+       * @name These ones are not mandatory but reasonable
+       *       defaults are provided. 
+       */
+      ///@{
+      /**
+       * Defines the command line options used by this command. Redefine
+       * in the subclass to tailor to your need. Call this method in your
+       * subclass if you want to have access to --help and --version switches.
+       *
+       * @return bpo::options_description
+       */
+      virtual boost::program_options::options_description
+      create_options () const;
+      ///@}
+      ///@}
 
-    /**
-     * Runs the command. The default behavior is to parse the command line
-     * supplied and pass the parsed command line to
-     * generic_command::process_parsed_options and
-     * generic_command::process_subcommands. You won't probably want
-     * to redefine this.
-     *
-     * @throws bpo::unknown_option if one of the
-     *         given command line switches is not allowed.
-     */
-    virtual void run ( const std::vector<std::string>& arguments ) const;
+    public:
+
+      /**
+       * Runs the command. The default behavior is to parse the command line
+       * supplied and pass the parsed command line to
+       * generic_command::process_parsed_options and
+       * generic_command::process_subcommands. You won't probably want
+       * to redefine this.
+       *
+       * @throws bpo::unknown_option if one of the
+       *         given command line switches is not allowed.
+       */
+      virtual void run ( const std::vector<std::string>& arguments ) const;
 
 
-  protected:
+    protected:
 
-    /**
-     * @name You can redefine these methods if you want to do
-     *       something useful. generic_command::run() is the top-most
-     *       method and it calls generic_command::process_parsed_options
-     *       and generic_command::process_subcommands.
-     *       You'll probably want to redefine the process_parsed_options
-     *       methods instead of ::run and ::process_subcommands.
-     */
-    ///@{
-    /**
-     * The supplied variables_map contains correctly parsed
-     * variables. You will probably want to redefine this method,
-     * by default it only processes generic_command::create_options
-     * options.
-     *
-     * @throw DoNotContinue If a switch parsed doesn't require
-     *        further action (e.g.: --help, --version ). 
-     */
-    virtual void
-    process_parsed_options
-    (
-      const std::vector<std::string>& arguments,
-      const boost::program_options::variables_map& vm
-    )
-    const;
+      /**
+       * @name You can redefine these methods if you want to do
+       *       something useful. generic_command::run() is the top-most
+       *       method and it calls generic_command::process_parsed_options
+       *       and generic_command::process_subcommands.
+       *       You'll probably want to redefine the process_parsed_options
+       *       methods instead of ::run and ::process_subcommands.
+       */
+      ///@{
+      /**
+       * The supplied variables_map contains correctly parsed
+       * variables. You will probably want to redefine this method,
+       * by default it only processes generic_command::create_options
+       * options.
+       *
+       * @throw DoNotContinue If a switch parsed doesn't require
+       *        further action (e.g.: --help, --version ). 
+       */
+      virtual void
+      process_parsed_options
+      (
+        const std::vector<std::string>& arguments,
+        const boost::program_options::variables_map& vm
+      )
+      const;
+      ///@}
+   
+    protected:
 
-    /**
-     * Defines the command line options used by this command. Redefine
-     * in the subclass to tailor to your need. Call this method in your
-     * subclass if you want to have access to --help and --version switches.
-     *
-     * @return bpo::options_description
-     */
-    virtual boost::program_options::options_description
-    create_options () const;
+      /**
+       * Processes positional options. By default dispatches the
+       * subcommands. 
+       */
+      virtual bool 
+      process_subcommands
+      ( const std::vector<std::string>& arguments ) const; 
 
-    /**
-     * Subcommands implemented by the command. Empty vector by default.
-     */
-    virtual const std::vector< sh_ptr<generic_command>>&
-    get_subcommands() const;
-    ///@}
- 
-  protected:
+      /**
+       * Subcommands implemented by the command. Empty vector by default.
+       */
+      virtual const std::vector< sh_ptr<generic_command>>&
+      get_subcommands() const;
 
-    /**
-     * Processes positional options. By default dispatches the
-     * subcommands. 
-     */
-    virtual bool 
-    process_subcommands
-    (
-      const std::vector<std::string>& arguments,
-      const std::vector< boost::program_options::basic_option<char> >&
-        options,
-      const boost::program_options::variables_map& vm
-    ) const;
+      /**
+       * Prints the help notice.
+       */
+      virtual void print_help () const;
 
-    /**
-     * Prints the help notice.
-     */
-    virtual void print_help () const;
+    private:
 
-  private:
+      /**
+       * Returns an iterator to the first command in the arguments
+       * vector or end() if none.
+       *
+       * @param arguments Vector of command line arguments.
+       * @return iterator to the first command or end() if none.
+       */
+      std::vector<std::string>::const_iterator
+      first_command ( const std::vector<std::string>& arguments ) const;
 
-    /**
-     * Returns an iterator to the first command in the arguments
-     * vector or end() if none.
-     *
-     * @param arguments Vector of command line arguments.
-     * @return iterator to the first command or end() if none.
-     */
-    std::vector<std::string>::const_iterator
-    first_command ( const std::vector<std::string>& arguments ) const;
+      /**
+       * Removes the given argument from the list of arguments. Returns
+       * the result as a new vector.
+       */
+      std::vector<std::string> remove_argument
+        ( const std::vector<std::string>& arguments, const std::string& arg )
+      const;
 
-    /**
-     * Removes the given argument from the list of arguments. Returns
-     * the result as a new vector.
-     */
-    std::vector<std::string> remove_argument
-      ( const std::vector<std::string>& arguments, const std::string& arg )
-    const;
+      /**
+       * Returns the subcommand with the given name or
+       * end() if none exists.
+       */
+      std::vector< sh_ptr<generic_command>>::const_iterator
+      get_subcommand ( const std::string& name ) const;
 
-    /**
-     * Returns the subcommand with the given name or
-     * end() if none exists.
-     */
-    std::vector< sh_ptr<generic_command>>::const_iterator
-    get_subcommand ( const std::string& name ) const;
+      /**
+       * Prints the help notice.
+       */
+      virtual void print_help_subcommands_description () const;
 
-    /**
-     * Prints the help notice.
-     */
-    virtual void print_help_subcommands () const;
+    protected:
 
-    /**
-     * Prints the help notice.
-     */
-    virtual void print_help_subcommands_description () const;
-
-  protected:
-
-    std::vector<sh_ptr<generic_command>> _subcommands;
+      std::vector<sh_ptr<generic_command>> _subcommands;
+  };
 };
 #endif

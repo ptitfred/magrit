@@ -24,13 +24,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-monitor::get_name() const
+magrit::monitor::get_name() const
 {
   return "monitor"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* monitor::get_description() const
+const char* magrit::monitor::get_description() const
 {
   return "<description to be written>";
 }

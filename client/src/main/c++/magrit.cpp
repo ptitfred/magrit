@@ -28,7 +28,7 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
-magrit::magrit ()
+magrit::magrit::magrit ()
 {
   _subcommands.push_back ( sh_ptr<generic_command>( new build() ) );
   _subcommands.push_back ( sh_ptr<generic_command>( new config() ) );
@@ -39,20 +39,20 @@ magrit::magrit ()
 
 /////////////////////////////////////////////////////////////////////////
 const char*
-magrit::get_name() const
+magrit::magrit::get_name() const
 {
   return "magrit"; 
 } 
 
 /////////////////////////////////////////////////////////////////////////
-const char* magrit::get_description() const
+const char* magrit::magrit::get_description() const
 {
   return "Command-line client for Magrit build system";
 }
 
 /////////////////////////////////////////////////////////////////////////
 void
-magrit::process_parsed_options
+magrit::magrit::process_parsed_options
 (
   const std::vector<std::string>& arguments,
   const boost::program_options::variables_map& vm
