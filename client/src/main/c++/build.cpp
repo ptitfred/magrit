@@ -29,7 +29,7 @@
 magrit::build::build()
 {
   _subcommands.push_back ( sh_ptr<generic_command> ( new send() ) );
-  //_subcommands.push_back ( sh_ptr<generic_command> ( new log() ) );
+  _subcommands.push_back ( sh_ptr<generic_command> ( new log() ) );
 }
 
 /////////////////////////////////////////////////////////////////////////

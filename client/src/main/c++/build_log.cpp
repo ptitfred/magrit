@@ -32,7 +32,7 @@ magrit::log::get_name() const
 /////////////////////////////////////////////////////////////////////////
 const char* magrit::log::get_description() const
 {
-  return "prints the log of builds";
+  return "<description to be written>";
 }
 
 

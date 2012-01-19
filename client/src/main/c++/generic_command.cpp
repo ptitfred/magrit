@@ -21,6 +21,9 @@
 // MAGRIT 
 #include "generic_command.hpp"
 /////////////////////////////////////////////////////////////////////////
+// STD 
+#include <iomanip>
+/////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
 void
@@ -219,8 +222,8 @@ void magrit::generic_command::print_help_subcommands_description () const
     get_subcommands().end(),
     [] ( sh_ptr<generic_command> cmd )
     {
-      std::cout << "  " << cmd->get_name() << "  \t "
-                << cmd->get_description() << std::endl;
+      std::cout << "  " << std::setw (10) << cmd->get_name() 
+                << "\t" << cmd->get_description() << std::endl;
     }
   );
 }

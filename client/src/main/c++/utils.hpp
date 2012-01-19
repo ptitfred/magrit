@@ -25,6 +25,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <iosfwd>
 /////////////////////////////////////////////////////////////////////////
 
 #define GCC_VERSION (__GNUC__ * 10000 \
@@ -169,4 +170,10 @@ join
     }
   );
 }
+
+/*std::ostream& pad ( const char* input, uint length )
+{
+  
+  return os;
+}*/
 #endif
