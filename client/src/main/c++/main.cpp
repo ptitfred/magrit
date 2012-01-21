@@ -31,10 +31,8 @@ int main ( int argc, char** argv )
 
   try
   {
-    std::vector<std::string> arguments;
+    std::vector<std::string> arguments ( argv, argv+argc );
 
-    std::copy ( argv+1, argv+argc, std::back_inserter(arguments) );
-   
     ma.run ( arguments );
   }
   catch ( const magrit::do_not_continue& e )
@@ -46,10 +44,11 @@ int main ( int argc, char** argv )
   }
   catch ( boost::program_options::unknown_option& e )
   {
-    std::cerr << "Unknown option '" << e.get_option_name() << "'" << std::endl;
+    std::cerr << "Unknown option '" << e.get_option_name()
+              << "'" << std::endl;
   }
   catch ( std::exception& e )
   {
-    std::cerr << "Error: " << e.what() << "'" << std::endl;
+    std::cerr << "Error: '" << e.what() << "'" << std::endl;
   }
 }

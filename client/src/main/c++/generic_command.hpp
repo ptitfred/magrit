@@ -57,6 +57,8 @@ namespace magrit
   {
     public:
 
+      generic_command();
+
       /**
        * @name Main methods you will have to redefine.
        */
@@ -85,8 +87,8 @@ namespace magrit
        *
        * @return bpo::options_description
        */
-      virtual boost::program_options::options_description
-      create_options () const;
+      virtual const boost::program_options::options_description&
+      get_options () const;
       ///@}
       ///@}
 
@@ -104,6 +106,13 @@ namespace magrit
        */
       virtual void run ( const std::vector<std::string>& arguments ) const;
 
+      /**
+       * Implementation of run().
+       */
+      virtual bool run_impl
+      ( 
+        const std::vector<std::string>& arguments, boost::program_options::variables_map& vm
+      ) const;
 
     protected:
 
@@ -137,14 +146,6 @@ namespace magrit
     protected:
 
       /**
-       * Processes positional options. By default dispatches the
-       * subcommands. 
-       */
-      virtual bool 
-      process_subcommands
-      ( const std::vector<std::string>& arguments ) const; 
-
-      /**
        * Subcommands implemented by the command. Empty vector by default.
        */
       virtual const std::vector< sh_ptr<generic_command>>&
@@ -171,7 +172,7 @@ namespace magrit
        * Removes the given argument from the list of arguments. Returns
        * the result as a new vector.
        */
-      std::vector<std::string> remove_argument
+      std::vector<std::string> remove_subcommand_first
         ( const std::vector<std::string>& arguments, const std::string& arg )
       const;
 
@@ -183,11 +184,25 @@ namespace magrit
       get_subcommand ( const std::string& name ) const;
 
       /**
+       * Returns if the given arguments matches the options
+       * of the current command. vm is written with the
+       * parsed options.
+       */
+      bool
+      matches
+      ( 
+        const std::vector<std::string>& arguments,
+        boost::program_options::variables_map& vm
+      ) const;
+
+      /**
        * Prints the help notice.
        */
       virtual void print_help_subcommands_description () const;
 
     protected:
+
+      boost::program_options::options_description options;
 
       std::vector<sh_ptr<generic_command>> _subcommands;
   };

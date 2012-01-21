@@ -26,79 +26,118 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
+magrit::generic_command::generic_command() : options ( "" )
+{
+  namespace bpo = boost::program_options;
+
+  options.add_options()
+    ("help,h", "produces this help message")
+    ("version,v", "version of the application");
+}
+
+/////////////////////////////////////////////////////////////////////////
 void
 magrit::generic_command::run
   ( const std::vector<std::string>& arguments ) const
 {
   namespace bpo = boost::program_options;
 
-  if ( !process_subcommands ( arguments ) )
+  bpo::variables_map vm;
+
+  const std::vector<std::string>
+    tail_arguments ( ++arguments.begin(), arguments.end() );
+
+  if ( ! run_impl ( tail_arguments, vm ) )
   {
-    bpo::variables_map vm;
+    print_help();
 
-    bpo::options_description
-      parent_options_desc ("");
+    throw option_not_recognized
+      ( join<std::string> ( " ", arguments.begin(), arguments.end() ) );
+  }
+}
 
-    parent_options_desc
-      .add ( create_options() );
 
+/////////////////////////////////////////////////////////////////////////
+bool
+magrit::generic_command::run_impl
+(
+  const std::vector<std::string>& arguments,
+  boost::program_options::variables_map& vm
+) const
+{
+  namespace bpo = boost::program_options;
+
+  auto subcommand_str = first_command ( arguments );
+
+  if ( subcommand_str != arguments.end() )
+  {
+    // Subcommand passed
+    auto subcommand = get_subcommand(*subcommand_str);
+
+    if ( subcommand != get_subcommands().end() )
+    {
+      return (*subcommand)->run_impl
+             ( 
+               remove_subcommand_first ( arguments, *subcommand_str ),
+               vm 
+             );
+    }
+    else
+    {
+      std::cout << std::string("Command '")
+                << get_name()
+                << std::string("' doesn't accept subcommand '")
+                << *subcommand_str
+                << std::string("'")
+                << std::endl;
+      return false;
+    }
+  }
+  else
+  {
+    // No more subcommands, we try a match.
+    if ( matches ( arguments, vm ) )
+    {
+      process_parsed_options ( arguments, vm );
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+bool
+magrit::generic_command::matches
+( 
+  const std::vector<std::string>& arguments,
+  boost::program_options::variables_map& vm
+) const
+{
+  namespace bpo = boost::program_options;
+
+  if ( arguments.size() == 0 ) return true;
+
+  try
+  {
     bpo::parsed_options parsed =
       bpo::command_line_parser( arguments )
-        .options ( parent_options_desc )
+        .options ( get_options() )
         .run ();
 
     bpo::store ( parsed, vm );
 
     bpo::notify ( vm );
 
-    process_parsed_options ( arguments, vm );
+    return true;
   }
-}
-
-/////////////////////////////////////////////////////////////////////////
-bool
-magrit::generic_command::process_subcommands
-(
-  const std::vector<std::string>& arguments
-)
-const
-{
-  namespace bpo = boost::program_options;
-
-  auto subcommand = first_command ( arguments );
-
-  if ( get_subcommands().size() == 0 && subcommand == arguments.end() )
+  catch ( boost::program_options::unknown_option& e )
   {
-    // No unprocessed arguments. We stop rambling.
+    return false;
   }
-  else if ( get_subcommands().size() != 0 && subcommand != arguments.end() )
-  {
-    // Still arguments to be processed by a subcommand
-    auto subcmd_it = get_subcommand ( *subcommand );
-
-    if ( subcmd_it != get_subcommands().end() )
-    {
-      (*subcmd_it)->run ( remove_argument ( arguments, *subcommand ) );
-    }
-  } 
-  else if ( get_subcommands().size() != 0 && subcommand == arguments.end() )
-  {
-    // Expected a subcommand and no extra arguments passed:
-    // up to the specific command to print help or do any
-    // action if the command can be called without subcommands too.
-  }
-  else
-  {
-    // Extra arguments passed but none was expected
-    // ( get_subcommands().size() == 0 && subcommand != arguments.end() )
-    print_help();
-
-    throw option_not_recognized
-      ( join<std::string> ( " ", arguments.begin(), arguments.end() ) );
-  }
-
-  // Only if we processed any command
-  return get_subcommands().size() != 0 && subcommand != arguments.end();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -157,19 +196,10 @@ magrit::generic_command::get_subcommand ( const std::string& name ) const
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::program_options::options_description
-magrit::generic_command::create_options () const 
+const boost::program_options::options_description&
+magrit::generic_command::get_options () const 
 {
-  namespace bpo = boost::program_options;
-
-  bpo::options_description
-    generic_options_desc ( "Main options" );
-
-  generic_options_desc.add_options()
-    ("help,h", "produces this help message")
-    ("version,v", "version of the application");
-
-  return generic_options_desc;
+  return options; 
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -210,7 +240,7 @@ void magrit::generic_command::print_help () const
     cout << endl << endl;
   }
 
-  cout <<  create_options() ;
+  cout <<  get_options() ;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -229,16 +259,29 @@ void magrit::generic_command::print_help_subcommands_description () const
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector<std::string> magrit::generic_command::remove_argument
+std::vector<std::string> magrit::generic_command::remove_subcommand_first
   ( const std::vector<std::string>& arguments, const std::string& arg ) const
 {
   std::vector<std::string> output;
 
-  std::remove_copy_if
-  (
-    arguments.begin(), arguments.end(), std::back_inserter(output),
-    [&arg](const std::string& current) { return current == arg; }
-  );
+  auto to_remove =
+    std::find_if (
+                   arguments.begin(), arguments.end(),
+                   [&arg] (const std::string& current)
+                   {
+                     return current == arg; 
+                   }
+                 );
+
+  for ( auto it  = arguments.begin();
+             it != arguments.end();
+             ++it ) 
+  {
+    if ( it != to_remove )
+    {
+      output.push_back (*it);
+    }
+  }
 
   return output;
 }

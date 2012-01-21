@@ -28,6 +28,8 @@ namespace magrit
 {
   struct send : public generic_command
   {
+    send ();
+
     /**
      * @see generic_command::get_name
      */
@@ -37,6 +39,8 @@ namespace magrit
      * @see generic_command::get_description
      */
     const char* get_description() const override;
+
+    boost::program_options::options_description options;
   };
 };
 #endif
