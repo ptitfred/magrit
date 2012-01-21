@@ -213,6 +213,9 @@ namespace magrit
 
       boost::program_options::options_description _options;
 
+      boost::program_options::positional_options_description
+                                                  _no_positional_options;
+
       std::vector<sh_ptr<generic_command>>        _subcommands;
 
       generic_command*                            _previous_subcommand;

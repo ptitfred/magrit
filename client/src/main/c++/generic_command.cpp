@@ -57,7 +57,6 @@ magrit::generic_command::run
   }
 }
 
-
 /////////////////////////////////////////////////////////////////////////
 bool
 magrit::generic_command::run_impl
@@ -68,50 +67,48 @@ magrit::generic_command::run_impl
 {
   namespace bpo = boost::program_options;
 
-  auto subcommand_str = first_command ( arguments );
-
-  if ( subcommand_str != arguments.end() )
-  {
-    // Subcommand passed
-    auto subcommand = get_subcommand(*subcommand_str);
-
-    if ( subcommand != get_subcommands().end() )
-    {
-      if (
-           (*subcommand)->run_impl
-           ( 
-             remove_subcommand_first ( arguments, *subcommand_str ),
-             vm 
-           ) 
-         )
-      {
-        return true;
-      }
-    }
-    else
-    {
-      std::cout << std::string("Command '")
-                << get_name()
-                << std::string("' doesn't accept subcommand '")
-                << *subcommand_str
-                << std::string("'")
-                << std::endl;
-      return false;
-    }
-  }
-
-  // No subcommand matched, last try with all the arguments.
   if ( matches ( arguments, vm ) )
   {
     process_parsed_options ( arguments, vm );
+
     return true;
   }
   else
   {
-    return false;
-  }
-}
+    auto subcommand_str = first_command ( arguments );
 
+    if ( subcommand_str != arguments.end() )
+    {
+      // Subcommand passed
+      auto subcommand = get_subcommand ( *subcommand_str );
+
+      if ( subcommand != get_subcommands().end() )
+      {
+        if (
+             (*subcommand)->run_impl
+             ( 
+               remove_subcommand_first ( arguments, *subcommand_str ),
+               vm 
+             ) 
+           )
+        {
+          return true;
+        }
+      }
+      else
+      {
+        std::cout << std::string("Command '")
+                  << get_name()
+                  << std::string("' doesn't accept subcommand '")
+                  << *subcommand_str
+                  << std::string("'")
+                  << std::endl;
+      }
+    }
+  }
+
+  return false;
+}
 
 /////////////////////////////////////////////////////////////////////////
 bool
@@ -125,6 +122,14 @@ magrit::generic_command::matches
 
   if ( arguments.size() == 0 ) return true;
 
+  // We cannot just throw a boost::program_options exception
+  // due to funny extreme cases like "foo --command bar" if
+  // 'bar' were a valid subcommand for 'foo' and '--command'
+  // accepted arguments. We solve that recursively: we try
+  // to match the longest command line (e.g. 'foo' 'bar' commands
+  // with '--command' switch), and if it doesn't, we
+  // try with shorter command lines (e.g. 'foo' with
+  // '--command bar' switch).
   try
   {
     auto parser =
@@ -139,16 +144,12 @@ magrit::generic_command::matches
 
     return true;
   }
+  catch ( boost::program_options::too_many_positional_options_error& e )
+  {
+    return false;
+  }
   catch ( boost::program_options::unknown_option& e )
   {
-    // We cannot just throw a boost::program_options exception
-    // due to funny extreme cases like "foo --command bar" if
-    // 'bar' were a valid subcommand for 'foo' and '--command'
-    // accepted arguments. We solve that recursively: we try
-    // to match the longest command line (e.g. 'foo' 'bar' commands
-    // with '--command' switch), and if it doesn't, we
-    // try with shorter command lines (e.g. 'foo' with
-    // '--command bar' switch).
     return false;
   }
 }
@@ -220,7 +221,7 @@ boost::program_options::command_line_parser&
 magrit::generic_command::positional
   ( boost::program_options::command_line_parser& parser ) const
 {
-  return parser;
+  return parser.positional ( _no_positional_options );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -282,7 +283,7 @@ void magrit::generic_command::print_help_subcommands_description () const
     get_subcommands().end(),
     [] ( sh_ptr<generic_command> cmd )
     {
-      std::cout << "  " << std::setw (6) << cmd->get_name() 
+      std::cout << "  " << std::setw (8) << cmd->get_name() 
                 << "   " << cmd->get_description() << std::endl;
     }
   );
