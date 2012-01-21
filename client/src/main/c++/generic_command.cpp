@@ -76,11 +76,16 @@ magrit::generic_command::run_impl
 
     if ( subcommand != get_subcommands().end() )
     {
-      return (*subcommand)->run_impl
-             ( 
-               remove_subcommand_first ( arguments, *subcommand_str ),
-               vm 
-             );
+      if (
+           (*subcommand)->run_impl
+           ( 
+             remove_subcommand_first ( arguments, *subcommand_str ),
+             vm 
+           ) 
+         )
+      {
+        return true;
+      }
     }
     else
     {
@@ -93,18 +98,16 @@ magrit::generic_command::run_impl
       return false;
     }
   }
+
+  // No subcommand matched, last try with all the arguments.
+  if ( matches ( arguments, vm ) )
+  {
+    process_parsed_options ( arguments, vm );
+    return true;
+  }
   else
   {
-    // No more subcommands, we try a match.
-    if ( matches ( arguments, vm ) )
-    {
-      process_parsed_options ( arguments, vm );
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 }
 
@@ -136,6 +139,14 @@ magrit::generic_command::matches
   }
   catch ( boost::program_options::unknown_option& e )
   {
+    // We cannot just throw a boost::program_options exception
+    // due to funny extreme cases like "foo --command bar" if
+    // 'bar' were a valid subcommand for 'foo' and '--command'
+    // accepted arguments. We solve that recursively: we try
+    // to match the longest command line (e.g. 'foo' 'bar' commands
+    // with '--command' switch), and if it doesn't, we
+    // try with shorter command lines (e.g. 'foo' with
+    // '--command bar' switch).
     return false;
   }
 }
