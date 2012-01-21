@@ -116,9 +116,10 @@ namespace magrit
       /**
        * Implementation of run().
        */
-      virtual bool run_impl
+      virtual void run_impl
       ( 
-        const std::vector<std::string>& arguments, boost::program_options::variables_map& vm
+        const std::vector<std::string>& arguments,
+        boost::program_options::variables_map& vm
       ) const;
 
     protected:
@@ -199,7 +200,8 @@ namespace magrit
       matches
       ( 
         const std::vector<std::string>& arguments,
-        boost::program_options::variables_map& vm
+        boost::program_options::variables_map& vm,
+        bool _throw = false
       ) const;
 
       /**

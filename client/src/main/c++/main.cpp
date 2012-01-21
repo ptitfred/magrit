@@ -43,12 +43,11 @@ int main ( int argc, char** argv )
   }
   catch ( const magrit::option_not_recognized& e )
   {
-    std::cerr << "Unknown args '" << e.what() << "'" << std::endl;
+    std::cerr << "Error: unknown option: " << e.what() << std::endl;
   }
-  catch ( boost::program_options::unknown_option& e )
+  catch ( boost::program_options::error& e )
   {
-    std::cerr << "Unknown option '" << e.get_option_name()
-              << "'" << std::endl;
+    std::cerr << "Error: " << e.what() << std::endl;
   }
   catch ( std::exception& e )
   {

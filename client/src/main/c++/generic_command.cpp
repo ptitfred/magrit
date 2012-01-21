@@ -48,17 +48,11 @@ magrit::generic_command::run
   const std::vector<std::string>
     tail_arguments ( ++arguments.begin(), arguments.end() );
 
-  if ( ! run_impl ( tail_arguments, vm ) )
-  {
-    print_help();
-
-    throw option_not_recognized
-      ( join<std::string> ( " ", arguments.begin(), arguments.end() ) );
-  }
+  run_impl ( tail_arguments, vm );
 }
 
 /////////////////////////////////////////////////////////////////////////
-bool
+void
 magrit::generic_command::run_impl
 (
   const std::vector<std::string>& arguments,
@@ -71,7 +65,7 @@ magrit::generic_command::run_impl
   {
     process_parsed_options ( arguments, vm );
 
-    return true;
+    throw do_not_continue();
   }
   else
   {
@@ -84,30 +78,32 @@ magrit::generic_command::run_impl
 
       if ( subcommand != get_subcommands().end() )
       {
-        if (
-             (*subcommand)->run_impl
-             ( 
-               remove_subcommand_first ( arguments, *subcommand_str ),
-               vm 
-             ) 
-           )
-        {
-          return true;
-        }
+        (*subcommand)->run_impl
+        ( 
+           remove_subcommand_first ( arguments, *subcommand_str ),
+           vm 
+        ); 
+
+        // run_impl finishes with do_not_continue if succeeded. We 
+        // let matches() throw an exception to get the exact reason 
+        // why the subcommand didn't match
+        (*subcommand)->print_help();
+        matches ( arguments, vm, true ); 
       }
       else
       {
-        std::cout << std::string("Command '")
-                  << get_name()
-                  << std::string("' doesn't accept subcommand '")
-                  << *subcommand_str
-                  << std::string("'")
-                  << std::endl;
+        print_help();
+        throw option_not_recognized
+        (
+          std::string("command '") +
+          get_name() +
+          std::string("' doesn't accept subcommand '") +
+          *subcommand_str +
+          std::string("'")
+        );
       }
     }
   }
-
-  return false;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -115,7 +111,8 @@ bool
 magrit::generic_command::matches
 ( 
   const std::vector<std::string>& arguments,
-  boost::program_options::variables_map& vm
+  boost::program_options::variables_map& vm,
+  bool _throw
 ) const
 {
   namespace bpo = boost::program_options;
@@ -144,13 +141,16 @@ magrit::generic_command::matches
 
     return true;
   }
-  catch ( boost::program_options::too_many_positional_options_error& e )
+  catch ( boost::program_options::error& e )
   {
-    return false;
-  }
-  catch ( boost::program_options::unknown_option& e )
-  {
-    return false;
+    if ( _throw )
+    {
+      throw e;
+    }
+    else
+    {
+      return false;
+    }
   }
 }
 
