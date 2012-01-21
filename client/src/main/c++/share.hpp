@@ -28,6 +28,9 @@ namespace magrit
 {
   struct share : public generic_command
   {
+    share ( generic_command* previous_subcommand )
+      : generic_command ( previous_subcommand ) {}
+
     /**
      * @see generic_command::get_name
      */

@@ -57,7 +57,7 @@ namespace magrit
   {
     public:
 
-      generic_command();
+      generic_command( generic_command* previous_subcommand );
 
       /**
        * @name Main methods you will have to redefine.
@@ -200,11 +200,15 @@ namespace magrit
        */
       virtual void print_help_subcommands_description () const;
 
+      virtual void print_help_command () const;
+
     protected:
 
-      boost::program_options::options_description options;
+      boost::program_options::options_description _options;
 
-      std::vector<sh_ptr<generic_command>> _subcommands;
+      std::vector<sh_ptr<generic_command>>        _subcommands;
+
+      generic_command*                            _previous_subcommand;
   };
 };
 #endif

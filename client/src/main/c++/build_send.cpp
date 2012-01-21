@@ -22,11 +22,12 @@
 #include "build_send.hpp"
 /////////////////////////////////////////////////////////////////////////
 
-magrit::send::send() : options ( "" )
+magrit::send::send( generic_command* previous_subcommand )
+  : generic_command ( previous_subcommand )
 {
   namespace bpo = boost::program_options;
 
-  options.add ( generic_command::get_options() );
+  auto options = generic_command::get_options();
 
   bpo::options_description
     send_options_desc ( "Send options" );

@@ -26,10 +26,11 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
-magrit::build::build()
+magrit::build::build( generic_command* previous_subcommand )
+  : generic_command ( previous_subcommand )
 {
-  _subcommands.push_back ( sh_ptr<generic_command> ( new send() ) );
-  _subcommands.push_back ( sh_ptr<generic_command> ( new log() ) );
+  _subcommands.push_back ( sh_ptr<generic_command> ( new send ( this ) ) );
+  _subcommands.push_back ( sh_ptr<generic_command> ( new log ( this ) ) );
 }
 
 /////////////////////////////////////////////////////////////////////////

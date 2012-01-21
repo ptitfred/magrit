@@ -28,6 +28,10 @@ namespace magrit
 {
   struct status : public generic_command
   {
+
+    status ( generic_command* previous_subcommand )
+      : generic_command ( previous_subcommand ) {}
+
     /**
      * @see generic_command::get_name
      */

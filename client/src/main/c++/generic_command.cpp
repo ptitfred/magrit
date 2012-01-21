@@ -26,11 +26,12 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
-magrit::generic_command::generic_command() : options ( "" )
+magrit::generic_command::generic_command( generic_command* previous_subcommand )
+  : _options ( "" ), _previous_subcommand ( previous_subcommand )
 {
   namespace bpo = boost::program_options;
 
-  options.add_options()
+  _options.add_options()
     ("help,h", "produces this help message")
     ("version,v", "version of the application");
 }
@@ -210,7 +211,7 @@ magrit::generic_command::get_subcommand ( const std::string& name ) const
 const boost::program_options::options_description&
 magrit::generic_command::get_options () const 
 {
-  return options; 
+  return _options; 
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -225,7 +226,7 @@ void magrit::generic_command::print_help () const
 {
   using namespace std;
 
-  cout << "Use: " << get_name() << " <options> ";
+  cout << "Use: "; print_help_command(); cout << "<options> ";
 
   if ( get_subcommands().size() > 0 )
   {
@@ -252,6 +253,18 @@ void magrit::generic_command::print_help () const
   }
 
   cout <<  get_options() ;
+}
+/////////////////////////////////////////////////////////////////////////
+void magrit::generic_command::print_help_command () const
+{
+
+
+  if ( _previous_subcommand != nullptr )
+  {
+    _previous_subcommand->print_help_command();
+  }
+
+  std::cout << get_name() << " ";
 }
 
 /////////////////////////////////////////////////////////////////////////

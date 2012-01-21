@@ -28,6 +28,9 @@ namespace magrit
 {
   struct log : public generic_command
   {
+    log ( generic_command* previous_subcommand )
+      : generic_command ( previous_subcommand ) {}
+
     /**
      * @see generic_command::get_name
      */

@@ -28,7 +28,7 @@ namespace magrit
 {
   struct build : public generic_command
   {
-    build();
+    build ( generic_command* previous_command );
 
     /**
      * @see generic_command::get_name

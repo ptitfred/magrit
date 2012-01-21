@@ -34,9 +34,12 @@ int main ( int argc, char** argv )
     std::vector<std::string> arguments ( argv, argv+argc );
 
     ma.run ( arguments );
+
+    return 0;
   }
   catch ( const magrit::do_not_continue& e )
   {
+    return 0;
   }
   catch ( const magrit::option_not_recognized& e )
   {
@@ -51,4 +54,6 @@ int main ( int argc, char** argv )
   {
     std::cerr << "Error: '" << e.what() << "'" << std::endl;
   }
+
+  return -1;
 }

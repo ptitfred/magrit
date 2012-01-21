@@ -28,6 +28,9 @@ namespace magrit
 {
   struct monitor : public generic_command
   {
+    monitor ( generic_command* previous_subcommand )
+      : generic_command ( previous_subcommand ) {}
+
     /**
      * @see generic_command::get_name
      */

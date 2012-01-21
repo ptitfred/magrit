@@ -28,13 +28,13 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
-magrit::magrit::magrit ()
+magrit::magrit::magrit () : generic_command ( nullptr )
 {
-  _subcommands.push_back ( sh_ptr<generic_command>( new build() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new config() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new monitor() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new share() ) );
-  _subcommands.push_back ( sh_ptr<generic_command>( new status() ) );
+  _subcommands.push_back ( sh_ptr<generic_command>( new build ( this ) ) );
+  _subcommands.push_back ( sh_ptr<generic_command>( new config ( this ) ) );
+  _subcommands.push_back ( sh_ptr<generic_command>( new monitor ( this ) ) );
+  _subcommands.push_back ( sh_ptr<generic_command>( new share ( this ) ) );
+  _subcommands.push_back ( sh_ptr<generic_command>( new status ( this ) ) );
 }
 
 /////////////////////////////////////////////////////////////////////////
