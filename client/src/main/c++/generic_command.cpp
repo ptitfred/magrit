@@ -131,7 +131,7 @@ magrit::generic_command::matches
   {
     auto parser =
       bpo::command_line_parser( arguments )
-        .options ( get_options() );
+        .options ( _options );
 
     bpo::parsed_options parsed = positional ( parser ).run();
 
@@ -210,8 +210,8 @@ magrit::generic_command::get_subcommand ( const std::string& name ) const
 }
 
 /////////////////////////////////////////////////////////////////////////
-const boost::program_options::options_description&
-magrit::generic_command::get_options () const 
+boost::program_options::options_description&
+magrit::generic_command::get_options ()
 {
   return _options; 
 }
@@ -259,7 +259,7 @@ void magrit::generic_command::print_help () const
     cout << "call the desired subcommand with --help" << endl << endl;
   }
 
-  cout <<  get_options() ;
+  cout <<  _options;
 }
 /////////////////////////////////////////////////////////////////////////
 void magrit::generic_command::print_help_command () const

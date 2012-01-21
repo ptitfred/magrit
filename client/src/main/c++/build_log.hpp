@@ -26,20 +26,38 @@
 
 namespace magrit
 {
-  struct log : public generic_command
+  class log : public generic_command
   {
-    log ( generic_command* previous_subcommand )
-      : generic_command ( previous_subcommand ) {}
+    public:
 
-    /**
-     * @see generic_command::get_name
-     */
-    const char* get_name() const override;
+      log ( generic_command* previous_subcommand );
 
-    /**
-     * @see generic_command::get_description
-     */
-    const char* get_description() const override;
+      /**
+       * @see generic_command::get_name
+       */
+      const char* get_name() const override;
+
+      /**
+       * @see generic_command::get_description
+       */
+      const char* get_description() const override;
+
+      /**
+       * @see generic_command::positional
+       */
+      boost::program_options::command_line_parser&
+      positional 
+        ( boost::program_options::command_line_parser& parser )
+      const override;
+
+    protected:
+
+      boost::program_options::options_description _log_options;
+
+      boost::program_options::positional_options_description
+                                                  _positional_parameters;
+
+      boost::program_options::options_description _positional_parameters_desc;
   };
 };
 #endif

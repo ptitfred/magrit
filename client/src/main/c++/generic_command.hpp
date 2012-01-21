@@ -75,6 +75,8 @@ namespace magrit
        */
       virtual const char* get_description() const = 0;
 
+    protected:
+
       /**
        * @name These ones are not mandatory but reasonable
        *       defaults are provided. 
@@ -87,10 +89,8 @@ namespace magrit
        *
        * @return bpo::options_description
        */
-      virtual const boost::program_options::options_description&
-      get_options () const;
-
-    protected:
+      virtual boost::program_options::options_description&
+      get_options ();
 
       virtual boost::program_options::command_line_parser& 
       positional ( boost::program_options::command_line_parser& parser )

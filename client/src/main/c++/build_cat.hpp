@@ -43,7 +43,7 @@ namespace magrit
       const char* get_description() const override;
 
       /**
-       * @see generic_command::add_positional_options
+       * @see generic_command::positional
        */
       boost::program_options::command_line_parser&
       positional 
@@ -53,9 +53,9 @@ namespace magrit
     protected:
 
       boost::program_options::positional_options_description
-        _positional_parameters;
-      boost::program_options::options_description
-        _positional_parameters_desc;
+                                                  _positional_parameters;
+
+      boost::program_options::options_description _positional_parameters_desc;
   };
 };
 #endif

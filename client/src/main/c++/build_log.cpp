@@ -23,6 +23,27 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
+magrit::log::log ( generic_command* previous_subcommand )
+  : generic_command ( previous_subcommand ),
+    _log_options ("Log options"),
+    _positional_parameters_desc
+    ("Positional options (can be added to the end of argument list without the dashed string)")
+{
+  _log_options.add_options()
+    ( "watch,w","activates the automatic refresh" );
+
+  get_options().add ( _log_options );
+
+  _positional_parameters.add("git-args", -1);
+
+  _positional_parameters_desc.add_options()
+    ("git-args", boost::program_options::value<std::vector<std::string>>(),
+     "git options");
+
+  get_options().add ( _positional_parameters_desc );
+}
+
+/////////////////////////////////////////////////////////////////////////
 const char*
 magrit::log::get_name() const
 {
@@ -35,4 +56,10 @@ const char* magrit::log::get_description() const
   return "<description to be written>";
 }
 
-
+/////////////////////////////////////////////////////////////////////////
+boost::program_options::command_line_parser&
+magrit::log::positional
+  ( boost::program_options::command_line_parser& parser ) const
+{
+  return parser.positional( _positional_parameters );
+}

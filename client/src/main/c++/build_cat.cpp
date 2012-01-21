@@ -32,9 +32,9 @@ magrit::cat::cat ( generic_command* previous_subcommand )
 
   _positional_parameters_desc.add_options()
     ("revstr", boost::program_options::value<std::string>(),
-     "Revision to show");
+     "revision to show");
 
-  _options.add ( _positional_parameters_desc );
+  get_options().add ( _positional_parameters_desc );
 }
 
 /////////////////////////////////////////////////////////////////////////
