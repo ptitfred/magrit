@@ -89,6 +89,13 @@ namespace magrit
        */
       virtual const boost::program_options::options_description&
       get_options () const;
+
+    protected:
+
+      virtual boost::program_options::command_line_parser& 
+      positional ( boost::program_options::command_line_parser& parser )
+      const;
+
       ///@}
       ///@}
 

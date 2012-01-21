@@ -23,6 +23,21 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
+magrit::cat::cat ( generic_command* previous_subcommand )
+  : generic_command ( previous_subcommand ),
+    _positional_parameters_desc
+    ("Positional options (can be added to the end of argument list without the dashed string)")
+{
+  _positional_parameters.add("revstr", 1);
+
+  _positional_parameters_desc.add_options()
+    ("revstr", boost::program_options::value<std::string>(),
+     "Revision to show");
+
+  _options.add ( _positional_parameters_desc );
+}
+
+/////////////////////////////////////////////////////////////////////////
 const char*
 magrit::cat::get_name() const
 {
@@ -35,4 +50,10 @@ const char* magrit::cat::get_description() const
   return "<to be written>";
 }
 
-
+/////////////////////////////////////////////////////////////////////////
+boost::program_options::command_line_parser&
+magrit::cat::positional
+  ( boost::program_options::command_line_parser& parser ) const
+{
+  return parser.positional( _positional_parameters );
+}

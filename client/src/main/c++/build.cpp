@@ -22,6 +22,7 @@
 #include "build.hpp"
 #include "build_send.hpp"
 #include "build_log.hpp"
+#include "build_cat.hpp"
 #include "utils.hpp"
 /////////////////////////////////////////////////////////////////////////
 
@@ -31,6 +32,7 @@ magrit::build::build( generic_command* previous_subcommand )
 {
   _subcommands.push_back ( sh_ptr<generic_command> ( new send ( this ) ) );
   _subcommands.push_back ( sh_ptr<generic_command> ( new log ( this ) ) );
+  _subcommands.push_back ( sh_ptr<generic_command> ( new cat ( this ) ) );
 }
 
 /////////////////////////////////////////////////////////////////////////

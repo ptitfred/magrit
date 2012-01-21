@@ -27,7 +27,7 @@
 
 /////////////////////////////////////////////////////////////////////////
 magrit::generic_command::generic_command( generic_command* previous_subcommand )
-  : _options ( "" ), _previous_subcommand ( previous_subcommand )
+  : _options ( "Main options" ), _previous_subcommand ( previous_subcommand )
 {
   namespace bpo = boost::program_options;
 
@@ -127,10 +127,11 @@ magrit::generic_command::matches
 
   try
   {
-    bpo::parsed_options parsed =
+    auto parser =
       bpo::command_line_parser( arguments )
-        .options ( get_options() )
-        .run ();
+        .options ( get_options() );
+
+    bpo::parsed_options parsed = positional ( parser ).run();
 
     bpo::store ( parsed, vm );
 
@@ -215,6 +216,14 @@ magrit::generic_command::get_options () const
 }
 
 /////////////////////////////////////////////////////////////////////////
+boost::program_options::command_line_parser& 
+magrit::generic_command::positional
+  ( boost::program_options::command_line_parser& parser ) const
+{
+  return parser;
+}
+
+/////////////////////////////////////////////////////////////////////////
 const std::vector< sh_ptr<magrit::generic_command>>&
 magrit::generic_command::get_subcommands() const
 {
@@ -226,28 +235,20 @@ void magrit::generic_command::print_help () const
 {
   using namespace std;
 
-  cout << "Use: "; print_help_command(); cout << "<options> ";
+  cout << "Use: "; print_help_command(); cout << "[<options>]";
 
   if ( get_subcommands().size() > 0 )
   {
-    cout << (
-              (get_subcommands().size() > 0)?
-                "[command] <subcommand arguments>"
-                :
-                ""
-            )
-         << endl << endl;
+    cout << " <command>";
   }
-  else
-  {
-    cout << endl << endl;
-  }
+
+  cout << " [<positional options>]" << endl << endl;
 
   cout << " " << get_description() << endl << endl;
 
   if ( get_subcommands().size() > 0 )
   {
-    cout << "Commands:" << endl << endl;
+    cout << "Commands:" << endl;
 
     print_help_subcommands_description ();
 
@@ -281,8 +282,8 @@ void magrit::generic_command::print_help_subcommands_description () const
     get_subcommands().end(),
     [] ( sh_ptr<generic_command> cmd )
     {
-      std::cout << "  " << std::setw (10) << cmd->get_name() 
-                << "\t" << cmd->get_description() << std::endl;
+      std::cout << "  " << std::setw (6) << cmd->get_name() 
+                << "   " << cmd->get_description() << std::endl;
     }
   );
 }
