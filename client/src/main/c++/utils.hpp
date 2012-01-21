@@ -25,7 +25,7 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <iosfwd>
+#include <iostream>
 /////////////////////////////////////////////////////////////////////////
 
 #define GCC_VERSION (__GNUC__ * 10000 \
@@ -171,9 +171,9 @@ join
   );
 }
 
-/*std::ostream& pad ( const char* input, uint length )
+void clear_screen ()
 {
-  
-  return os;
-}*/
+  // TODO: make this portable
+  std::cout << "\x1B[2J\x1B[H";
+}
 #endif

@@ -50,6 +50,18 @@ namespace magrit
         ( boost::program_options::command_line_parser& parser )
       const override;
 
+      void make_fifo () const;
+
+    protected:
+
+      void
+      process_parsed_options
+      (
+        const std::vector<std::string>& arguments,
+        const boost::program_options::variables_map& vm
+      )
+      const;
+
     protected:
 
       boost::program_options::options_description _log_options;

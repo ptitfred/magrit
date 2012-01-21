@@ -21,6 +21,11 @@
 // MAGRIT 
 #include "build_log.hpp"
 /////////////////////////////////////////////////////////////////////////
+// STD 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+/////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
 magrit::log::log ( generic_command* previous_subcommand )
@@ -62,4 +67,38 @@ magrit::log::positional
   ( boost::program_options::command_line_parser& parser ) const
 {
   return parser.positional( _positional_parameters );
+}
+
+/////////////////////////////////////////////////////////////////////////
+void
+magrit::log::process_parsed_options
+(
+  const std::vector<std::string>& arguments,
+  const boost::program_options::variables_map& vm
+)
+const
+{
+  if ( vm.count ( "watch" ) )
+  {
+    clear_screen();
+  }
+
+  // TODO: make this portable
+  make_fifo (); 
+}
+
+/////////////////////////////////////////////////////////////////////////
+void magrit::log::make_fifo () const
+{
+  auto create_pipe = [] ( const char* suffix )
+  {
+    std::string pipe_name = std::string("/tmp/magrit-") +
+                      boost::lexical_cast<std::string>(getpid()) +
+                      std::string(suffix);
+
+    /*int result_in =*/ mkfifo ( pipe_name.c_str(), S_IRUSR | S_IWUSR| S_IFIFO);
+  };
+
+  create_pipe ( "in" );
+  create_pipe ( "out" );
 }
