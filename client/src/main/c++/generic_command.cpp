@@ -237,7 +237,16 @@ void magrit::generic_command::print_help () const
                 ""
             )
          << endl << endl;
+  }
+  else
+  {
+    cout << endl << endl;
+  }
 
+  cout << " " << get_description() << endl << endl;
+
+  if ( get_subcommands().size() > 0 )
+  {
     cout << "Commands:" << endl << endl;
 
     print_help_subcommands_description ();
@@ -246,10 +255,6 @@ void magrit::generic_command::print_help () const
 
     cout << "For subcommand's arguments help, ";
     cout << "call the desired subcommand with --help" << endl << endl;
-  }
-  else
-  {
-    cout << endl << endl;
   }
 
   cout <<  get_options() ;
