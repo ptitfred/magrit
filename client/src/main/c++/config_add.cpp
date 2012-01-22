@@ -23,6 +23,34 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
+magrit::config_add::config_add ( generic_command* previous_subcommand )
+  : generic_command ( previous_subcommand ),
+     _positional_parameters_desc
+    ("Positional options (can be added to the end of argument list without the dashed string)")
+
+{
+  get_options().add_options()
+  ( 
+    "alias",
+    boost::program_options::value<std::string>()->default_value("magrit"),
+    "name to identify the config"
+  );
+  
+  _positional_parameters.add("address", 1);
+  _positional_parameters.add("name", 1);
+
+  _positional_parameters_desc.add_options()
+    ("address",
+       boost::program_options::value<std::string>()
+         ->default_value("localhost:2022"),
+       "host:port where magrit listens to")
+    ("name", boost::program_options::value<std::string>(),
+     "repository name");
+
+  get_options().add ( _positional_parameters_desc );
+}
+
+/////////////////////////////////////////////////////////////////////////
 const char*
 magrit::config_add::get_name() const
 {
@@ -32,9 +60,15 @@ magrit::config_add::get_name() const
 /////////////////////////////////////////////////////////////////////////
 const char* magrit::config_add::get_description() const
 {
-  return "Adds a new repo";
+  return "Adds a new repository";
 }
 
+/////////////////////////////////////////////////////////////////////////
+const boost::program_options::positional_options_description&
+magrit::config_add::get_positional_options () const override
+{
+  return _positional_parameters;
+}
 
 
 

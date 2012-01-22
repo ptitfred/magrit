@@ -20,7 +20,19 @@
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
 #include "config.hpp"
+#include "config_add.hpp"
+#include "config_use.hpp"
+#include "config_remove.hpp"
 /////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////
+magrit::config::config ( generic_command* previous_subcommand )
+  : generic_command ( previous_subcommand )
+{
+  _subcommands.push_back(sh_ptr<generic_command>(new config_add(this)));
+  _subcommands.push_back(sh_ptr<generic_command>(new config_use(this)));
+  _subcommands.push_back(sh_ptr<generic_command>(new config_remove(this)));
+}
 
 /////////////////////////////////////////////////////////////////////////
 const char*

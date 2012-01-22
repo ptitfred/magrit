@@ -28,6 +28,8 @@ magrit::cat::cat ( generic_command* previous_subcommand )
     _positional_parameters_desc
     ("Positional options (can be added to the end of argument list without the dashed string)")
 {
+  /*
+  TODO: implement get_positional_options
   _positional_parameters.add("revstr", 1);
 
   _positional_parameters_desc.add_options()
@@ -35,6 +37,7 @@ magrit::cat::cat ( generic_command* previous_subcommand )
      "revision to show");
 
   get_options().add ( _positional_parameters_desc );
+  */
 }
 
 /////////////////////////////////////////////////////////////////////////

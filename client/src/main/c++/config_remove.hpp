@@ -28,6 +28,8 @@ namespace magrit
 {
   struct config_remove : public generic_command
   {
+    config_remove ( generic_command* previous_subcommand );
+
     /**
      * @see generic_command::get_name
      */

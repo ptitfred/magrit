@@ -193,6 +193,12 @@ const
     std::cout << "Version 0.0.1" << std::endl;
     throw success();
   }
+  else if ( arguments.size() == 0 )
+  {
+    print_help ();
+
+    throw success();
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -255,7 +261,7 @@ void magrit::generic_command::print_help () const
 
     cout << endl;
 
-    cout << "For subcommand's arguments help, ";
+    cout << "For subcommands help, ";
     cout << "call the desired subcommand with --help" << endl << endl;
   }
 

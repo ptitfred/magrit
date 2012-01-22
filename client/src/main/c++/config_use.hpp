@@ -28,6 +28,7 @@ namespace magrit
 {
   struct config_use : public generic_command
   {
+    config_use ( generic_command* previous_subcommand );
     /**
      * @see generic_command::get_name
      */

@@ -26,20 +26,21 @@
 
 namespace magrit
 {
-  struct config : public generic_command
+  class config : public generic_command
   {
-    config ( generic_command* previous_subcommand )
-      : generic_command ( previous_subcommand ) {}
+    public:
 
-    /**
-     * @see generic_command::get_name
-     */
-    const char* get_name() const override;
+      config ( generic_command* previous_subcommand );
 
-    /**
-     * @see generic_command::get_description
-     */
-    const char* get_description() const override;
+      /**
+       * @see generic_command::get_name
+       */
+      const char* get_name() const override;
+
+      /**
+       * @see generic_command::get_description
+       */
+      const char* get_description() const override;
   };
 };
 #endif

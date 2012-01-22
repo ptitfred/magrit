@@ -23,6 +23,12 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
+magrit::config_remove::config_remove ( generic_command* previous_subcommand )
+  : generic_command ( previous_subcommand )
+{
+}
+
+/////////////////////////////////////////////////////////////////////////
 const char*
 magrit::config_remove::get_name() const
 {
@@ -32,7 +38,7 @@ magrit::config_remove::get_name() const
 /////////////////////////////////////////////////////////////////////////
 const char* magrit::config_remove::get_description() const
 {
-  return "Removes an existing repo from magrit's config";
+  return "Removes an existing repository from magrit's config";
 }
 
 

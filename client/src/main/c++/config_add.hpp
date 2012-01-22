@@ -26,17 +26,37 @@
 
 namespace magrit
 {
-  struct config_add : public generic_command
+  class config_add : public generic_command
   {
-    /**
-     * @see generic_command::get_name
-     */
-    const char* get_name() const override;
+    public:
 
-    /**
-     * @see generic_command::get_description
-     */
-    const char* get_description() const override;
+      config_add ( generic_command* previous_subcommand );
+
+      /**
+       * @see generic_command::get_name
+       */
+      const char* get_name() const override;
+
+      /**
+       * @see generic_command::get_description
+       */
+      const char* get_description() const override;
+
+    protected:
+
+      /**
+       * @see generic_command::get_positional_options
+       */
+      const boost::program_options::positional_options_description&
+      get_positional_options () const override;
+
+    private:
+
+      boost::program_options::positional_options_description
+                                                  _positional_parameters;
+
+      boost::program_options::options_description _positional_parameters_desc;
+
   };
 };
 #endif

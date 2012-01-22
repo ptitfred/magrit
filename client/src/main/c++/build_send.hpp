@@ -24,7 +24,7 @@
 #include "generic_command.hpp"
 ///////////////////////////////////////////////////////////////////////////
 
-namespace magrit
+namespace magrit 
 {
   struct send : public generic_command
   {

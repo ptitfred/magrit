@@ -49,22 +49,3 @@ const char* magrit::magrit::get_description() const
 {
   return "Command-line client for Magrit build system";
 }
-
-/////////////////////////////////////////////////////////////////////////
-void
-magrit::magrit::process_parsed_options
-(
-  const std::vector<std::string>& arguments,
-  const boost::program_options::variables_map& vm
-)
-const
-{
-  if ( arguments.size() == 0 )
-  {
-    print_help ();
-  }
-  else
-  {
-    generic_command::process_parsed_options ( arguments, vm );
-  }
-}

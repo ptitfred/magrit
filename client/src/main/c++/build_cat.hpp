@@ -48,7 +48,7 @@ namespace magrit
       const boost::program_options::positional_options_description&
       get_positional_options () const override;
 
-    protected:
+    private:
 
       boost::program_options::positional_options_description
                                                   _positional_parameters;
