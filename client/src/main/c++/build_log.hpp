@@ -50,7 +50,7 @@ namespace magrit
         ( boost::program_options::command_line_parser& parser )
       const override;
 
-      void make_fifo () const;
+      int make_fifo ( bool input ) const;
 
     protected:
 

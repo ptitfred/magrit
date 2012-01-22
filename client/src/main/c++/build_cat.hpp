@@ -18,7 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef __MAGRIT_BUILD_CAT__
-#define __MAGRIT_BUILD_SEND__
+#define __MAGRIT_BUILD_CAT__
 ///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
 #include "generic_command.hpp"

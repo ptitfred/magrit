@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
@@ -78,27 +79,43 @@ magrit::log::process_parsed_options
 )
 const
 {
+  generic_command::process_parsed_options ( arguments, vm );
+
   if ( vm.count ( "watch" ) )
   {
     clear_screen();
   }
 
-  // TODO: make this portable
-  make_fifo (); 
+  auto in_fd = make_fifo ( true ); 
+  auto out_fd = make_fifo ( false ); 
+
+  std::string cmd = "magrit status " + get_repo_name() + " -";
+
+  send_ssh_command_bg ( in_fd, out_fd, cmd ); 
 }
 
 /////////////////////////////////////////////////////////////////////////
-void magrit::log::make_fifo () const
+int magrit::log::make_fifo ( bool input ) const
 {
-  auto create_pipe = [] ( const char* suffix )
+  int result = -1;
+
+  std::string pipe_name = std::string("/tmp/magrit-") +
+                    boost::lexical_cast<std::string>(getpid()) +
+                    std::string(input ? "in":"out" );
+
+  result = mkfifo ( pipe_name.c_str(), S_IRUSR | S_IWUSR| S_IFIFO);
+
+  if ( result != 0 )
   {
-    std::string pipe_name = std::string("/tmp/magrit-") +
-                      boost::lexical_cast<std::string>(getpid()) +
-                      std::string(suffix);
+    throw std::runtime_error ( strerror( errno ) );
+  }
 
-    /*int result_in =*/ mkfifo ( pipe_name.c_str(), S_IRUSR | S_IWUSR| S_IFIFO);
-  };
+  result = open (pipe_name.c_str(), O_RDWR /*input? O_WRONLY : O_RDONLY*/ );
 
-  create_pipe ( "in" );
-  create_pipe ( "out" );
+  if ( result <= 0 )
+  {
+    throw std::runtime_error ( strerror( errno ) );
+  }
+  
+  return result;
 }
