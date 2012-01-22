@@ -38,7 +38,7 @@
 namespace magrit
 {
 
-  struct do_not_continue 
+  struct success 
   {
   };
 
@@ -92,8 +92,8 @@ namespace magrit
       virtual boost::program_options::options_description&
       get_options ();
 
-      virtual boost::program_options::command_line_parser& 
-      positional ( boost::program_options::command_line_parser& parser )
+      virtual const boost::program_options::positional_options_description& 
+      get_positional_options ()
       const;
 
       ///@}

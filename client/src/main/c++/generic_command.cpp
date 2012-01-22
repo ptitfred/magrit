@@ -65,7 +65,7 @@ magrit::generic_command::run_impl
   {
     process_parsed_options ( arguments, vm );
 
-    throw do_not_continue();
+    throw success();
   }
   else
   {
@@ -84,7 +84,7 @@ magrit::generic_command::run_impl
            vm 
         ); 
 
-        // run_impl finishes with do_not_continue if succeeded. We 
+        // run_impl finishes throws success() if succeeded. We 
         // let matches() throw an exception to get the exact reason 
         // why the subcommand didn't match
         (*subcommand)->print_help();
@@ -127,13 +127,14 @@ magrit::generic_command::matches
   // with '--command' switch), and if it doesn't, we
   // try with shorter command lines (e.g. 'foo' with
   // '--command bar' switch).
+  // In any case, if _throw == true, we allow throwing.
   try
   {
-    auto parser =
+    auto parsed =
       bpo::command_line_parser( arguments )
-        .options ( _options );
-
-    bpo::parsed_options parsed = positional ( parser ).run();
+        .positional ( get_positional_options() )
+        .options ( _options )
+        .run();
 
     bpo::store ( parsed, vm );
 
@@ -167,7 +168,7 @@ const
   {
     print_help ();
 
-    throw do_not_continue();
+    throw success();
   }
   else if ( vm.count("version") )
   {
@@ -190,7 +191,7 @@ const
 
     std::cout << LICENSE << std::endl;
     std::cout << "Version 0.0.1" << std::endl;
-    throw do_not_continue();
+    throw success();
   }
 }
 
@@ -217,11 +218,10 @@ magrit::generic_command::get_options ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::program_options::command_line_parser& 
-magrit::generic_command::positional
-  ( boost::program_options::command_line_parser& parser ) const
+const boost::program_options::positional_options_description& 
+magrit::generic_command::get_positional_options() const
 {
-  return parser.positional ( _no_positional_options );
+  return _no_positional_options;
 }
 
 /////////////////////////////////////////////////////////////////////////

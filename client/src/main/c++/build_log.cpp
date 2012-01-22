@@ -63,11 +63,10 @@ const char* magrit::log::get_description() const
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::program_options::command_line_parser&
-magrit::log::positional
-  ( boost::program_options::command_line_parser& parser ) const
+const boost::program_options::positional_options_description&
+magrit::log::get_positional_options () const
 {
-  return parser.positional( _positional_parameters );
+  return _positional_parameters;
 }
 
 /////////////////////////////////////////////////////////////////////////

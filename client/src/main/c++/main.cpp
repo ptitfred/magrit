@@ -37,7 +37,7 @@ int main ( int argc, char** argv )
 
     return 0;
   }
-  catch ( const magrit::do_not_continue& e )
+  catch ( const magrit::success& e )
   {
     return 0;
   }

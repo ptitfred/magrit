@@ -43,12 +43,10 @@ namespace magrit
       const char* get_description() const override;
 
       /**
-       * @see generic_command::positional
+       * @see generic_command::get_positional_options
        */
-      boost::program_options::command_line_parser&
-      positional 
-        ( boost::program_options::command_line_parser& parser )
-      const override;
+      const boost::program_options::positional_options_description&
+      get_positional_options () const override;
 
     protected:
 
