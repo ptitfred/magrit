@@ -20,6 +20,7 @@
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
 #include "magrit.hpp"
+#include "build_log.hpp"
 /////////////////////////////////////////////////////////////////////////
 // STD 
 #include <algorithm>
@@ -27,7 +28,12 @@
 
 int main ( int argc, char** argv )
 {
+
+  #ifdef MAGRIT_BUILD_LOG
+  magrit::log ma ( nullptr );
+  #else
   magrit::magrit ma;
+  #endif
 
   try
   {
