@@ -179,39 +179,28 @@ join
 void clear_screen ();
 
 /**
- * All the strings obtained from command output should
- * be sanitized to avoid exploits.
- */
-const std::string& sanitize ( const std::string& str );
-
-/**
  * Gets the name of the git repository.
  */
 std::string get_repo_name ();
 
 /**
- * Gets the ssh url of the git repository .
- */
-std::string get_repo_ssh_url ();
-
-/**
  * Gets the host of the git repository .
  */
-std::string get_repo_host ();
-
-/**
- * Gets the user of the git repository .
- */
-std::string get_repo_user ();
+std::string get_magrit_host ();
 
 /**
  * Gets the port of the git repository .
  */
-std::string get_repo_port ();
+int get_magrit_port ();
+
+/**
+ * Gets the user of the git repository .
+ */
+std::string get_magrit_user ();
 
 /**
  * Sends a command via ssh using the given in and out descriptors
  * as input and output of the command.
  */
-void send_ssh_command_bg ( int in_fd, int out_fd, const std::string& cmd );
+void send_ssh_command_bg ( const std::string& cmd );
 #endif

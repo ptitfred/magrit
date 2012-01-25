@@ -21,6 +21,17 @@
 // MAGRIT 
 #include "utils.hpp"
 /////////////////////////////////////////////////////////////////////////
+// STD
+#include <stdexcept> 
+#include <string.h>
+#include <sstream>
+/////////////////////////////////////////////////////////////////////////
+// POPEN 
+#include <stdio.h>
+//#include <sys/types.h>
+//#include <sys/wait.h>
+//#include <unistd.h>
+/////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
 void clear_screen ()
@@ -29,7 +40,14 @@ void clear_screen ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-const std::string& sanitize ( const std::string& str )
+std::string sanitize ( const std::string& str )
+{
+  // TODO: implement
+  return str;
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string sanitize_ssh_cmd ( const std::string& str )
 {
   // TODO: implement
   return str;
@@ -42,39 +60,61 @@ std::string get_repo_name ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_ssh_url ()
+std::string get_magrit_host ()
 {
-  return sanitize ( "git@github.com" );
+  return sanitize ( "localhost" );
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_host ()
+int get_magrit_port ()
 {
-  return sanitize ( "github.com" );
+  return 2022;
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_user ()
+std::string get_magrit_user ()
 {
   return sanitize ( "git" );
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_port ()
-{
-  // TODO: according to the bash's regex, it's
-  //       taking the user name??
-  return sanitize ( "daniperez" );
-}
-
-/////////////////////////////////////////////////////////////////////////
 void send_ssh_command ( const std::string& cmd )
 {
-  std::cout << "Sending [" << cmd << "]" << std::endl;
+  std::stringstream ssh_cmd;
+
+  ssh_cmd << "ssh -x -p " << get_magrit_port() << " "
+          << get_magrit_user() << "@" << get_magrit_host()
+          << " " << cmd ;
+
+  std::cout << "Sending [" << ssh_cmd.str() << "]" << std::endl;
+
+  FILE* output = popen ( cmd.c_str(), "r" );
+  
+  if ( output == NULL )
+  {
+    // error
+    throw std::runtime_error ( strerror( errno ) );
+  }
+  else 
+  {
+    char line[256];
+
+    while ( fgets ( line, sizeof line, output ) )
+    {
+      printf("-- %s", line);
+    }
+
+    int status = pclose ( output ) ;
+
+    if ( status != 0 )
+    {
+      std::runtime_error ( strerror ( errno ) );
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////
-void send_ssh_command_bg ( int in_fd, int out_fd, const std::string& cmd )
+void send_ssh_command_bg ( const std::string& cmd )
 {
   send_ssh_command ( cmd );
 }
