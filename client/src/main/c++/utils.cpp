@@ -24,7 +24,7 @@
 // STD
 #include <stdexcept> 
 #include <string.h>
-#include <sstream>
+#include <iterator>
 //////////////////////////////////////////////////////////////////////////
 // BOOST
 #include <boost/lexical_cast.hpp> 
@@ -40,6 +40,23 @@
 void clear_screen ()
 {
   std::cout << "\x1B[2J\x1B[H";
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::vector< std::string > split ( const std::string& input, char delimiter )
+{
+  std::vector< std::string > output;
+
+  std::istringstream iss ( input );
+
+  std::copy
+  (
+    std::istream_iterator<std::string>(iss),
+    std::istream_iterator<std::string>(),
+    std::back_inserter ( output )
+  );
+
+  return output;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -81,58 +98,125 @@ std::string get_magrit_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-void send_ssh_command ( const std::string& cmd )
+int send_ssh_command_background ( const std::string& cmd )
 {
-  pid_t pid = fork ();
-  
-  if ( pid == 0 )
-  {
-    // child
+  return send_ssh_command ( cmd, true );
+}
 
-    std::string port
-      = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
+/////////////////////////////////////////////////////////////////////////
+int send_ssh_command ( const std::string& cmd, bool background )
+{
+  std::string port
+    = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
 
-    std::string conn_str
-      = ( get_magrit_user() + std::string("@") + get_magrit_host() ).c_str();
-      
-    if
-    (
-      execlp
-      (
-        "ssh",
-        "ssh",
-        "-x",
-        "-p",
-        port.c_str(),
-        conn_str.c_str(),
-        cmd.c_str(), 
-        (char *) NULL
-      )
-      < 0
-    )
-    {
-      throw std::runtime_error ( strerror ( errno ) );
-    }
-  }
-  else if ( pid > 0 )
+  std::string conn_str
+    = ( get_magrit_user() + std::string("@") + get_magrit_host() ).c_str();
+
+  std::vector < std::string > cmd_line = 
   {
-    // parent 
-    int status = -1;
-     
-    if ( waitpid ( pid, &status, 0 ) != pid )
-    {
-      throw std::runtime_error ( strerror( errno ) );
-    }
+    "ssh",
+    "-x",
+    "-p",
+    port.c_str(),
+    conn_str.c_str(),
+    cmd.c_str()
+  };
+
+  int handle = execute_program ( cmd_line );
+
+  if ( background )
+  {
+    return handle;
   }
   else
+  {
+    wait_children ( handle );
+
+    return handle;
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////
+void wait_children ( int handle )
+{
+  if ( pclose ( (FILE*) handle ) < 0 )
   {
     throw std::runtime_error ( strerror( errno ) );
   }
 }
 
 /////////////////////////////////////////////////////////////////////////
-void send_ssh_command_bg ( const std::string& cmd )
+std::vector< std::string > get_git_commits ( const std::vector< std::string >& arguments )
 {
-  send_ssh_command ( cmd );
+
+  std::vector< std::string > cmd;
+ 
+  cmd.insert ( cmd.end(), "git" );
+  cmd.insert ( cmd.end(), "log" );
+  cmd.insert ( cmd.end(), "--format=%H" );
+  cmd.insert ( cmd.end(), arguments.begin(), arguments.end() );
+
+  int handle = execute_program ( cmd ); 
+
+  std::stringstream hashes;
+  char buffer[256];
+
+  while( !feof ( (FILE*) handle ) )
+  {
+    if ( fgets ( buffer, sizeof ( buffer ), (FILE*) handle ) != NULL)
+    {
+      hashes << buffer;
+    }
+  }
+
+  wait_children ( handle );
+
+  return split ( hashes.str(), '\n' );
+}
+
+/////////////////////////////////////////////////////////////////////////
+int get_num_exec_args ( const std::vector < std::string >& args )
+{
+  return args.size() + 1 /* ending NULL pointer */ ;
+}
+
+/////////////////////////////////////////////////////////////////////////
+void get_exec_args ( const std::vector < std::string >& args, char** output )
+{
+  for ( uint i = 0 ; i < args.size() ; ++i )
+  {
+    // exec expects a non const despite it doesn't
+    // touch its arguments.
+    output[i] = const_cast<char*>( args[i].c_str() );
+  }
+
+  output[args.size()] = NULL;
+}
+
+/////////////////////////////////////////////////////////////////////////
+int execute_program
+(
+  const std::vector< std::string >& arguments
+)
+{
+  if ( arguments.size() < 1 )
+  {
+    throw std::logic_error ( "execute_program needs at least 1 argument" );
+  }
+
+  std::cout
+    << "Executing ["
+    << join ( " ", arguments.begin(), arguments.end() )
+    << "]" << std::endl;
+
+  char * c_arguments [ get_num_exec_args ( arguments ) ];
+  
+  get_exec_args ( arguments, c_arguments );
+
+  FILE* output = popen ( join ( " ", arguments.begin(), arguments.end() ).c_str(), "r" );
+
+  static_assert ( sizeof ( int ) >= sizeof ( FILE* ), "this code stinks" );
+
+  return (int)output;
 }
 

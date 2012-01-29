@@ -44,7 +44,7 @@ magrit::log::log ( generic_command* previous_subcommand )
 
   _positional_parameters_desc.add_options()
     ("git-args", boost::program_options::value<std::vector<std::string>>(),
-     "git options");
+     "[<since>..<until>] git revisions");
 
   get_options().add ( _positional_parameters_desc );
 }
@@ -74,44 +74,52 @@ void
 magrit::log::process_parsed_options
 (
   const std::vector<std::string>& arguments,
-  const boost::program_options::variables_map& vm
+  const boost::program_options::variables_map& vm,
+  bool allow_zero_arguments
 )
 const
 {
-  generic_command::process_parsed_options ( arguments, vm );
+  generic_command::process_parsed_options ( arguments, vm, true );
+
+  std::vector< std::string > git_args;
 
   if ( vm.count ( "watch" ) )
   {
     clear_screen();
   }
 
-  std::string cmd = "magrit status " + get_repo_name() + "-";
-
-  send_ssh_command_bg ( cmd ); 
-}
-
-/////////////////////////////////////////////////////////////////////////
-int magrit::log::make_fifo ( bool input ) const
-{
-  int result = -1;
-
-  std::string pipe_name = std::string("/tmp/magrit-") +
-                    boost::lexical_cast<std::string>(getpid()) +
-                    std::string(input ? "in":"out" );
-
-  result = mkfifo ( pipe_name.c_str(), S_IRUSR | S_IWUSR| S_IFIFO);
-
-  if ( result != 0 )
+  if ( vm.count ( "git-args" ) )
   {
-    throw std::runtime_error ( strerror( errno ) );
+    git_args = vm["git-args"].as< std::vector< std::string > >();
   }
 
-  result = open (pipe_name.c_str(), O_RDWR /*input? O_WRONLY : O_RDONLY*/ );
+  std::string cmd = "magrit status " + get_repo_name() + " -";
+ 
+  std::vector< std::string > revisions = get_git_commits ( git_args );
 
-  if ( result <= 0 )
-  {
-    throw std::runtime_error ( strerror( errno ) );
-  }
-  
-  return result;
+  std::for_each 
+  (
+    revisions.begin(), revisions.end(),
+    [](const std::string& rev)
+    {
+      std::cout << rev << std::endl;
+    }
+  );
+
+  // TODO: pipe get_git_commits to ssh command input
+  //       using boost::process (pipeline_entry and
+  //       launch_pipeline).
+  /*
+  int ssh_handle = send_ssh_command_background ( cmd );
+
+  std::for_each 
+  (
+    revisions.begin(), revisions.end(),
+    [](const std::string& rev)
+    {
+      rev >> std::cin;
+    }
+  );
+
+  wait_children ( ssh_handle );*/
 }

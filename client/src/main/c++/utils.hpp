@@ -26,6 +26,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <vector>
 /////////////////////////////////////////////////////////////////////////
 
 #define GCC_VERSION (__GNUC__ * 10000 \
@@ -172,6 +173,11 @@ join
 }
 
 /**
+ * Splits the given string using the given delimiter.
+ */
+std::vector < std::string > split ( const std::string& input, char delimiter );
+
+/**
  * Clears the console.
  *
  * @todo Make this portable.
@@ -202,5 +208,23 @@ std::string get_magrit_user ();
  * Sends a command via ssh using the given in and out descriptors
  * as input and output of the command.
  */
-void send_ssh_command_bg ( const std::string& cmd );
+int send_ssh_command ( const std::string& cmd, bool background=false );
+int send_ssh_command_background ( const std::string& cmd );
+
+/**
+ * Waits for the given handle to finish.
+ */
+void wait_children ( int handle );
+
+/**
+ * Uses git log to retrieve info of the current git repository. The arguments
+ * are passed to git log.
+ */
+std::vector< std::string > get_git_commits ( const std::vector< std::string >& arguments );
+
+/**
+ * Executes the command line represented by arguments.
+ */
+int execute_program ( const std::vector< std::string >& arguments );
+
 #endif

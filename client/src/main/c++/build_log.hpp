@@ -56,7 +56,8 @@ namespace magrit
       process_parsed_options
       (
         const std::vector<std::string>& arguments,
-        const boost::program_options::variables_map& vm
+        const boost::program_options::variables_map& vm,
+        bool allow_zero_arguments
       )
       const;
 

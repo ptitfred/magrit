@@ -160,7 +160,8 @@ void
 magrit::generic_command::process_parsed_options
 (
   const std::vector<std::string>& arguments,
-  const boost::program_options::variables_map& vm
+  const boost::program_options::variables_map& vm,
+  bool allow_zero_arguments
 )
 const
 {
@@ -193,7 +194,7 @@ const
     std::cout << "Version 0.0.1" << std::endl;
     throw success();
   }
-  else if ( arguments.size() == 0 )
+  else if ( !allow_zero_arguments && arguments.size() == 0 )
   {
     print_help ();
 

@@ -50,6 +50,14 @@ namespace magrit
     }
   };
 
+  struct missing_option : public std::runtime_error
+  {
+    missing_option (const std::string& what)
+      : std::runtime_error ( what )
+    {
+    }
+  };
+
   /**
    * Base class for all magrit commands.
    */
@@ -146,7 +154,8 @@ namespace magrit
       process_parsed_options
       (
         const std::vector<std::string>& arguments,
-        const boost::program_options::variables_map& vm
+        const boost::program_options::variables_map& vm,
+        bool allow_zero_arguments = false
       )
       const;
       ///@}
