@@ -25,12 +25,15 @@
 #include <stdexcept> 
 #include <string.h>
 #include <sstream>
-/////////////////////////////////////////////////////////////////////////
-// POPEN 
+//////////////////////////////////////////////////////////////////////////
+// BOOST
+#include <boost/lexical_cast.hpp> 
+////////////////////////////////////////////////////////////////////////
+// FORK 
 #include <stdio.h>
-//#include <sys/types.h>
-//#include <sys/wait.h>
-//#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
@@ -80,36 +83,48 @@ std::string get_magrit_user ()
 /////////////////////////////////////////////////////////////////////////
 void send_ssh_command ( const std::string& cmd )
 {
-  std::stringstream ssh_cmd;
-
-  ssh_cmd << "ssh -x -p " << get_magrit_port() << " "
-          << get_magrit_user() << "@" << get_magrit_host()
-          << " " << cmd ;
-
-  std::cout << "Sending [" << ssh_cmd.str() << "]" << std::endl;
-
-  FILE* output = popen ( cmd.c_str(), "r" );
+  pid_t pid = fork ();
   
-  if ( output == NULL )
+  if ( pid == 0 )
   {
-    // error
-    throw std::runtime_error ( strerror( errno ) );
+    // child
+
+    std::string port
+      = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
+
+    std::string conn_str
+      = ( get_magrit_user() + std::string("@") + get_magrit_host() ).c_str();
+      
+    if
+    (
+      execlp
+      (
+        "ssh",
+        "-x",
+        "-p",
+        port.c_str(),
+        conn_str.c_str(),
+        cmd.c_str() 
+      )
+      < 0
+    )
+    {
+      throw std::runtime_error ( strerror ( errno ) );
+    }
   }
-  else 
+  else if ( pid > 0 )
   {
-    char line[256];
-
-    while ( fgets ( line, sizeof line, output ) )
+    // parent 
+    int status = -1;
+     
+    if ( waitpid ( pid, &status, 0 ) != pid )
     {
-      printf("-- %s", line);
+      throw std::runtime_error ( strerror( errno ) );
     }
-
-    int status = pclose ( output ) ;
-
-    if ( status != 0 )
-    {
-      std::runtime_error ( strerror ( errno ) );
-    }
+  }
+  else
+  {
+    throw std::runtime_error ( strerror( errno ) );
   }
 }
 
