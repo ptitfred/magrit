@@ -85,12 +85,7 @@ const
     clear_screen();
   }
 
-  /*
-  auto in_fd = make_fifo ( true ); 
-  auto out_fd = make_fifo ( false );
-  */
-
-  std::string cmd = "magrit status " + get_repo_name() + " -";
+  std::string cmd = "magrit status " + get_repo_name() + "-";
 
   send_ssh_command_bg ( cmd ); 
 }

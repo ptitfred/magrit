@@ -100,11 +100,13 @@ void send_ssh_command ( const std::string& cmd )
       execlp
       (
         "ssh",
+        "ssh",
         "-x",
         "-p",
         port.c_str(),
         conn_str.c_str(),
-        cmd.c_str() 
+        cmd.c_str(), 
+        (char *) NULL
       )
       < 0
     )
