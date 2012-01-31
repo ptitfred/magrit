@@ -98,13 +98,13 @@ std::string get_magrit_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-int send_ssh_command_background ( const std::string& cmd )
+FILE* send_ssh_command_background ( const std::string& cmd )
 {
   return send_ssh_command ( cmd, true );
 }
 
 /////////////////////////////////////////////////////////////////////////
-int send_ssh_command ( const std::string& cmd, bool background )
+FILE* send_ssh_command ( const std::string& cmd, bool background )
 {
   std::string port
     = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
@@ -122,7 +122,7 @@ int send_ssh_command ( const std::string& cmd, bool background )
     cmd.c_str()
   };
 
-  int handle = execute_program ( cmd_line );
+  FILE* handle = execute_program ( cmd_line );
 
   if ( background )
   {
@@ -137,9 +137,9 @@ int send_ssh_command ( const std::string& cmd, bool background )
 }
 
 /////////////////////////////////////////////////////////////////////////
-void wait_children ( int handle )
+void wait_children ( FILE* handle )
 {
-  if ( pclose ( (FILE*) handle ) < 0 )
+  if ( pclose ( handle ) < 0 )
   {
     throw std::runtime_error ( strerror( errno ) );
   }
@@ -156,7 +156,7 @@ std::vector< std::string > get_git_commits ( const std::vector< std::string >& a
   cmd.insert ( cmd.end(), "--format=%H" );
   cmd.insert ( cmd.end(), arguments.begin(), arguments.end() );
 
-  int handle = execute_program ( cmd ); 
+  FILE* handle = execute_program ( cmd ); 
 
   std::stringstream hashes;
   char buffer[256];
@@ -194,7 +194,7 @@ void get_exec_args ( const std::vector < std::string >& args, char** output )
 }
 
 /////////////////////////////////////////////////////////////////////////
-int execute_program
+FILE* execute_program
 (
   const std::vector< std::string >& arguments
 )
@@ -215,8 +215,6 @@ int execute_program
 
   FILE* output = popen ( join ( " ", arguments.begin(), arguments.end() ).c_str(), "r" );
 
-  static_assert ( sizeof ( int ) >= sizeof ( FILE* ), "this code stinks" );
-
-  return (int)output;
+  return output;
 }
 

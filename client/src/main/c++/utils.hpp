@@ -208,13 +208,13 @@ std::string get_magrit_user ();
  * Sends a command via ssh using the given in and out descriptors
  * as input and output of the command.
  */
-int send_ssh_command ( const std::string& cmd, bool background=false );
-int send_ssh_command_background ( const std::string& cmd );
+FILE* send_ssh_command ( const std::string& cmd, bool background=false );
+FILE* send_ssh_command_background ( const std::string& cmd );
 
 /**
  * Waits for the given handle to finish.
  */
-void wait_children ( int handle );
+void wait_children ( FILE* handle );
 
 /**
  * Uses git log to retrieve info of the current git repository. The arguments
@@ -225,6 +225,6 @@ std::vector< std::string > get_git_commits ( const std::vector< std::string >& a
 /**
  * Executes the command line represented by arguments.
  */
-int execute_program ( const std::vector< std::string >& arguments );
+FILE* execute_program ( const std::vector< std::string >& arguments );
 
 #endif
