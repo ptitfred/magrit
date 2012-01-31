@@ -28,6 +28,10 @@
 #include <iostream>
 #include <vector>
 /////////////////////////////////////////////////////////////////////////
+// BOOST
+#define BOOST_FILESYSTEM_VERSION 2
+#include "boost/process.hpp"
+/////////////////////////////////////////////////////////////////////////
 
 #define GCC_VERSION (__GNUC__ * 10000 \
     + __GNUC_MINOR__ * 100 \
@@ -208,13 +212,19 @@ std::string get_magrit_user ();
  * Sends a command via ssh using the given in and out descriptors
  * as input and output of the command.
  */
-FILE* send_ssh_command ( const std::string& cmd, bool background=false );
-FILE* send_ssh_command_background ( const std::string& cmd );
+boost::process::pipeline_entry send_ssh_command
+( 
+  const std::string& cmd, 
+  boost::process::stream_behavior& _stdin,
+  boost::process::stream_behavior& _stdout,
+  boost::process::stream_behavior& _stderr,
+  bool background=false
+);
 
 /**
  * Waits for the given handle to finish.
  */
-void wait_children ( FILE* handle );
+void wait_children ( boost::process::children& child );
 
 /**
  * Uses git log to retrieve info of the current git repository. The arguments
@@ -223,8 +233,14 @@ void wait_children ( FILE* handle );
 std::vector< std::string > get_git_commits ( const std::vector< std::string >& arguments );
 
 /**
- * Executes the command line represented by arguments.
+ * Creates a deferred program execution.
  */
-FILE* execute_program ( const std::vector< std::string >& arguments );
+boost::process::pipeline_entry create_program
+(
+  const std::vector< std::string >& arguments,
+  boost::process::stream_behavior _stdin,
+  boost::process::stream_behavior _stdout,
+  boost::process::stream_behavior _stderr
+);
 
 #endif

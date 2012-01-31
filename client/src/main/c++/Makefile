@@ -5,11 +5,16 @@ EXECUTABLE=magrit
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	g++ -lboost_program_options $(OBJECTS) -o $@ 
-	g++ -DMAGRIT_BUILD_LOG -Wall -Werror -std=c++0x -g -lboost_program_options $(OBJECTS:main.o=) main.cpp -o magrit-build-log 
+	# TODO: remove ./ (needed by Boost Process. In this case we have to
+  # avoid boost::process propagating till main.cpp ).
+	g++ -lboost_program_options -lboost_filesystem -lboost_system $(OBJECTS) -I./ -o $@ 
+	# TODO: remove ./ (needed by Boost Process. In this case we have to
+  # avoid boost::process propagating till main.cpp ).
+	g++ -DMAGRIT_BUILD_LOG -Wall -Werror -std=c++0x -g -lboost_system -lboost_filesystem -lboost_program_options $(OBJECTS:main.o=) main.cpp -I./ -o magrit-build-log 
 
 .cpp.o:
-	g++ -Wall -Werror -std=c++0x -g -c $<
+	# TODO: remove ./ (needed by Boost Process)
+	g++ -Wall -Werror -std=c++0x -g -c -I./ $<
 
 clean:
 	rm magrit *.o -f

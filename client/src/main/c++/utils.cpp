@@ -98,13 +98,14 @@ std::string get_magrit_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-FILE* send_ssh_command_background ( const std::string& cmd )
-{
-  return send_ssh_command ( cmd, true );
-}
-
-/////////////////////////////////////////////////////////////////////////
-FILE* send_ssh_command ( const std::string& cmd, bool background )
+boost::process::pipeline_entry send_ssh_command
+( 
+  const std::string& cmd, 
+  boost::process::stream_behavior& _stdin,
+  boost::process::stream_behavior& _stdout,
+  boost::process::stream_behavior& _stderr,
+  bool background
+)
 {
   std::string port
     = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
@@ -122,26 +123,41 @@ FILE* send_ssh_command ( const std::string& cmd, bool background )
     cmd.c_str()
   };
 
-  FILE* handle = execute_program ( cmd_line );
+  boost::process::pipeline_entry prog
+    = create_program ( cmd_line, _stdin, _stdout, _stderr );
 
   if ( background )
   {
-    return handle;
+    return prog;
   }
   else
   {
-    wait_children ( handle );
+    std::vector < boost::process::pipeline_entry > entries;
+     
+    entries.push_back ( prog );
 
-    return handle;
+    boost::process::children child_prog
+      = boost::process::launch_pipeline ( entries ); 
+
+    boost::process::wait_children ( child_prog );
+
+    return prog;
   }
 }
 
 /////////////////////////////////////////////////////////////////////////
-void wait_children ( FILE* handle )
+void wait_children ( boost::process::child& child )
 {
-  if ( pclose ( handle ) < 0 )
+  boost::process::status stat = child.wait();
+
+  if ( ! stat.exited() )
   {
-    throw std::runtime_error ( strerror( errno ) );
+    throw std::runtime_error
+    (
+      std::string ("Process ") +
+      boost::lexical_cast < std::string > ( child.get_id() ) +
+      std::string (" abruptly terminated.")
+    );
   }
 }
 
@@ -156,20 +172,34 @@ std::vector< std::string > get_git_commits ( const std::vector< std::string >& a
   cmd.insert ( cmd.end(), "--format=%H" );
   cmd.insert ( cmd.end(), arguments.begin(), arguments.end() );
 
-  FILE* handle = execute_program ( cmd ); 
+  boost::process::pipeline_entry git_log
+    = create_program 
+      ( 
+        cmd,
+        boost::process::inherit_stream(),
+        boost::process::capture_stream(),
+        boost::process::inherit_stream()
+      ); 
 
+  std::vector < boost::process::pipeline_entry > entries;
+  entries.push_back ( git_log ); 
+
+  boost::process::children child_git_log
+    = boost::process::launch_pipeline ( entries ); 
+  
   std::stringstream hashes;
-  char buffer[256];
 
-  while( !feof ( (FILE*) handle ) )
+  boost::process::pistream& _stdout
+    = child_git_log.front().get_stdout();
+
+  std::string line;
+
+  while ( std::getline ( _stdout, line ) )
   {
-    if ( fgets ( buffer, sizeof ( buffer ), (FILE*) handle ) != NULL)
-    {
-      hashes << buffer;
-    }
+    hashes << line << std::endl; 
   }
 
-  wait_children ( handle );
+  boost::process::wait_children ( child_git_log );
 
   return split ( hashes.str(), '\n' );
 }
@@ -194,9 +224,12 @@ void get_exec_args ( const std::vector < std::string >& args, char** output )
 }
 
 /////////////////////////////////////////////////////////////////////////
-FILE* execute_program
+boost::process::pipeline_entry create_program
 (
-  const std::vector< std::string >& arguments
+  const std::vector< std::string >& arguments,
+  boost::process::stream_behavior _stdin,
+  boost::process::stream_behavior _stdout,
+  boost::process::stream_behavior _stderr
 )
 {
   if ( arguments.size() < 1 )
@@ -204,17 +237,16 @@ FILE* execute_program
     throw std::logic_error ( "execute_program needs at least 1 argument" );
   }
 
-  std::cout
-    << "Executing ["
-    << join ( " ", arguments.begin(), arguments.end() )
-    << "]" << std::endl;
-
   char * c_arguments [ get_num_exec_args ( arguments ) ];
   
   get_exec_args ( arguments, c_arguments );
 
-  FILE* output = popen ( join ( " ", arguments.begin(), arguments.end() ).c_str(), "r" );
+  boost::process::context context;
 
-  return output;
+  context.stdin_behavior = _stdin;
+  context.stdout_behavior = _stdout;
+  context.stderr_behavior = _stderr;
+
+  return boost::process::pipeline_entry ( arguments[0], arguments, context );  
 }
 
