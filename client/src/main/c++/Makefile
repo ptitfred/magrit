@@ -1,4 +1,4 @@
-SOURCES=$(wildcard *.cpp)
+SOURCES=$(wildcard *.cpp libexecstream/exec-stream.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=magrit
 
