@@ -220,3 +220,32 @@ int execute_program
   return (int)output;
 }
 
+/////////////////////////////////////////////////////////////////////////
+boost::pipeline_entry
+execute_program
+(
+  const std::vector< std::string >& args
+)
+{
+  if ( args.size() < 1 )
+  {
+    throw std::logic_error ( "execute_program needs at least 1 argument" );
+  }
+
+  std::cout
+    << "Executing ["
+    << join ( " ", args.begin(), args.end() )
+    << "]" << std::endl;
+
+  std::vector<std::string> tail_args ( ++args.begin(), args.end() );
+
+  bp::context context; 
+  context.stdin_behavior = boost::process::capture_stream(); 
+  context.stdout_behavior = boost::process::inherit_stream(); 
+  context.stderr_behavior = boost::process::redirect_stream_to_stdout(); 
+
+  boost::process::pipeline_entry ( arguments[0], tail_args, context );
+
+  
+}
+
