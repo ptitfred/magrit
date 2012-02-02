@@ -93,33 +93,21 @@ const
     git_args = vm["git-args"].as< std::vector< std::string > >();
   }
 
-  std::string cmd = "magrit status " + get_repo_name() + " -";
- 
-  std::vector< std::string > revisions = get_git_commits ( git_args );
+  std::vector < boost::process::pipeline_entry > pipeline;
 
-  std::for_each 
+  pipeline.push_back
   (
-    revisions.begin(), revisions.end(),
-    [](const std::string& rev)
-    {
-      std::cout << "** " << rev << std::endl;
-    }
+    get_git_commits_cmd ( git_args )
   );
 
-  // TODO: pipe get_git_commits to ssh command input
-  //       using boost::process (pipeline_entry and
-  //       launch_pipeline).
-  /*
-  int ssh_handle = send_ssh_command_background ( cmd );
-
-  std::for_each 
+  pipeline.push_back
   (
-    revisions.begin(), revisions.end(),
-    [](const std::string& rev)
-    {
-      rev >> std::cin;
-    }
+    ssh_command
+    (
+      "magrit status " + get_repo_name() + " -"
+    )
   );
 
-  wait_children ( ssh_handle );*/
+  boost::process::children childs
+    = boost::process::launch_pipeline ( pipeline );
 }

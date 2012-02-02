@@ -98,13 +98,9 @@ std::string get_magrit_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::process::child send_ssh_command
+boost::process::pipeline_entry ssh_command
 ( 
-  const std::string& cmd, 
-  boost::process::stream_behavior& _stdin,
-  boost::process::stream_behavior& _stdout,
-  boost::process::stream_behavior& _stderr,
-  bool background
+  const std::string& cmd
 )
 {
   std::string port
@@ -122,23 +118,19 @@ boost::process::child send_ssh_command
     cmd.c_str()
   };
 
-  boost::process::child prog
-    = start_process ( "ssh", cmd_line, _stdin, _stdout, _stderr );
-
-  if ( background )
-  {
-    return prog;
-  }
-  else
-  {
-    prog.wait();
-
-    return prog;
-  }
+  return start_pipeline_process
+      (
+        "ssh",
+        cmd_line,
+        boost::process::close_stream(),
+        boost::process::inherit_stream(),
+        boost::process::inherit_stream()
+      );
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector< std::string > get_git_commits ( const std::vector< std::string >& git_args )
+boost::process::pipeline_entry
+get_git_commits_cmd ( const std::vector< std::string >& git_args )
 {
   std::vector< std::string > args;
  
@@ -146,31 +138,14 @@ std::vector< std::string > get_git_commits ( const std::vector< std::string >& g
   args.insert ( args.end(), "--format=%H" );
   args.insert ( args.end(), git_args.begin(), git_args.end() );
 
-  boost::process::child git_log
-    = start_process 
-      ( 
-        "git",
-        args,
-        boost::process::inherit_stream(),
-        boost::process::capture_stream(),
-        boost::process::inherit_stream()
-      ); 
-
-  std::stringstream hashes;
-
-  boost::process::pistream& _stdout
-    = git_log.get_stdout();
-
-  std::string line;
-
-  while ( std::getline ( _stdout, line ) )
-  {
-    hashes << line << std::endl; 
-  }
-
-  //git_log.wait();
-
-  return split ( hashes.str(), '\n' );
+  return start_pipeline_process 
+  ( 
+    "git",
+    args,
+    boost::process::close_stream(),
+    boost::process::close_stream(),
+    boost::process::inherit_stream()
+  ); 
 }
 
 /////////////////////////////////////////////////////////////////////////
