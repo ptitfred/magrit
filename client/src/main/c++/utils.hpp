@@ -212,7 +212,7 @@ std::string get_magrit_user ();
  * Sends a command via ssh using the given in and out descriptors
  * as input and output of the command.
  */
-boost::process::pipeline_entry send_ssh_command
+boost::process::child send_ssh_command
 ( 
   const std::string& cmd, 
   boost::process::stream_behavior& _stdin,
@@ -222,21 +222,26 @@ boost::process::pipeline_entry send_ssh_command
 );
 
 /**
- * Waits for the given handle to finish.
- */
-void wait_children ( boost::process::children& child );
-
-/**
  * Uses git log to retrieve info of the current git repository. The arguments
  * are passed to git log.
  */
 std::vector< std::string > get_git_commits ( const std::vector< std::string >& arguments );
 
 /**
- * Creates a deferred program execution.
+ * Launches the given command line. 
  */
-boost::process::pipeline_entry create_program
+boost::process::child start_process
 (
+  const std::string& program,
+  const std::vector< std::string >& arguments,
+  boost::process::stream_behavior _stdin,
+  boost::process::stream_behavior _stdout,
+  boost::process::stream_behavior _stderr
+);
+
+boost::process::pipeline_entry start_pipeline_process
+(
+  const std::string& program,
   const std::vector< std::string >& arguments,
   boost::process::stream_behavior _stdin,
   boost::process::stream_behavior _stdout,

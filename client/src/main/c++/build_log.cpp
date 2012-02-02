@@ -102,7 +102,7 @@ const
     revisions.begin(), revisions.end(),
     [](const std::string& rev)
     {
-      std::cout << rev << std::endl;
+      std::cout << "** " << rev << std::endl;
     }
   );
 
