@@ -28,6 +28,10 @@
 #include <iostream>
 #include <vector>
 /////////////////////////////////////////////////////////////////////////
+// BOOST
+#include "boost/process/child.hpp"
+#include "boost/process/context.hpp"
+/////////////////////////////////////////////////////////////////////////
 
 #define GCC_VERSION (__GNUC__ * 10000 \
     + __GNUC_MINOR__ * 100 \
@@ -205,26 +209,40 @@ int get_magrit_port ();
 std::string get_magrit_user ();
 
 /**
- * Sends a command via ssh using the given in and out descriptors
- * as input and output of the command.
- */
-FILE* send_ssh_command ( const std::string& cmd, bool background=false );
-FILE* send_ssh_command_background ( const std::string& cmd );
-
-/**
- * Waits for the given handle to finish.
- */
-void wait_children ( FILE* handle );
-
-/**
  * Uses git log to retrieve info of the current git repository. The arguments
  * are passed to git log.
  */
-std::vector< std::string > get_git_commits ( const std::vector< std::string >& arguments );
+std::vector < std::string >
+get_git_commits ( const std::vector< std::string >& arguments );
 
 /**
- * Executes the command line represented by arguments.
+ * Print the status of the given revisions.
  */
-FILE* execute_program ( const std::vector< std::string >& arguments );
+void print_status ( const std::vector< std::string >& sha1 );
+
+/**
+ * Launches the given command line. 
+ */
+boost::process::child start_process
+(
+  const std::string& program,
+  const std::vector< std::string >& arguments,
+  boost::process::stream_behavior _stdin,
+  boost::process::stream_behavior _stdout,
+  boost::process::stream_behavior _stderr
+);
+
+/**
+ * Launches the given command line but enables piping 
+ * its input/output.
+ */
+boost::process::pipeline_entry start_pipeline_process
+(
+  const std::string& program,
+  const std::vector< std::string >& arguments,
+  boost::process::stream_behavior _stdin,
+  boost::process::stream_behavior _stdout,
+  boost::process::stream_behavior _stderr
+);
 
 #endif
