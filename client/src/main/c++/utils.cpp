@@ -25,9 +25,12 @@
 #include <stdexcept> 
 #include <string.h>
 #include <iterator>
+#include <iomanip>
 //////////////////////////////////////////////////////////////////////////
 // BOOST
 #include <boost/lexical_cast.hpp> 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp> 
 ////////////////////////////////////////////////////////////////////////
 // FORK 
 #include <stdio.h>
@@ -76,7 +79,7 @@ std::string sanitize_ssh_cmd ( const std::string& str )
 /////////////////////////////////////////////////////////////////////////
 std::string get_repo_name ()
 {
-  return sanitize ( "magrit" );
+  return sanitize ( "/test/" );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -98,10 +101,41 @@ std::string get_magrit_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::process::pipeline_entry ssh_command
-( 
-  const std::string& cmd
-)
+std::vector< std::string >
+get_git_commits ( const std::vector< std::string >& git_args )
+{
+  std::vector< std::string > args;
+ 
+  args.insert ( args.end(), "log" );
+  args.insert ( args.end(), "--format=%H" );
+  args.insert ( args.end(), git_args.begin(), git_args.end() );
+
+  boost::process::child ch
+    = start_process
+      (
+        "git",
+        args, 
+        boost::process::close_stream(),
+        boost::process::capture_stream(),
+        boost::process::inherit_stream()
+      );
+
+  boost::process::pistream& is = ch.get_stdout();
+
+  std::vector< std::string > sha1;
+  std::string line; 
+
+  while ( std::getline( is, line ) )
+  {
+    sha1.push_back ( line ); 
+  }
+
+  return sha1;
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::vector< std::string >
+get_status ( const std::vector< std::string >& sha1 )
 {
   std::string port
     = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
@@ -115,56 +149,70 @@ boost::process::pipeline_entry ssh_command
     "-p",
     port.c_str(),
     conn_str.c_str(),
-    cmd.c_str()
+    "magrit status" " /test/ " "-" 
   };
 
-  return start_pipeline_process
+  boost::process::child ch
+    = start_process
       (
         "ssh",
         cmd_line,
-        boost::process::close_stream(),
-        boost::process::inherit_stream(),
+        boost::process::capture_stream(),
+        boost::process::capture_stream(),
         boost::process::inherit_stream()
       );
-}
 
-/////////////////////////////////////////////////////////////////////////
-boost::process::pipeline_entry
-get_git_commits_cmd ( const std::vector< std::string >& git_args )
-{
-  std::vector< std::string > args;
- 
-  args.insert ( args.end(), "log" );
-  args.insert ( args.end(), "--format=%H" );
-  args.insert ( args.end(), git_args.begin(), git_args.end() );
+  boost::process::postream& in = ch.get_stdin();
+  
+  boost::process::pistream& out = ch.get_stdout();
 
-  return start_pipeline_process 
-  ( 
-    "git",
-    args,
-    boost::process::close_stream(),
-    boost::process::close_stream(),
-    boost::process::inherit_stream()
-  ); 
-}
+  std::for_each
+  (
+    sha1.begin(),
+    sha1.end(),
+    [&] (const std::string& sig)
+    {
+      in << sig << std::endl;
+    }
+  );
 
-/////////////////////////////////////////////////////////////////////////
-int get_num_exec_args ( const std::vector < std::string >& args )
-{
-  return args.size() + 1 /* ending NULL pointer */ ;
-}
+  std::string status; 
+  uint num = 0;
 
-/////////////////////////////////////////////////////////////////////////
-void get_exec_args ( const std::vector < std::string >& args, char** output )
-{
-  for ( uint i = 0 ; i < args.size() ; ++i )
+  std::vector < std::string > cmd_line2 = 
   {
-    // exec expects a non const despite it doesn't
-    // touch its arguments.
-    output[i] = const_cast<char*>( args[i].c_str() );
+    "log",
+    "--color=always", // TODO: make an option
+    "-1",
+    "--oneline",
+    "-z",
+    "<not set>"
+  };
+
+  while ( ++num <= sha1.size() && std::getline ( out, status ) )
+  {
+    cmd_line2.back() = sha1[num-1];
+     
+    boost::process::child git_log_status
+      = start_process
+        (
+          "git",
+          cmd_line2,
+          boost::process::inherit_stream(),
+          boost::process::capture_stream(),
+          boost::process::inherit_stream()
+        );
+   
+    std::string line;
+
+    std::getline ( git_log_status.get_stdout(), line );
+
+    std::cout 
+      << std::left << std::setw (77)
+      << line << " | " << status << std::endl;
   }
 
-  output[args.size()] = NULL;
+  return sha1;
 }
 
 /////////////////////////////////////////////////////////////////////////

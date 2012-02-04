@@ -30,6 +30,7 @@
 /////////////////////////////////////////////////////////////////////////
 // BOOST
 #define BOOST_FILESYSTEM_VERSION 2
+#define BOOST_PROCESS_WINDOWS_USE_NAMED_PIPE
 #include "boost/process.hpp"
 /////////////////////////////////////////////////////////////////////////
 
@@ -209,20 +210,14 @@ int get_magrit_port ();
 std::string get_magrit_user ();
 
 /**
- * Sends a command via ssh using the given in and out descriptors
- * as input and output of the command.
- */
-boost::process::pipeline_entry ssh_command
-( 
-  const std::string& cmd
-);
-
-/**
  * Uses git log to retrieve info of the current git repository. The arguments
  * are passed to git log.
  */
-boost::process::pipeline_entry
-get_git_commits_cmd ( const std::vector< std::string >& arguments );
+std::vector < std::string >
+get_git_commits ( const std::vector< std::string >& arguments );
+
+std::vector< std::string >
+get_status ( const std::vector< std::string >& sha1 );
 
 /**
  * Launches the given command line. 

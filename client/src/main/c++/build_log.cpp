@@ -95,19 +95,7 @@ const
 
   std::vector < boost::process::pipeline_entry > pipeline;
 
-  pipeline.push_back
-  (
-    get_git_commits_cmd ( git_args )
-  );
+  std::vector< std::string > sha1 = get_git_commits ( git_args );
 
-  pipeline.push_back
-  (
-    ssh_command
-    (
-      "magrit status " + get_repo_name() + " -"
-    )
-  );
-
-  boost::process::children childs
-    = boost::process::launch_pipeline ( pipeline );
+  get_status ( sha1 );
 }
