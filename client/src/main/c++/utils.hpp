@@ -189,14 +189,31 @@ std::vector < std::string > split ( const std::string& input, char delimiter );
 void clear_screen ();
 
 /**
- * Gets the name of the git repository.
+ * Executes the given command with the given arguments and 
+ * reads a single line of output.
+ */
+std::string read_one_output_line
+( const char* cmd, const std::vector < std::string >& args );
+
+/**
+ * Returns the magrit.repo config variable.
+ */
+std::string get_repo_remote_name ();
+
+/**
+ * Gets the url of the git repository.
+ */
+std::string get_repo_url ();
+
+/**
+ * Name of the repository.
  */
 std::string get_repo_name ();
 
 /**
  * Gets the host of the git repository .
  */
-std::string get_magrit_host ();
+std::string get_repo_host ();
 
 /**
  * Gets the port of the git repository .
@@ -206,7 +223,7 @@ int get_magrit_port ();
 /**
  * Gets the user of the git repository .
  */
-std::string get_magrit_user ();
+std::string get_repo_user ();
 
 /**
  * Uses git log to retrieve info of the current git repository. The arguments

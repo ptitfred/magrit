@@ -108,7 +108,7 @@ print_status ( const std::vector< std::string >& sha1 )
     = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
 
   std::string conn_str
-    = ( get_magrit_user() + std::string("@") + get_magrit_host() ).c_str();
+    = ( get_repo_user() + std::string("@") + get_repo_host() ).c_str();
 
   std::vector < std::string > cmd_line = 
   {

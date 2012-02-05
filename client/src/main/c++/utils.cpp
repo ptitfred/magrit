@@ -75,15 +75,124 @@ std::string sanitize_ssh_cmd ( const std::string& str )
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_name ()
+std::string read_one_output_line
+( const char* cmd, const std::vector < std::string >& args )
 {
-  return sanitize ( "/test/" );
+  boost::process::child ch 
+    = start_process
+      (
+        cmd,
+        args,
+        boost::process::inherit_stream(),
+        boost::process::capture_stream(),
+        boost::process::inherit_stream()
+      );
+
+  std::string line;
+
+  ch.get_stdout() >> line;
+
+  return sanitize ( line );
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_magrit_host ()
+std::string get_repo_remote_name ()
 {
-  return sanitize ( "localhost" );
+  std::string remote 
+    = read_one_output_line
+      (
+        "git", 
+        std::vector < std::string > { "config", "--get", "magrit.remote" }
+      );
+
+  return remote.empty() ? "magrit" : remote;
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string get_repo_url ()
+{
+  std::string var
+    = std::string ( "remote." ) + get_repo_remote_name () + std::string ( ".url" );
+
+  std::string url 
+    = read_one_output_line 
+      ( 
+        "git",
+        std::vector < std::string > 
+        { 
+          "config", 
+          "--local",
+          var
+        }
+      );
+
+  if ( url.empty () )
+  {
+    throw std::runtime_error
+    ( 
+      var + " variable not set. Did you use 'magrit config add <name>'?"
+    );
+  }
+  else
+  {
+    return url;
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string get_repo_name ()
+{
+  std::string url = get_repo_url ();
+
+  size_t pos = url.find_last_of ( '/' );
+
+  if ( pos == std::string::npos || pos == url.size() - 1 )
+  {
+    throw std::runtime_error
+    (
+      url + ": malformed url, no repo name supplied"
+    );
+  }
+
+  return url.substr ( pos + 1 );
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string get_repo_host ()
+{
+  std::string url = get_repo_url ();
+
+  size_t pos_at = url.find_first_of ( '@' );
+
+  if ( pos_at == std::string::npos )
+  {
+    throw std::runtime_error ( url + ": malformed url, no user supplied" );
+  }
+
+  size_t pos_colon = url.find_first_of ( ':', pos_at );
+  size_t pos_slash = url.find_first_of ( '/', pos_at );
+
+  size_t end = -1;
+
+  if ( pos_slash == std::string::npos )
+  {
+    throw std::runtime_error ( url + ": malformed url, no repo name supplied" );
+  }
+  else if ( pos_colon != std::string::npos )
+  {
+    end = std::min ( pos_colon, pos_slash );
+  }
+  else
+  {
+    end = pos_slash;
+  }
+
+  if ( end - pos_at <= 1 )
+  {
+    throw std::runtime_error ( url + ": malformed url, no host supplied" );
+  }
+
+  return url.substr ( pos_at + 1, end - pos_at - 1 );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -93,7 +202,7 @@ int get_magrit_port ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_magrit_user ()
+std::string get_repo_user ()
 {
   return sanitize ( "git" );
 }
