@@ -50,6 +50,12 @@ namespace magrit
 
       void print_status ( const std::vector < std::string >& git_args ) const;
 
+      /**
+       * Given a status code, returns the colorized version.
+       */
+      static std::string
+      colorize_linux ( const std::string& status );
+
     protected:
 
       void

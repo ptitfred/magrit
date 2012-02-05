@@ -46,7 +46,7 @@ magrit::log::log ( generic_command* previous_subcommand )
 
   _positional_parameters_desc.add_options()
     ("git-args", boost::program_options::value<std::vector<std::string>>(),
-     "[<since>..<until>] git revisions");
+     "'git log' options and commit filters");
 
   get_options().add ( _positional_parameters_desc );
 }
@@ -167,15 +167,48 @@ const
      boost::process::inherit_stream(),
      boost::process::capture_stream(),
      boost::process::inherit_stream(),
-     [&out]( const std::string& line )
+     [&out,this]( const std::string& line )
      { 
        std::string status;
        std::getline( out, status );
        std::cout 
          << std::left << std::setw (77)
-         << line << " | " << status << std::endl;
+         << line << " | " << colorize_linux ( status ) << std::endl;
      }
   );
 }
 
+/////////////////////////////////////////////////////////////////////////
+std::string
+magrit::log::colorize_linux ( const std::string& status )
+{
+  std::stringstream output;
+
+  for ( uint i = 0 ; i < status.size() ; ++i )
+  {
+    switch ( status[i] )
+    {
+      case 'O':
+        output << cool ( status[i] );
+        break;
+      case 'E':
+        output << error ( status[i] );
+        break;
+      case 'R':
+        output << running ( status[i] );
+        break;
+      case 'P':
+        output << pending ( status[i] );
+        break;
+      case '?':
+        output << warning ( status[i] );
+        break;
+      default:
+        output << status[i];
+        break;
+    }
+  }
+
+  return output.str();
+}
 

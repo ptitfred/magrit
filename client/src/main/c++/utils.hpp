@@ -53,6 +53,49 @@
   #define nullptr NULL
 #endif
 
+std::string clear ();
+
+template < class CharSeq >
+std::string colorize ( const char* num, const CharSeq& msg )
+{
+  return
+    std::string ( "\033[" ) +
+    std::string ( num ) +
+    std::string ( "m" ) +
+    msg +
+    clear();
+}
+
+template < class CharSeq >
+std::string error ( const CharSeq& msg )
+{
+  return colorize ( "91", msg );
+}
+
+template < class CharSeq >
+std::string warning ( const CharSeq& msg )
+{
+  return colorize ( "36", msg );
+}
+
+template < class CharSeq >
+std::string running ( const CharSeq& msg )
+{
+  return colorize ( "1;33", msg );
+}
+
+template < class CharSeq >
+std::string pending ( const CharSeq& msg )
+{
+  return colorize ( "1;33", msg );
+}
+
+template < class CharSeq >
+std::string cool ( const CharSeq& msg )
+{
+  return colorize ( "92", msg );
+}
+
 /**
  * Specific case of string concat. I didn't get it to work in the
  * general case.
