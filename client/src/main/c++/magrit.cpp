@@ -19,6 +19,7 @@
  */
 /////////////////////////////////////////////////////////////////////////
 // MAGRIT 
+#include "utils.hpp" 
 #include "magrit.hpp"
 #include "build.hpp"
 #include "config.hpp"

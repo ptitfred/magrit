@@ -37,7 +37,7 @@
     + __GNUC_MINOR__ * 100 \
     + __GNUC_PATCHLEVEL__)
 
-/** Some C++11 stuff are only available in gcc 4.7 */
+/** Some C++11 stuff is only available in gcc 4.7 */
 #if GCC_VERSION > 40700
   template <typename T>
   using sh_ptr = std::shared_pt<T>;
@@ -46,6 +46,11 @@
   #define sh_ptr std::shared_ptr
 #endif
 
+/** Some C++11 stuff is only available in gcc 4.6 */
+#if GCC_VERSION > 40600
+#else
+  #define nullptr NULL
+#endif
 
 /**
  * Specific case of string concat. I didn't get it to work in the
