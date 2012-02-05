@@ -194,83 +194,80 @@ std::vector < std::string > split ( const std::string& input, char delimiter );
  */
 void clear_screen ();
 
-/**
- * Executes the given command with the given arguments and 
- * reads a single line of output.
- */
-std::string read_one_output_line
-( const char* cmd, const std::vector < std::string >& args );
+namespace magrit
+{
+  /**
+   * Executes the given command with the given arguments and 
+   * reads a single line of output.
+   */
+  std::string read_one_output_line
+  ( const char* cmd, const std::vector < std::string >& args );
 
-/**
- * Returns the magrit.repo config variable.
- */
-std::string get_repo_remote_name ();
+  /**
+   * Returns the magrit.repo config variable.
+   */
+  std::string get_repo_remote_name ();
 
-/**
- * Gets the url of the git repository.
- */
-std::string get_repo_url ();
+  /**
+   * Gets the url of the git repository.
+   */
+  std::string get_repo_url ();
 
-/**
- * Name of the repository.
- */
-std::string get_repo_name ();
+  /**
+   * Name of the repository.
+   */
+  std::string get_repo_name ();
 
-/**
- * Gets the host of the git repository .
- */
-std::string get_repo_host ();
+  /**
+   * Gets the host of the git repository .
+   */
+  std::string get_repo_host ();
 
-/**
- * Gets the port of the git repository .
- */
-int get_magrit_port ();
+  /**
+   * Gets the port of the git repository .
+   */
+  int get_magrit_port ();
 
-/**
- * Gets the user of the git repository .
- */
-std::string get_repo_user ();
+  /**
+   * Gets the user of the git repository .
+   */
+  std::string get_repo_user ();
 
-/**
- * Uses git log to retrieve info of the current git repository. The arguments
- * are passed to git log.
- */
-void
-get_git_commits 
-( 
-  const std::vector< std::string >& git_args, 
-  std::function<void(const std::string& line)> func
-);
+  /**
+   * Print the status of the given revisions.
+   */
+  void print_status ( const std::vector< std::string >& sha1 );
 
-/**
- * Print the status of the given revisions.
- */
-void print_status ( const std::vector< std::string >& sha1 );
+  /**
+   * Launches the given command line. 
+   */
+  void start_process
+  (
+    const std::string& program,
+    const std::vector< std::string >& arguments,
+    boost::process::stream_behavior _stdin,
+    boost::process::stream_behavior _stdout,
+    boost::process::stream_behavior _stderr,
+    std::function<void (const std::string&)> line_processor,
+    size_t limit_num_lines = std::numeric_limits<size_t>::max()
+  );
 
-/**
- * Launches the given command line. 
- */
-void start_process
-(
-  const std::string& program,
-  const std::vector< std::string >& arguments,
-  boost::process::stream_behavior _stdin,
-  boost::process::stream_behavior _stdout,
-  boost::process::stream_behavior _stderr,
-  std::function<void (const std::string&)> line_processor,
-  size_t limit_num_lines = std::numeric_limits<size_t>::max()
-);
+  /**
+   * Launches the given pipeline.
+   */
+  boost::process::children start_pipeline
+  ( const std::vector < boost::process::pipeline_entry >& pipeline );
 
-/**
- * Starts a pipeline process.
- */
-boost::process::pipeline_entry start_pipeline_process
-(
-  const std::string& program,
-  const std::vector< std::string >& arguments,
-  boost::process::stream_behavior _stdin,
-  boost::process::stream_behavior _stdout,
-  boost::process::stream_behavior _stderr
-);
-
+  /**
+   * Creates a pipeline process.
+   */
+  boost::process::pipeline_entry create_pipeline_process
+  (
+    const std::string& program,
+    const std::vector< std::string >& arguments,
+    boost::process::stream_behavior _stdin,
+    boost::process::stream_behavior _stdout,
+    boost::process::stream_behavior _stderr
+  );
+};
 #endif

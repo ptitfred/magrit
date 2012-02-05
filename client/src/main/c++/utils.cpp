@@ -69,7 +69,7 @@ std::string sanitize_ssh_cmd ( const std::string& str )
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string read_one_output_line
+std::string magrit::read_one_output_line
 ( const char* cmd, const std::vector < std::string >& args )
 {
   std::string output;
@@ -88,7 +88,7 @@ std::string read_one_output_line
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_remote_name ()
+std::string magrit::get_repo_remote_name ()
 {
   try
   {
@@ -105,7 +105,7 @@ std::string get_repo_remote_name ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_url ()
+std::string magrit::get_repo_url ()
 {
   std::string var
     = std::string ( "remote." ) + get_repo_remote_name () + std::string ( ".url" );
@@ -136,7 +136,7 @@ std::string get_repo_url ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_name ()
+std::string magrit::get_repo_name ()
 {
   std::string url = get_repo_url ();
 
@@ -154,7 +154,7 @@ std::string get_repo_name ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_host ()
+std::string magrit::get_repo_host ()
 {
   std::string url = get_repo_url ();
 
@@ -192,44 +192,19 @@ std::string get_repo_host ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-int get_magrit_port ()
+int magrit::get_magrit_port ()
 {
   return 2022;
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string get_repo_user ()
+std::string magrit::get_repo_user ()
 {
   return sanitize ( "git" );
 }
 
 /////////////////////////////////////////////////////////////////////////
-void
-get_git_commits 
-( 
-  const std::vector< std::string >& git_args, 
-  std::function<void(const std::string& line)> func
-)
-{
-  std::vector < std::string > args;
- 
-  args.insert ( args.end(), "log" );
-  args.insert ( args.end(), "--format=%H" );
-  args.insert ( args.end(), git_args.begin(), git_args.end() );
-
-  start_process
-  (
-    "git",
-    args, 
-    boost::process::close_stream(),
-    boost::process::capture_stream(),
-    boost::process::inherit_stream(),
-    func    
-  );
-}
-
-/////////////////////////////////////////////////////////////////////////
-void start_process
+void magrit::start_process
 (
   const std::string& program,
   const std::vector< std::string >& arguments,
@@ -304,7 +279,57 @@ void start_process
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::process::pipeline_entry start_pipeline_process
+boost::process::children magrit::start_pipeline
+(
+  const std::vector < boost::process::pipeline_entry >& pipeline
+)
+{
+  // std::cout << "Executing [" << program << ", "
+  //           << join ( " ", arguments.begin(), arguments.end() )
+  //           << "]" << std::endl;
+
+  boost::process::children ch 
+    = boost::process::launch_pipeline ( pipeline );
+
+  boost::process::status exit_status
+    = boost::process::wait_children ( ch ); 
+
+  if ( !exit_status.exited () || exit_status.exit_status() != 0 )
+  {
+    std::stringstream pipe_str;
+
+    for ( uint i = 0 ; i < pipeline.size() ; ++i )
+    {
+      if ( i > 0 )
+      {
+        pipe_str << " | ";
+      }
+
+      pipe_str
+        << pipeline[i].executable << " " 
+        << join 
+           (
+             " ",
+             pipeline[i].arguments.begin(),
+             pipeline[i].arguments.end()
+           );
+    }
+
+    throw std::runtime_error
+    (
+      std::string ( "An error occurred in pipeline '" ) +
+      pipe_str.str() +
+      std::string ( "'" )
+    );
+  }
+
+  // std::cout << "Executed." << std::endl;
+
+  return ch; 
+}
+
+/////////////////////////////////////////////////////////////////////////
+boost::process::pipeline_entry magrit::create_pipeline_process
 (
   const std::string& program,
   const std::vector< std::string >& arguments,

@@ -118,7 +118,7 @@ const
 
   pipeline.push_back
   (
-    start_pipeline_process
+    create_pipeline_process
     (
       "git",
       args,
@@ -130,7 +130,7 @@ const
   
   pipeline.push_back
   (
-    start_pipeline_process
+    create_pipeline_process
     ( 
       "ssh",
       std::vector < std::string >
@@ -150,13 +150,7 @@ const
   );
 
   boost::process::children statuses
-    = boost::process::launch_pipeline ( pipeline );
-
-  /*
-  bp::status s = bp::wait_children(cs); 
-
-  return s.exited() ? s.exit_status() : EXIT_FAILURE; 
-  */
+    = start_pipeline ( pipeline );
 
   // pipeline output
   boost::process::pistream& out = statuses.back().get_stdout();
