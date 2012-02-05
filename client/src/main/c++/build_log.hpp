@@ -48,7 +48,7 @@ namespace magrit
       const boost::program_options::positional_options_description&
       get_positional_options () const override;
 
-      int make_fifo ( bool input ) const;
+      void print_status ( const std::vector < std::string >& git_args ) const;
 
     protected:
 

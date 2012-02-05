@@ -95,14 +95,13 @@ const
     git_args = vm["git-args"].as< std::vector< std::string > >();
   }
 
-  std::vector< std::string > sha1 = get_git_commits ( git_args );
-
-  print_status ( sha1 );
+  print_status ( git_args );
 }
 
 /////////////////////////////////////////////////////////////////////////
 void
-print_status ( const std::vector< std::string >& sha1 )
+magrit::log::print_status ( const std::vector < std::string >& git_args )
+const
 {
   std::string port
     = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
@@ -110,74 +109,79 @@ print_status ( const std::vector< std::string >& sha1 )
   std::string conn_str
     = ( get_repo_user() + std::string("@") + get_repo_host() ).c_str();
 
-  std::vector < std::string > cmd_line = 
-  {
-    "-x",
-    "-p",
-    port.c_str(),
-    conn_str.c_str(),
-    "magrit status" " /test/ " "-" 
-  };
+  std::vector < boost::process::pipeline_entry > pipeline;
 
-  boost::process::child ch
-    = start_process
-      (
-        "ssh",
-        cmd_line,
-        boost::process::capture_stream(),
-        boost::process::capture_stream(),
-        boost::process::inherit_stream()
-      );
+  std::vector < std::string > args;
+  args.insert ( args.end(), "log" );
+  args.insert ( args.end(), "--format=%H" );
+  args.insert ( args.end(), git_args.begin(), git_args.end() );
 
-  boost::process::postream& in = ch.get_stdin();
-  
-  boost::process::pistream& out = ch.get_stdout();
-
-  std::for_each
+  pipeline.push_back
   (
-    sha1.begin(),
-    sha1.end(),
-    [&] (const std::string& sig)
-    {
-      in << sig << std::endl;
-    }
+    start_pipeline_process
+    (
+      "git",
+      args,
+      boost::process::close_stream(),
+      boost::process::close_stream(),
+      boost::process::inherit_stream()
+    )
+  );
+  
+  pipeline.push_back
+  (
+    start_pipeline_process
+    ( 
+      "ssh",
+      std::vector < std::string >
+      {
+        "-x",
+        "-p",
+        port,
+        conn_str,
+        std::string ( "magrit status /" ) +
+        get_repo_name() +
+        std::string ( "/ -" )
+      },
+      boost::process::close_stream(),
+      boost::process::capture_stream(),
+      boost::process::inherit_stream()
+    )
   );
 
-  std::string status; 
-  uint num = 0;
+  boost::process::children statuses
+    = boost::process::launch_pipeline ( pipeline );
 
-  std::vector < std::string > cmd_line2 = 
-  {
-    "log",
-    "--color=always", // TODO: make an option
-    "-1",
-    "--oneline",
-    "-z",
-    "<not set>"
-  };
+  /*
+  bp::status s = bp::wait_children(cs); 
 
-  while ( ++num <= sha1.size() && std::getline ( out, status ) )
-  {
-    cmd_line2.back() = sha1[num-1];
-     
-    boost::process::child git_log_status
-      = start_process
-        (
-          "git",
-          cmd_line2,
-          boost::process::inherit_stream(),
-          boost::process::capture_stream(),
-          boost::process::inherit_stream()
-        );
-   
-    std::string line;
+  return s.exited() ? s.exit_status() : EXIT_FAILURE; 
+  */
 
-    std::getline ( git_log_status.get_stdout(), line );
-
-    std::cout 
-      << std::left << std::setw (77)
-      << line << " | " << status << std::endl;
-  }
+  // pipeline output
+  boost::process::pistream& out = statuses.back().get_stdout();
+  start_process
+  (
+    "git",
+     std::vector < std::string >
+     {
+       "log",
+       "--color=always",
+       "--oneline",
+       "-z"
+     },
+     boost::process::inherit_stream(),
+     boost::process::capture_stream(),
+     boost::process::inherit_stream(),
+     [&out]( const std::string& line )
+     { 
+       std::string status;
+       std::getline( out, status );
+       std::cout 
+         << std::left << std::setw (77)
+         << line << " | " << status << std::endl;
+     }
+  );
 }
 
 

@@ -23,14 +23,15 @@
 /////////////////////////////////////////////////////////////////////////
 // STD
 #include <functional>
-#include <memory>
+#include <limits>
 #include <string>
 #include <iostream>
 #include <vector>
 /////////////////////////////////////////////////////////////////////////
 // BOOST
-#include "boost/process/child.hpp"
-#include "boost/process/context.hpp"
+#define BOOST_FILESYSTEM_VERSION 2
+#define BOOST_PROCESS_WINDOWS_USE_NAMED_PIPE
+#include "boost/process.hpp"
 /////////////////////////////////////////////////////////////////////////
 
 #define GCC_VERSION (__GNUC__ * 10000 \
@@ -234,8 +235,12 @@ std::string get_repo_user ();
  * Uses git log to retrieve info of the current git repository. The arguments
  * are passed to git log.
  */
-std::vector < std::string >
-get_git_commits ( const std::vector< std::string >& arguments );
+void
+get_git_commits 
+( 
+  const std::vector< std::string >& git_args, 
+  std::function<void(const std::string& line)> func
+);
 
 /**
  * Print the status of the given revisions.
@@ -245,18 +250,19 @@ void print_status ( const std::vector< std::string >& sha1 );
 /**
  * Launches the given command line. 
  */
-boost::process::child start_process
+void start_process
 (
   const std::string& program,
   const std::vector< std::string >& arguments,
   boost::process::stream_behavior _stdin,
   boost::process::stream_behavior _stdout,
-  boost::process::stream_behavior _stderr
+  boost::process::stream_behavior _stderr,
+  std::function<void (const std::string&)> line_processor,
+  size_t limit_num_lines = std::numeric_limits<size_t>::max()
 );
 
 /**
- * Launches the given command line but enables piping 
- * its input/output.
+ * Starts a pipeline process.
  */
 boost::process::pipeline_entry start_pipeline_process
 (

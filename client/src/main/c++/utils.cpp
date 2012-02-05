@@ -25,16 +25,10 @@
 #include <stdexcept> 
 #include <string.h>
 #include <iterator>
+#include <istream>
 //////////////////////////////////////////////////////////////////////////
 // BOOST
-#define BOOST_FILESYSTEM_VERSION 2
-#define BOOST_PROCESS_WINDOWS_USE_NAMED_PIPE
-#include "boost/process.hpp"
 #include <boost/lexical_cast.hpp> 
-/*
-#include <boost/asio.hpp>
-#include <boost/bind.hpp> 
-*/
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
@@ -78,34 +72,36 @@ std::string sanitize_ssh_cmd ( const std::string& str )
 std::string read_one_output_line
 ( const char* cmd, const std::vector < std::string >& args )
 {
-  boost::process::child ch 
-    = start_process
-      (
-        cmd,
-        args,
-        boost::process::inherit_stream(),
-        boost::process::capture_stream(),
-        boost::process::inherit_stream()
-      );
+  std::string output;
 
-  std::string line;
+  start_process
+  (
+    cmd,
+    args,
+    boost::process::inherit_stream(),
+    boost::process::capture_stream(),
+    boost::process::inherit_stream(),
+    [&output]( const std::string& line ) { output = line; }
+  );
 
-  ch.get_stdout() >> line;
-
-  return sanitize ( line );
+  return sanitize ( output );
 }
 
 /////////////////////////////////////////////////////////////////////////
 std::string get_repo_remote_name ()
 {
-  std::string remote 
-    = read_one_output_line
+  try
+  {
+    return read_one_output_line
       (
         "git", 
         std::vector < std::string > { "config", "--get", "magrit.remote" }
       );
-
-  return remote.empty() ? "magrit" : remote;
+  }
+  catch (...)
+  {
+    return "magrit";
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -130,7 +126,7 @@ std::string get_repo_url ()
   {
     throw std::runtime_error
     ( 
-      var + " variable not set. Did you use 'magrit config add <name>'?"
+      var + " variable not set. Did you use 'magrit config add <name>' ?"
     );
   }
   else
@@ -154,7 +150,7 @@ std::string get_repo_name ()
     );
   }
 
-  return url.substr ( pos + 1 );
+  return std::string ("/") + url.substr ( pos + 1 ) + std::string ("/");
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -208,52 +204,45 @@ std::string get_repo_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector< std::string >
-get_git_commits ( const std::vector< std::string >& git_args )
+void
+get_git_commits 
+( 
+  const std::vector< std::string >& git_args, 
+  std::function<void(const std::string& line)> func
+)
 {
-  std::vector< std::string > args;
+  std::vector < std::string > args;
  
   args.insert ( args.end(), "log" );
   args.insert ( args.end(), "--format=%H" );
   args.insert ( args.end(), git_args.begin(), git_args.end() );
 
-  boost::process::child ch
-    = start_process
-      (
-        "git",
-        args, 
-        boost::process::close_stream(),
-        boost::process::capture_stream(),
-        boost::process::inherit_stream()
-      );
-
-  boost::process::pistream& is = ch.get_stdout();
-
-  std::vector< std::string > sha1;
-  std::string line; 
-
-  while ( std::getline( is, line ) )
-  {
-    sha1.push_back ( line ); 
-  }
-
-  return sha1;
+  start_process
+  (
+    "git",
+    args, 
+    boost::process::close_stream(),
+    boost::process::capture_stream(),
+    boost::process::inherit_stream(),
+    func    
+  );
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::process::child start_process
+void start_process
 (
   const std::string& program,
   const std::vector< std::string >& arguments,
   boost::process::stream_behavior _stdin,
   boost::process::stream_behavior _stdout,
-  boost::process::stream_behavior _stderr
+  boost::process::stream_behavior _stderr,
+  std::function<void (const std::string&)> line_processor,
+  size_t limit_num_lines
 )
 {
-  if ( arguments.size() < 1 )
-  {
-    throw std::logic_error ( "start_process needs at least 1 argument" );
-  }
+  // std::cout << "Executing [" << program << ", "
+  //           << join ( " ", arguments.begin(), arguments.end() )
+  //           << "]" << std::endl;
 
   boost::process::context context;
 
@@ -270,12 +259,48 @@ boost::process::child start_process
   boost_process_workaround_args.insert
     ( boost_process_workaround_args.end(), arguments.begin(), arguments.end() );
 
-  return boost::process::launch
-  (
-    boost::process::find_executable_in_path ( program ),
-    boost_process_workaround_args,
-    context
-  );
+  boost::process::child ch
+    = boost::process::launch
+      (
+        boost::process::find_executable_in_path ( program ),
+        boost_process_workaround_args,
+        context
+      );
+
+  boost::process::pistream& is = ch.get_stdout();
+
+  std::string line; 
+
+  while ( std::getline ( is, line ) )
+  {
+    line_processor ( line );
+  }
+
+  if ( !is.eof() )
+  {
+    throw std::runtime_error
+          ( "An error occurred before reading all the stdout" );
+  }
+
+  auto status = ch.wait();
+
+  if ( !status.exited() )
+  {
+    // Warning: errno is not guaranteed to be wait's one.
+    throw std::runtime_error ( strerror ( errno ) );
+  }
+  else if ( status.exit_status () != 0 )
+  {
+    throw std::runtime_error
+    ( 
+      std::string ( "[" ) + program + " " +
+      join ( " ",  arguments.begin(), arguments.end() ) +
+      std::string ( "] returned " ) +
+      boost::lexical_cast < std::string > ( status.exit_status() )
+    );
+  }
+
+  // std::cout << "Executed." << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -288,11 +313,6 @@ boost::process::pipeline_entry start_pipeline_process
   boost::process::stream_behavior _stderr
 )
 {
-  if ( arguments.size() < 1 )
-  {
-    throw std::logic_error ( "start_process needs at least 1 argument" );
-  }
-
   boost::process::context context;
 
   context.stdin_behavior = _stdin;
