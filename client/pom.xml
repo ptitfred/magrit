@@ -40,21 +40,52 @@
 				<version>1.2.1</version>
 				<executions>
 					<execution>
-						<id>bash-tests</id>
+						<id>C++ clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>make</executable>
+							<!-- optional -->
+							<workingDirectory>${basedir}/src/main/c++</workingDirectory>
+							<arguments>
+								<argument>clean</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>C++ compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>make</executable>
+							<!-- optional -->
+							<workingDirectory>${basedir}/src/main/c++</workingDirectory>
+							<arguments>
+								<argument>MAGRIT_TARGET=${basedir}/target/native-binaries</argument>
+								<argument>all</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>Bash tests</id>
 						<phase>test</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
+						<configuration>
+							<executable>bash</executable>
+							<!-- optional -->
+							<workingDirectory>${basedir}</workingDirectory>
+							<arguments>
+								<argument>src/test/bash/test-config</argument>
+							</arguments>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<executable>bash</executable>
-					<!-- optional -->
-					<workingDirectory>${basedir}</workingDirectory>
-					<arguments>
-						<argument>src/test/bash/test-config</argument>
-					</arguments>
-				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
