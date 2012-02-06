@@ -163,6 +163,7 @@ const
        "--color=always",
        "--oneline",
        "-z"
+       // TODO: add git_args here too.
      },
      boost::process::inherit_stream(),
      boost::process::capture_stream(),
