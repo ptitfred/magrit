@@ -103,57 +103,48 @@ void
 magrit::log::print_status ( const std::vector < std::string >& git_args )
 const
 {
-  std::string port
-    = boost::lexical_cast<std::string>( get_magrit_port() ).c_str();
-
-  std::string conn_str
-    = ( get_repo_user() + std::string("@") + get_repo_host() ).c_str();
-
   std::vector < boost::process::pipeline_entry > pipeline;
 
-  std::vector < std::string > args;
-  args.insert ( args.end(), "log" );
-  args.insert ( args.end(), "--format=%H" );
-  args.insert ( args.end(), git_args.begin(), git_args.end() );
-
-  pipeline.push_back
+  add_process_to_pipeline
   (
-    create_pipeline_process
-    (
-      "git",
-      args,
-      boost::process::close_stream(),
-      boost::process::close_stream(),
-      boost::process::inherit_stream()
-    )
+    "git",
+    std::vector < std::string >
+    {
+      "log",
+      "--format=%H",
+      join ( " ", git_args.begin(), git_args.end() )
+    },
+    boost::process::close_stream(),
+    boost::process::close_stream(),
+    boost::process::inherit_stream(),
+    pipeline
   );
   
-  pipeline.push_back
-  (
-    create_pipeline_process
-    ( 
-      "ssh",
-      std::vector < std::string >
-      {
-        "-x",
-        "-p",
-        port,
-        conn_str,
-        std::string ( "magrit status /" ) +
-        get_repo_name() +
-        std::string ( "/ -" )
-      },
-      boost::process::close_stream(),
-      boost::process::capture_stream(),
-      boost::process::inherit_stream()
-    )
+  add_process_to_pipeline
+  ( 
+    "ssh",
+    std::vector < std::string >
+    {
+      "-x",
+      "-p",
+      boost::lexical_cast < std::string > ( get_magrit_port() ),
+      get_repo_user() + std::string("@") + get_repo_host(),
+      std::string("magrit status /") + get_repo_name() + std::string("/ -")
+    },
+    boost::process::close_stream(),
+    boost::process::capture_stream(),
+    boost::process::inherit_stream(),
+    pipeline
   );
 
-  boost::process::children statuses
-    = start_pipeline ( pipeline );
+  boost::process::children statuses = start_pipeline ( pipeline );
 
-  // pipeline output
-  boost::process::pistream& out = statuses.back().get_stdout();
+  // We issue again a git log with color and the commit message.
+  // For every line, we print the status previously fetched from
+  // server. Note: it's theoretically possible that the previous
+  // git log had less lines than the following one if a commit 
+  // was pushed in between, but in practice the odds are very low
+  // and the impact is very small.
   start_process
   (
     "git",
@@ -162,16 +153,16 @@ const
        "log",
        "--color=always",
        "--oneline",
-       "-z"
-       // TODO: add git_args here too.
+       "-z",
+       join ( " ", git_args.begin(), git_args.end() )
      },
      boost::process::inherit_stream(),
      boost::process::capture_stream(),
      boost::process::inherit_stream(),
-     [&out,this]( const std::string& line )
+     [&]( const std::string& line )
      { 
        std::string status;
-       std::getline( out, status );
+       std::getline( statuses.back().get_stdout(), status );
        std::cout 
          << std::left << std::setw (77)
          << line << " | " << colorize_linux ( status ) << std::endl;

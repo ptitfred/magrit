@@ -210,6 +210,35 @@ std::string magrit::get_repo_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
+std::vector < std::string >
+fix_args ( const std::string& program, const std::vector < std::string >& args )
+{
+  std::vector < std::string > workaround_args;
+
+  // NOTE: bug in boost::process : doc says arguments to be passed
+  //       but execve used by boost::process needs of the whole
+  //       command line (executable included).
+  workaround_args.push_back ( program );
+  workaround_args.insert
+    ( workaround_args.end(), args.begin(), args.end() );
+
+  workaround_args.erase
+  (
+    std::remove_if
+    (
+      workaround_args.begin(), workaround_args.end(),
+      [] ( const std::string& arg )
+      {
+        return arg.empty();
+      }
+    ),
+    workaround_args.end()
+  );
+
+  return workaround_args;
+}
+
+/////////////////////////////////////////////////////////////////////////
 void magrit::start_process
 (
   const std::string& program,
@@ -231,20 +260,14 @@ void magrit::start_process
   context.stdout_behavior = _stdout;
   context.stderr_behavior = _stderr;
 
-  std::vector < std::string > boost_process_workaround_args;
-
-  // TODO: bug in boost::process: doc says arguments to be passed
-  //       but execve used by boost::process needs of the whole
-  //       command line.
-  boost_process_workaround_args.push_back ( program );
-  boost_process_workaround_args.insert
-    ( boost_process_workaround_args.end(), arguments.begin(), arguments.end() );
+  std::vector < std::string > workaround_args 
+    = fix_args ( program, arguments );
 
   boost::process::child ch
     = boost::process::launch
       (
         boost::process::find_executable_in_path ( program ),
-        boost_process_workaround_args,
+        workaround_args,
         context
       );
 
@@ -335,13 +358,14 @@ boost::process::children magrit::start_pipeline
 }
 
 /////////////////////////////////////////////////////////////////////////
-boost::process::pipeline_entry magrit::create_pipeline_process
+void magrit::add_process_to_pipeline
 (
   const std::string& program,
   const std::vector< std::string >& arguments,
   boost::process::stream_behavior _stdin,
   boost::process::stream_behavior _stdout,
-  boost::process::stream_behavior _stderr
+  boost::process::stream_behavior _stderr,
+  std::vector < boost::process::pipeline_entry >& pipeline
 )
 {
   boost::process::context context;
@@ -350,20 +374,17 @@ boost::process::pipeline_entry magrit::create_pipeline_process
   context.stdout_behavior = _stdout;
   context.stderr_behavior = _stderr;
 
-  std::vector < std::string > boost_process_workaround_args;
+  std::vector < std::string > workaround_args 
+    = fix_args ( program, arguments );
 
-  // TODO: bug in boost::process: doc says arguments to be passed
-  //       but execve used by boost::process needs of the whole
-  //       command line.
-  boost_process_workaround_args.push_back ( program );
-  boost_process_workaround_args.insert
-    ( boost_process_workaround_args.end(), arguments.begin(), arguments.end() );
-
-  return boost::process::pipeline_entry
+  pipeline.push_back
   (
-    boost::process::find_executable_in_path ( program ),
-    boost_process_workaround_args,
-    context
+    boost::process::pipeline_entry
+    (
+      boost::process::find_executable_in_path ( program ),
+      workaround_args,
+      context
+    )
   );
 }
 

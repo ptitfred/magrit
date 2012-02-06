@@ -302,15 +302,16 @@ namespace magrit
   ( const std::vector < boost::process::pipeline_entry >& pipeline );
 
   /**
-   * Creates a pipeline process.
+   * Adds a process to the pipeline.
    */
-  boost::process::pipeline_entry create_pipeline_process
+  void add_process_to_pipeline
   (
     const std::string& program,
     const std::vector< std::string >& arguments,
     boost::process::stream_behavior _stdin,
     boost::process::stream_behavior _stdout,
-    boost::process::stream_behavior _stderr
+    boost::process::stream_behavior _stderr,
+    std::vector < boost::process::pipeline_entry >& pipeline
   );
 };
 #endif
