@@ -2,19 +2,23 @@ MAGRIT_TARGET=.
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=magrit
+CPP_FLAGS=-O3 -s -Wall -Werror -std=c++0x
+DEPS=-lpthread -lboost_program_options -lboost_filesystem -lboost_system
 
-all: $(SOURCES) $(EXECUTABLE)
+all: magrit-build-log
 	
-$(EXECUTABLE): $(OBJECTS) 
+$(EXECUTABLE): $(OBJECTS)
 	mkdir -p $(MAGRIT_TARGET)
 	# TODO: remove -I ./ needed by Boost Process. Avoid boost::process propagating till main.cpp. 
-	g++ -lpthread -lboost_program_options -lboost_filesystem -lboost_system $(OBJECTS) -I./ -o $@ 
+	g++ $(CPP_FLAGS) $(DEPS) $(OBJECTS) -I./ -o $@ 
+
+magrit-build-log: generic_command.o utils.o build_log.o
 	# TODO: remove -I ./ needed by Boost Process. Avoid boost::process propagating till main.cpp. 
-	g++ -DMAGRIT_BUILD_LOG -Wall -Werror -std=c++0x -g -lpthread -lboost_system -lboost_filesystem -lboost_program_options $(OBJECTS:main.o=) main.cpp -I./ -o $(MAGRIT_TARGET)/magrit-build-log 
+	g++ -DMAGRIT_BUILD_LOG $(CPP_FLAGS) $(DEPS) $^ main.cpp -I./ -o $(MAGRIT_TARGET)/$@
 
 .cpp.o:
 	# TODO: remove ./ (needed by Boost Process)
-	g++ -Wall -Werror -std=c++0x -g -c -I./ $<
+	g++ $(CPP_FLAGS) -c -I./ $<
 
 clean:
-	rm magrit *.o -f
+	rm magrit magrit-build-log *.o -f
