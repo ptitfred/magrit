@@ -319,10 +319,18 @@ boost::process::children magrit::start_pipeline
 
     for ( uint i = 0 ; i < pipeline.size() ; ++i )
     {
-      pipe_str << std::endl << "        -> ";
+      pipe_str << std::endl << "          ";  
+
+      if ( i > 0 )
+      {
+        pipe_str << " | ";
+      }
+      else
+      {
+        pipe_str << "   ";
+      }
 
       pipe_str
-        << pipeline[i].executable << " " 
         << join 
            (
              " ",
