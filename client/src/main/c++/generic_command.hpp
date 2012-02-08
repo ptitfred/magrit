@@ -220,6 +220,11 @@ namespace magrit
 
       virtual void print_help_command () const;
 
+    public:
+
+      bool debug;
+      bool color;
+
     protected:
 
       boost::program_options::options_description _options;

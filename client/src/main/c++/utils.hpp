@@ -67,31 +67,31 @@ std::string colorize ( const char* num, const CharSeq& msg )
 }
 
 template < class CharSeq >
-std::string error ( const CharSeq& msg )
+std::string error ( const CharSeq& msg, bool color=true )
 {
   return colorize ( "91", msg );
 }
 
 template < class CharSeq >
-std::string warning ( const CharSeq& msg )
+std::string warning ( const CharSeq& msg, bool color=true )
 {
   return colorize ( "36", msg );
 }
 
 template < class CharSeq >
-std::string running ( const CharSeq& msg )
+std::string running ( const CharSeq& msg, bool color=true )
 {
   return colorize ( "1;33", msg );
 }
 
 template < class CharSeq >
-std::string pending ( const CharSeq& msg )
+std::string pending ( const CharSeq& msg, bool color=true )
 {
   return colorize ( "1;33", msg );
 }
 
 template < class CharSeq >
-std::string cool ( const CharSeq& msg )
+std::string cool ( const CharSeq& msg, bool color=true )
 {
   return colorize ( "92", msg );
 }

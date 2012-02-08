@@ -2,7 +2,7 @@ MAGRIT_TARGET=.
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=magrit
-CPP_FLAGS=-O3 -s -Wall -Werror -std=c++0x
+CPP_FLAGS=-s -Wall -Werror -std=c++0x
 DEPS=-lpthread -lboost_program_options -lboost_filesystem -lboost_system
 
 all: magrit-build-log

@@ -250,10 +250,6 @@ void magrit::start_process
   size_t limit_num_lines
 )
 {
-  // std::cout << "Executing [" << program << ", "
-  //           << join ( " ", arguments.begin(), arguments.end() )
-  //           << "]" << std::endl;
-
   boost::process::context context;
 
   context.stdin_behavior = _stdin;
@@ -303,8 +299,6 @@ void magrit::start_process
       boost::lexical_cast < std::string > ( status.exit_status() )
     );
   }
-
-  // std::cout << "Executed." << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -313,10 +307,6 @@ boost::process::children magrit::start_pipeline
   const std::vector < boost::process::pipeline_entry >& pipeline
 )
 {
-  // std::cout << "Executing [" << program << ", "
-  //           << join ( " ", arguments.begin(), arguments.end() )
-  //           << "]" << std::endl;
-
   boost::process::children ch 
     = boost::process::launch_pipeline ( pipeline );
 
@@ -329,10 +319,7 @@ boost::process::children magrit::start_pipeline
 
     for ( uint i = 0 ; i < pipeline.size() ; ++i )
     {
-      if ( i > 0 )
-      {
-        pipe_str << " | ";
-      }
+      pipe_str << std::endl << "        -> ";
 
       pipe_str
         << pipeline[i].executable << " " 
@@ -346,13 +333,10 @@ boost::process::children magrit::start_pipeline
 
     throw std::runtime_error
     (
-      std::string ( "An error occurred in pipeline '" ) +
-      pipe_str.str() +
-      std::string ( "'" )
+      std::string ( "An error occurred in pipeline" ) +
+      pipe_str.str()
     );
   }
-
-  // std::cout << "Executed." << std::endl;
 
   return ch; 
 }

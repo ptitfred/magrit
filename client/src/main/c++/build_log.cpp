@@ -55,13 +55,20 @@ magrit::log::log ( generic_command* previous_subcommand )
 const char*
 magrit::log::get_name() const
 {
-  return "log"; 
+  if ( _previous_subcommand == nullptr )
+  {
+    return "magrit-build-log";
+  }
+  else
+  {
+    return "log"; 
+  }
 } 
 
 /////////////////////////////////////////////////////////////////////////
 const char* magrit::log::get_description() const
 {
-  return "<description to be written>";
+  return "Shows the status of the commits sent to the server";
 }
 
 /////////////////////////////////////////////////////////////////////////

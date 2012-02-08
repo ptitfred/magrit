@@ -33,7 +33,20 @@ magrit::generic_command::generic_command( generic_command* previous_subcommand )
 
   _options.add_options()
     ("help,h", "produces this help message")
-    ("version,v", "version of the application");
+    ("version,v", "version of the application")
+    (
+      "color,c", 
+      boost::program_options::value<bool>( &color )
+        ->implicit_value( true ),
+      "use colored output"
+    )
+    (
+      "debug,d", 
+      boost::program_options::value<bool>( &debug )
+        ->implicit_value( true ),
+      "show debug messages"
+    );
+
 }
 
 /////////////////////////////////////////////////////////////////////////
