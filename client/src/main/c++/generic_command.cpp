@@ -116,6 +116,15 @@ magrit::generic_command::run_impl
         );
       }
     }
+    else
+    {
+      // Doesn't match and no subcommands was passed: fail.
+      print_help ();
+      throw option_not_recognized 
+      (
+        join ( " ", arguments.begin(), arguments.end() )
+      );
+    }
   }
 }
 
