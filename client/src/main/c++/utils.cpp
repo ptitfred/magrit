@@ -306,6 +306,7 @@ boost::process::children magrit::start_pipeline
 (
   const std::vector < boost::process::pipeline_entry >& pipeline
 )
+  throw ( pipeline_error )
 {
   boost::process::children ch 
     = boost::process::launch_pipeline ( pipeline );
@@ -315,35 +316,22 @@ boost::process::children magrit::start_pipeline
 
   if ( !exit_status.exited () || exit_status.exit_status() != 0 )
   {
-    std::stringstream pipe_str;
+    std::vector < std::string > pipeline_elem;
 
     for ( uint i = 0 ; i < pipeline.size() ; ++i )
     {
-      pipe_str << std::endl << "          ";  
-
-      if ( i > 0 )
-      {
-        pipe_str << " | ";
-      }
-      else
-      {
-        pipe_str << "   ";
-      }
-
-      pipe_str
-        << join 
-           (
-             " ",
-             pipeline[i].arguments.begin(),
-             pipeline[i].arguments.end()
-           );
+      pipeline_elem.push_back
+      ( 
+        join 
+        (
+          " ",
+          pipeline[i].arguments.begin(),
+          pipeline[i].arguments.end()
+        )
+      );
     }
 
-    throw std::runtime_error
-    (
-      std::string ( "An error occurred in pipeline" ) +
-      pipe_str.str()
-    );
+    throw pipeline_error ( pipeline_elem );
   }
 
   return ch; 

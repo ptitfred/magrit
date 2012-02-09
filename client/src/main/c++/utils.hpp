@@ -87,7 +87,7 @@ std::string running ( const CharSeq& msg, bool color=true )
 template < class CharSeq >
 std::string pending ( const CharSeq& msg, bool color=true )
 {
-  return colorize ( "1;33", msg );
+  return colorize ( "1;34", msg );
 }
 
 template < class CharSeq >
@@ -239,6 +239,19 @@ void clear_screen ();
 
 namespace magrit
 {
+
+  struct pipeline_error : public std::runtime_error
+  {
+    pipeline_error ( const std::vector < std::string >& pipeline )
+      : std::runtime_error
+        ( 
+          std::string("pipe exited abnormally: \n    -> ") +
+          join ( "\n    -> ", pipeline.begin(), pipeline.end() )
+        )
+    {
+    }
+  };
+
   /**
    * Executes the given command with the given arguments and 
    * reads a single line of output.
@@ -299,7 +312,9 @@ namespace magrit
    * Launches the given pipeline.
    */
   boost::process::children start_pipeline
-  ( const std::vector < boost::process::pipeline_entry >& pipeline );
+  ( const std::vector < boost::process::pipeline_entry >& pipeline )
+  throw ( pipeline_error );
+  ;
 
   /**
    * Adds a process to the pipeline.
