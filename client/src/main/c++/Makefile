@@ -12,10 +12,11 @@ $(EXECUTABLE): $(OBJECTS)
 	g++ $(CPP_FLAGS) $(DEPS) $(OBJECTS) -o $@ 
 
 magrit-build-log: generic_command.o utils.o build_log.o
-	g++ -DMAGRIT_BUILD_LOG $(CPP_FLAGS) $(DEPS) $^ main.cpp -o $(MAGRIT_TARGET)/$@
+	mkdir -p $(MAGRIT_TARGET)
+	g++ -DMAGRIT_BUILD_LOG $(CPP_FLAGS) $(DEPS) $^ main.cpp  -o $(MAGRIT_TARGET)/$@
 
 .cpp.o:
 	g++ $(CPP_FLAGS) -c $<
 
 clean:
-	rm magrit magrit-build-log *.o -f
+	rm magrit $(MAGRIT_TARGET)/magrit-build-log *.o -f
