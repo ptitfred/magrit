@@ -35,8 +35,8 @@ function runTestCase {
 	ts2=$(date +%s)
 	ns2=$(date +%N)
 	echo "\\--$padding----------------------------------------------------------------------------/"
-	msec=$(( ($ts2 - $ts1) * 1000 + $ns2 / 1000000 - $ns1 / 1000000 ))
-	info "took ${msec} msec"
+	sec=$(echo "scale=3; ($ts2 - $ts1) * 1 + $ns2 / 1000000000 - $ns1 / 1000000000" | bc -l)
+	info "Took ${sec} sec"
 	if [ $ec -gt 0 ]; then
 		let "failures ++"
 	elif [ $ec -lt 0 ]; then
@@ -69,9 +69,12 @@ info "TESTS"
 for tc in $(lsTestCases); do
 	runTestCase $tc
 done
+mistakes=$(( $failures + $errors ))
+total=$(( $oks + $mistakes ))
 info "OK:       $oks"
 info "Failures: $failures"
 info "Errors:   $errors"
+info "Total:    $total"
 info "-----------------------------------"
 info "Killing server"
 kill $PID
@@ -79,8 +82,10 @@ kill $PID
 info "Done"
 
 info "-----------------------------------"
-info "TEST SUCCESSED"
-exit 0
-#error "TEST FAILED"
-#exit 1
+if [ $mistakes -eq 0 ]; then
+	info "TEST SUCCESSED"
+else
+	error "TEST FAILED"
+fi
+exit $mistakes
 
