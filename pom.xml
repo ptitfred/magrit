@@ -28,6 +28,7 @@
 		<module>client</module>
 		<module>server</module>
 		<module>installer</module>
+		<module>tests</module>
 	</modules>
 
 </project>

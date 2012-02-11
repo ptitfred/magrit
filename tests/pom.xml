@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.kercoin.magrit</groupId>
+		<artifactId>magrit</artifactId>
+		<version>rebecca-SNAPSHOT</version>
+	</parent>
+	
+	<artifactId>magrit-tests</artifactId>
+	<packaging>pom</packaging>
+
+	<name>magrit-tests</name>
+	<description>Automatated Regression Tests for Magrit.</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<magrit.installer.directory>${project.build.directory}</magrit.installer.directory>
+		<magrit.installer.filename>magrit-last.jar</magrit.installer.filename>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-server</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<artifactItems>
+						<artifactItem>
+							<groupId>org.kercoin.magrit</groupId>
+							<artifactId>magrit-installer</artifactId>
+							<version>${project.version}</version>
+							<type>jar</type>
+							<overWrite>false</overWrite>
+							<outputDirectory>${magrit.installer.directory}</outputDirectory>
+							<destFileName>${magrit.installer.filename}</destFileName>
+						</artifactItem>
+					</artifactItems>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<id>integration-tests</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>bash</executable>
+					<!-- optional -->
+					<workingDirectory>${basedir}</workingDirectory>
+					<arguments>
+						<argument>run.sh</argument>
+						<argument>${magrit.installer.directory}/${magrit.installer.filename}</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<!--resources>
+			<resource>
+				<directory>src/main/bash</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources-->
+	</build>
+
+</project>
+
