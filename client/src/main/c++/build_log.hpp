@@ -48,7 +48,7 @@ namespace magrit
        * Given a status code, returns the colorized version.
        */
       static std::string
-      colorize_linux ( const std::string& status );
+      colorize_linux ( const std::string& status, bool color );
 
     protected:
 

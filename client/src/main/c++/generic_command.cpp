@@ -31,7 +31,7 @@ magrit::generic_command::generic_command
   generic_command* previous_subcommand,
   bool allow_positional
 )
-  : _options ( "Main options" ), _previous_subcommand ( previous_subcommand ),
+  : debug(true), color(true), _options ( "Main options" ), _previous_subcommand ( previous_subcommand ),
     _allow_positional ( allow_positional )
 {
   namespace bpo = boost::program_options;
@@ -42,13 +42,15 @@ magrit::generic_command::generic_command
     (
       "color,c", 
       boost::program_options::value<bool>( &color )
-        ->implicit_value( true ),
+        ->implicit_value ( true )
+        ->default_value ( true ),
       "use colored output"
     )
     (
       "debug,d", 
       boost::program_options::value<bool>( &debug )
-        ->implicit_value( true ),
+        ->implicit_value ( true )
+        ->default_value ( true ),
       "show debug messages"
     );
 
@@ -266,6 +268,8 @@ const
 
     throw success();
   }
+
+  std::cout << "color=" << color << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////

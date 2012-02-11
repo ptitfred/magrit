@@ -56,44 +56,51 @@
 std::string clear ();
 
 template < class CharSeq >
-std::string colorize ( const char* num, const CharSeq& msg )
+std::string colorize ( const char* num, const CharSeq& msg, bool color=true )
 {
-  return
-    std::string ( "\033[" ) +
-    std::string ( num ) +
-    std::string ( "m" ) +
-    msg +
-    clear();
+  if ( color )
+  {
+    return
+      std::string ( "\033[" ) +
+      std::string ( num ) +
+      std::string ( "m" ) +
+      msg +
+      clear();
+  }
+  else
+  {
+    return std::string()+msg;
+  }
 }
 
 template < class CharSeq >
 std::string error ( const CharSeq& msg, bool color=true )
 {
-  return colorize ( "91", msg );
+  return colorize ( "91", msg, color );
 }
 
 template < class CharSeq >
 std::string warning ( const CharSeq& msg, bool color=true )
 {
-  return colorize ( "36", msg );
+  return colorize ( "36", msg, color );
 }
 
 template < class CharSeq >
 std::string running ( const CharSeq& msg, bool color=true )
 {
-  return colorize ( "1;33", msg );
+  return colorize ( "1;33", msg, color );
 }
 
 template < class CharSeq >
 std::string pending ( const CharSeq& msg, bool color=true )
 {
-  return colorize ( "1;34", msg );
+  return colorize ( "1;34", msg, color );
 }
 
 template < class CharSeq >
 std::string cool ( const CharSeq& msg, bool color=true )
 {
-  return colorize ( "92", msg );
+  return colorize ( "92", msg, color );
 }
 
 /**

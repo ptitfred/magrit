@@ -140,7 +140,7 @@ const
      std::vector < std::string >
      {
        "log",
-       "--color=always",
+       color?"--color=always":"--color=never",
        "--oneline",
        "-z",
        join ( " ", git_args.begin(), git_args.end() )
@@ -154,14 +154,14 @@ const
        std::getline( statuses.back().get_stdout(), status );
        std::cout 
          << std::left << std::setw (77)
-         << line << " | " << colorize_linux ( status ) << std::endl;
+         << line << " | " << colorize_linux ( status, color ) << std::endl;
      }
   );
 }
 
 /////////////////////////////////////////////////////////////////////////
 std::string
-magrit::log::colorize_linux ( const std::string& status )
+magrit::log::colorize_linux ( const std::string& status, bool color )
 {
   std::stringstream output;
 
@@ -170,19 +170,19 @@ magrit::log::colorize_linux ( const std::string& status )
     switch ( status[i] )
     {
       case 'O':
-        output << cool ( status[i] );
+        output << cool ( status[i], color );
         break;
       case 'E':
-        output << error ( status[i] );
+        output << error ( status[i], color );
         break;
       case 'R':
-        output << running ( status[i] );
+        output << running ( status[i], color );
         break;
       case 'P':
-        output << pending ( status[i] );
+        output << pending ( status[i], color );
         break;
       case '?':
-        output << warning ( status[i] );
+        output << warning ( status[i], color );
         break;
       default:
         output << status[i];
