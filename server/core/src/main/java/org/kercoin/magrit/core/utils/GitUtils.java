@@ -23,6 +23,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.InvalidRefNameException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -30,6 +36,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 
 import com.google.inject.Singleton;
@@ -45,19 +52,37 @@ public class GitUtils {
 		if (!remoteRepo.isBare()) {
 			dest = dest.getParentFile();
 		}
-		toConfigure.getConfig().setString("remote", name, "fetch", refSpec );
-		toConfigure.getConfig().setString("remote", name, "url", dest.getAbsolutePath());
-		// write down configuration in .git/config
-		toConfigure.getConfig().save();
+		synchronized (toConfigure) {
+			toConfigure.getConfig().setString("remote", name, "fetch", refSpec );
+			toConfigure.getConfig().setString("remote", name, "url", dest.getAbsolutePath());
+			// write down configuration in .git/config
+			toConfigure.getConfig().save();
+		}
+	}
+
+	public void fetch(Repository repository, String remote) throws JGitInternalException, InvalidRemoteException {
+		Git.wrap(repository).fetch().setRemote(remote).call();
 	}
 
 	public RevCommit getCommit(Repository repo, String revstr)
 			throws MissingObjectException, IncorrectObjectTypeException,
 			AmbiguousObjectException, IOException {
-		RevWalk walk = new RevWalk(repo);
 		ObjectId ref = repo.resolve(revstr);
 		if (ref==null) return null;
-		return walk.parseCommit(ref);
+		RevWalk walk = new RevWalk(repo);
+		try {
+			return walk.parseCommit(ref);
+		} finally {
+			walk.dispose();
+		}
+	}
+
+	public boolean containsCommit(Repository repository, String revstr) {
+		try {
+			return getCommit(repository, revstr) != null;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	public byte[] showBytes(Repository repository, String revstr) throws AmbiguousObjectException, IOException {
@@ -87,5 +112,32 @@ public class GitUtils {
 		RepositoryBuilder builder = new RepositoryBuilder();
 		builder.setGitDir(fullPath);
 		return builder.build();
+	}
+
+	public String getTree(Repository repo, String commitSha1) {
+		try {
+			RevCommit commit = getCommit(repo, commitSha1);
+			if (commit == null) {
+				return null;
+			}
+			final RevTree tree = commit.getTree();
+			if (tree == null) {
+				return null;
+			}
+			return tree.getName();
+		} catch (IOException e) {
+			return null;
+		}
+	}
+
+	public void checkoutAsBranch(Repository repository, String commitSha1,
+			String branchName) throws RefNotFoundException,
+			InvalidRefNameException {
+		try {
+			Git.wrap(repository).checkout().setCreateBranch(true)
+					.setName(branchName).setStartPoint(commitSha1).call();
+		} catch (RefAlreadyExistsException e) {
+			// It's ok!
+		}
 	}
 }
