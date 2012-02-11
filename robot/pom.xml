@@ -9,10 +9,10 @@
 		<version>rebecca-SNAPSHOT</version>
 	</parent>
 	
-	<artifactId>magrit-tests</artifactId>
+	<artifactId>magrit-robot</artifactId>
 	<packaging>pom</packaging>
 
-	<name>magrit-tests</name>
+	<name>magrit-robot</name>
 	<description>Automatated Regression Tests for Magrit.</description>
 
 	<properties>

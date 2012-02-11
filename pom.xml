@@ -28,7 +28,7 @@
 		<module>client</module>
 		<module>server</module>
 		<module>installer</module>
-		<module>tests</module>
+		<module>robot</module>
 	</modules>
 
 </project>
