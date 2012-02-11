@@ -44,17 +44,22 @@ public class Installer {
 	}
 
 	private static final int BUFFER_SIZE = 2048;
-	
-	private Installer() {
-		
+
+	private final String[] args;
+
+	private Installer(String[] args) {
+		this.args = args;
 	}
 	
 	private final File TEMP = new File(System.getProperty("java.io.tmpdir"));
 	private final String FILE_SEP = System.getProperty("file.separator");
+
+	private final File QUICKTEST_DIRECTORY = new File(TEMP, "magrit-quick");
 	
     private final Scanner in = new Scanner(System.in);
 	
 	private Profile profile = Profile.UNKNOWN;
+	private File directory = QUICKTEST_DIRECTORY;
 	
 	private String getVersion() {
 		String file = "META-INF/maven/org.kercoin.magrit/magrit-installer/pom.properties";
@@ -80,17 +85,23 @@ public class Installer {
 	
 	private void go() {
 		try {
-			try {
+			if (isInteractive()) {
 				greetings();
-			} catch (InterruptedException e) {}
-			grabConfiguration();
+				grabConfiguration();
+			} else {
+				readConfigurationFromArgs();
+			}
 			install();
-		} catch(ExitException ee) {
+		} catch (ExitException ee) {
 			p(ee.getMessage());
 		}
 	}
 
-	private void greetings() throws InterruptedException {
+	private boolean isInteractive() {
+		return args == null || args.length == 0;
+	}
+
+	private void greetings() {
 		banner("Welcome to the MAGRIT INSTALLER", "Version: " + getVersion());
 
 		p("This will install Magrit in your system for a clean developer experience.");
@@ -106,12 +117,19 @@ public class Installer {
 		p("If you just want to give a try to Magrit, you can quick test it :-)");
 		p("This will install Magrit and all working/temporary files in " + TEMP.getAbsolutePath() + FILE_SEP + "magrit-quick.");
 
-		Thread.sleep(1000);
+		pause();
 		nl();
 
 		p("So...");
-		Thread.sleep(1000);
+		pause();
 		nl();
+	}
+
+	private void pause() {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+		}
 	}
 
 	private void grabConfiguration() {
@@ -120,15 +138,26 @@ public class Installer {
 			profile = Profile.QUICKTEST;
 		} else if (i == 2) {
 			profile = Profile.INSTALL;
+			directory = askDirectory("Where to install: [/tmp/magrit-quick]");
 		}
 		nl();
 	}
-	
+
+	private void readConfigurationFromArgs() {
+		if ("--quick".equals(args[0])) {
+			profile = Profile.QUICKTEST;
+		} else if ("--install".equals(args[0]) && args.length == 2) {
+			profile = Profile.INSTALL;
+			directory = new File(args[1]);
+		}
+	}
+
 	private void install() {
 		switch(profile) {
 		case INSTALL:
 			banner("INSTALL");
-			throw new ExitException("Not yet available :-(");
+			quicktestSetup();
+			break;
 		case QUICKTEST:
 			banner("QUICKTEST setup");
 			quicktestSetup();
@@ -153,7 +182,7 @@ public class Installer {
 
 	private void quicktestSetup() {
 		try {
-			final File magritDir = new File(TEMP, "magrit-quick");
+			final File magritDir = directory;
 			p("Setup sandbox: " + magritDir.getAbsolutePath());
 
 			// mkdir -p /tmp/magrit-quick/{bares,builds,keys}
@@ -271,6 +300,7 @@ public class Installer {
 	}
 	
 	private int ask(String question, int... validValues) {
+		in.reset();
 		int i=Integer.MIN_VALUE;
 		int tries=0;
 		p(question);
@@ -286,7 +316,32 @@ public class Installer {
 		}
 		throw new ExitException("I give up!");
 	}
-	
+
+	private File askDirectory(String question) {
+		in.reset();
+		in.nextLine();
+		String path="";
+		int tries=0;
+		p(question);
+		while (tries++<3) {
+			System.out.print("> ");
+			path = in.nextLine().trim();
+			if ("".equals(path)) {
+				return QUICKTEST_DIRECTORY;
+			}
+			File p = new File(path);
+			if (!p.isDirectory()) {
+				p(Color.RED, path + " isn't a directory");
+			} else if (!p.canWrite()) {
+				p(Color.RED, path + " isn't writable, check permissions");
+			} else if (!p.canExecute()) {
+				p(Color.RED, path + " isn't executable, check permissions");
+			}
+			return p;
+		}
+		throw new ExitException("I give up!");
+	}
+
 	@SuppressWarnings("serial")
 	static class ExitException extends RuntimeException {
 		ExitException(String message) {super(message);}
@@ -302,7 +357,7 @@ public class Installer {
 	}
 	
 	public static void main(String[] args) {
-		new Installer().go();
+		new Installer(args).go();
 	}
 
 	// ---------------------------------------------------------
