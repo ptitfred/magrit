@@ -31,3 +31,5 @@ installer/.project
 installer/.settings
 installer/target
 
+*.swp
+*.o
