@@ -42,12 +42,6 @@ namespace magrit
        */
       const char* get_description() const override;
 
-      /**
-       * @see generic_command::get_positional_options
-       */
-      const boost::program_options::positional_options_description&
-      get_positional_options () const override;
-
       void print_status ( const std::vector < std::string >& git_args ) const;
 
       /**
@@ -63,6 +57,7 @@ namespace magrit
       (
         const std::vector<std::string>& arguments,
         const boost::program_options::variables_map& vm,
+        const std::vector<std::string>& unrecognized_arguments,
         bool allow_zero_arguments
       )
       const;

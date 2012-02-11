@@ -65,7 +65,11 @@ namespace magrit
   {
     public:
 
-      generic_command( generic_command* previous_subcommand );
+      generic_command
+      (
+        generic_command* previous_subcommand,
+        bool allow_positional = false
+      );
 
       /**
        * @name Main methods you will have to redefine.
@@ -99,11 +103,6 @@ namespace magrit
        */
       virtual boost::program_options::options_description&
       get_options ();
-
-      virtual const boost::program_options::positional_options_description& 
-      get_positional_options ()
-      const;
-
       ///@}
       ///@}
 
@@ -155,6 +154,7 @@ namespace magrit
       (
         const std::vector<std::string>& arguments,
         const boost::program_options::variables_map& vm,
+        const std::vector<std::string>& unrecognized_arguments,
         bool allow_zero_arguments = false
       )
       const;
@@ -210,6 +210,7 @@ namespace magrit
       ( 
         const std::vector<std::string>& arguments,
         boost::program_options::variables_map& vm,
+        std::vector < std::string >& unrecognized_arguments,
         bool _throw = false
       ) const;
 
@@ -229,12 +230,11 @@ namespace magrit
 
       boost::program_options::options_description _options;
 
-      boost::program_options::positional_options_description
-                                                  _no_positional_options;
-
       std::vector<sh_ptr<generic_command>>        _subcommands;
 
       generic_command*                            _previous_subcommand;
+
+      bool                                        _allow_positional;
   };
 };
 #endif

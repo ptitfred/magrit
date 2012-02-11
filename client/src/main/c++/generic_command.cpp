@@ -26,8 +26,13 @@
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
-magrit::generic_command::generic_command( generic_command* previous_subcommand )
-  : _options ( "Main options" ), _previous_subcommand ( previous_subcommand )
+magrit::generic_command::generic_command
+( 
+  generic_command* previous_subcommand,
+  bool allow_positional
+)
+  : _options ( "Main options" ), _previous_subcommand ( previous_subcommand ),
+    _allow_positional ( allow_positional )
 {
   namespace bpo = boost::program_options;
 
@@ -74,9 +79,11 @@ magrit::generic_command::run_impl
 {
   namespace bpo = boost::program_options;
 
-  if ( matches ( arguments, vm ) )
+  std::vector<std::string> unrecognized_arguments;
+
+  if ( matches ( arguments, vm, unrecognized_arguments ) )
   {
-    process_parsed_options ( arguments, vm );
+    process_parsed_options ( arguments, vm, unrecognized_arguments );
 
     throw success();
   }
@@ -96,12 +103,6 @@ magrit::generic_command::run_impl
            remove_subcommand_first ( arguments, *subcommand_str ),
            vm 
         ); 
-
-        // run_impl finishes throws success() if succeeded. We 
-        // let matches() throw an exception to get the exact reason 
-        // why the subcommand didn't match
-        (*subcommand)->print_help();
-        matches ( arguments, vm, true ); 
       }
       else
       {
@@ -116,16 +117,27 @@ magrit::generic_command::run_impl
         );
       }
     }
-    else
-    {
-      // Doesn't match and no subcommand was passed: fail.
-      print_help ();
-      throw option_not_recognized 
-      (
-        join ( " ", arguments.begin(), arguments.end() )
-      );
-    }
+
+    // run_impl finishes throws success() if succeeded. We 
+    // let matches() throw an exception to get the exact reason 
+    // why the subcommand didn't match
+    print_help();
+    matches ( arguments, vm, unrecognized_arguments, true ); 
   }
+}
+
+/////////////////////////////////////////////////////////////////////////
+void
+magrit_collect_unrecognized 
+(
+  const std::vector<std::string>& original_arguments,
+  const boost::program_options::parsed_options& parsed,
+  std::vector<std::string>& unrecognized_arguments
+)
+{
+  unrecognized_arguments
+    = boost::program_options::collect_unrecognized
+      ( parsed.options, boost::program_options::include_positional );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -134,6 +146,7 @@ magrit::generic_command::matches
 ( 
   const std::vector<std::string>& arguments,
   boost::program_options::variables_map& vm,
+  std::vector<std::string>& unrecognized_arguments,
   bool _throw
 ) const
 {
@@ -141,31 +154,61 @@ magrit::generic_command::matches
 
   if ( arguments.size() == 0 ) return true;
 
-  // We cannot just throw a boost::program_options exception
-  // due to funny extreme cases like "foo --command bar" if
-  // 'bar' were a valid subcommand for 'foo' and '--command'
-  // accepted arguments. We solve that recursively: we try
-  // to match the longest command line (e.g. 'foo' 'bar' commands
-  // with '--command' switch), and if it doesn't, we
-  // try with shorter command lines (e.g. 'foo' with
-  // '--command bar' switch).
-  // In any case, if _throw == true, we allow throwing.
   try
   {
-    auto parsed =
-      bpo::command_line_parser( arguments )
-        .positional ( get_positional_options() )
-        .options ( _options )
-        .run();
+    if ( ! _allow_positional )
+    {
+      boost::program_options::positional_options_description positional;
+      positional.add ("not-allowed", -1);
 
-    bpo::store ( parsed, vm );
+      auto parsed =
+        bpo::command_line_parser( arguments )
+          .options ( _options )
+          .positional ( positional )
+          .run();
 
-    bpo::notify ( vm );
+      bpo::store ( parsed, vm );
+
+      bpo::notify ( vm );
+
+      if ( vm.count("not-allowed") )
+      {
+        throw boost::program_options::error("positional not allowed");
+      }
+    }
+    else
+    {
+      // We use allow_unregistered to allow positional parameters 
+      // that are options, e.g.: magrit-build-tools -3. The '-3'
+      // shouldn't be parsed by our command but parsed as
+      // a positional argument. boost::program_options would parse
+      // -3 as unrecognized option.
+      auto parsed =
+        bpo::command_line_parser( arguments )
+          .options ( _options )
+          .allow_unregistered ()
+          .run();
+
+      magrit_collect_unrecognized ( arguments, parsed, unrecognized_arguments );
+
+      bpo::store ( parsed, vm );
+
+      bpo::notify ( vm );
+    }
 
     return true;
   }
   catch ( boost::program_options::error& e )
   {
+    // We cannot just throw a boost::program_options exception
+    // due to funny extreme cases like "foo --command bar" if
+    // 'bar' were a valid subcommand for 'foo' and '--command'
+    // accepted arguments. We solve that recursively: we try
+    // to match the longest command line (e.g. 'foo' 'bar' commands
+    // with '--command' switch), and if it doesn't, we
+    // try with shorter command lines (e.g. 'foo' with
+    // '--command bar' switch).
+    // In any case, if _throw == true, we allow throwing.
     if ( _throw )
     {
       throw e;
@@ -183,6 +226,7 @@ magrit::generic_command::process_parsed_options
 (
   const std::vector<std::string>& arguments,
   const boost::program_options::variables_map& vm,
+  const std::vector<std::string>& unrecognized_arguments,
   bool allow_zero_arguments
 )
 const
@@ -247,13 +291,6 @@ magrit::generic_command::get_options ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-const boost::program_options::positional_options_description& 
-magrit::generic_command::get_positional_options() const
-{
-  return _no_positional_options;
-}
-
-/////////////////////////////////////////////////////////////////////////
 const std::vector< sh_ptr<magrit::generic_command>>&
 magrit::generic_command::get_subcommands() const
 {
@@ -272,7 +309,12 @@ void magrit::generic_command::print_help () const
     cout << " <command>";
   }
 
-  cout << " [<positional options>]" << endl << endl;
+  if ( _allow_positional )
+  {
+    cout << " [<positional options>]";
+  }
+
+  cout << endl << endl;
 
   cout << " " << get_description() << endl << endl;
 

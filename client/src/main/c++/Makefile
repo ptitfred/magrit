@@ -1,13 +1,12 @@
 MAGRIT_TARGET=.
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=magrit
 CPP_FLAGS=-s -Wall -Werror -std=c++0x -I.
 DEPS=-lpthread -lboost_program_options -lboost_filesystem -lboost_system
 
 all: magrit-build-log
 	
-$(EXECUTABLE): $(OBJECTS)
+magrit: $(OBJECTS)
 	mkdir -p $(MAGRIT_TARGET)
 	g++ $(CPP_FLAGS) $(DEPS) $(OBJECTS) -o $@ 
 

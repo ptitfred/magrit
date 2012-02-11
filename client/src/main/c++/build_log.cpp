@@ -35,23 +35,13 @@
 
 /////////////////////////////////////////////////////////////////////////
 magrit::log::log ( generic_command* previous_subcommand )
-  : generic_command ( previous_subcommand ),
-    _log_options ("Log options"),
-    _positional_parameters_desc
-    ("Positional options (can be added to the end of argument list without the dashed string)")
+  : generic_command ( previous_subcommand, true ),
+    _log_options ("Log options")
 {
   _log_options.add_options()
     ( "watch,w","activates the automatic refresh" );
 
   get_options().add ( _log_options );
-
-  _positional_parameters.add("git-args", -1);
-
-  _positional_parameters_desc.add_options()
-    ("git-args", boost::program_options::value<std::vector<std::string>>(),
-     "'git log' options and commit filters");
-
-  get_options().add ( _positional_parameters_desc );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -75,23 +65,17 @@ const char* magrit::log::get_description() const
 }
 
 /////////////////////////////////////////////////////////////////////////
-const boost::program_options::positional_options_description&
-magrit::log::get_positional_options () const
-{
-  return _positional_parameters;
-}
-
-/////////////////////////////////////////////////////////////////////////
 void
 magrit::log::process_parsed_options
 (
   const std::vector<std::string>& arguments,
   const boost::program_options::variables_map& vm,
+  const std::vector<std::string>& unrecognized_arguments,
   bool allow_zero_arguments
 )
 const
 {
-  generic_command::process_parsed_options ( arguments, vm, true );
+  generic_command::process_parsed_options ( arguments, vm, unrecognized_arguments, true );
 
   std::vector< std::string > git_args;
 
@@ -100,12 +84,7 @@ const
     clear_screen();
   }
 
-  if ( vm.count ( "git-args" ) )
-  {
-    git_args = vm["git-args"].as< std::vector< std::string > >();
-  }
-
-  print_status ( git_args );
+  print_status ( unrecognized_arguments );
 }
 
 /////////////////////////////////////////////////////////////////////////
