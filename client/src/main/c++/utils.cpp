@@ -212,7 +212,8 @@ std::string magrit::get_repo_user ()
 /////////////////////////////////////////////////////////////////////////
 int magrit::get_message_max_width ()
 {
-  int width = 60;
+  // 60 correspond to the messsage and 9 to the sha1 signature and spaces
+  int width = 60 + 9;
 
   start_process
   (
