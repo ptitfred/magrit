@@ -246,9 +246,9 @@ std::string magrit::cut_message ( const std::string& msg, uint width )
   }
   else
   {
-    std::string output ( msg, 0, width - 2 );
+    std::string output ( msg, 0, width - 1 );
 
-    output += " \u2026";
+    output += "\u2026";
 
     return output;
   }
