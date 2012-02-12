@@ -26,4 +26,4 @@ magrit: $(OBJECTS)
 	g++ $(CPP_FLAGS) $(DEPS) $(OBJECTS) -o $@ 
 
 clean:
-	rm magrit $(MAGRIT_TARGET)/magrit-build-log $(MAGRIT_TARGET)/magrit-build-log $(MAGRIT_TARGET)/*.so *.o -f
+	rm magrit $(MAGRIT_TARGET)/magrit-build-log $(MAGRIT_TARGET)/magrit-wait-for $(MAGRIT_TARGET)/*.so *.o -f
