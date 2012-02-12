@@ -94,6 +94,9 @@ const
 {
   std::vector < boost::process::pipeline_entry > pipeline;
 
+  auto msg_width
+    = color? get_message_max_width () + 8 : get_message_max_width();
+
   add_process_to_pipeline
   (
     "git",
@@ -153,8 +156,10 @@ const
        std::string status;
        std::getline( statuses.back().get_stdout(), status );
        std::cout 
-         << std::left << std::setw (77)
-         << line << " | " << colorize_linux ( status, color ) << std::endl;
+         << std::left << std::setw ( msg_width )
+         << cut_message ( line, msg_width ) << " | "
+         << colorize_linux ( status , color )
+         << std::endl;
      }
   );
 }

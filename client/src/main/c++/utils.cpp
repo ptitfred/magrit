@@ -210,6 +210,51 @@ std::string magrit::get_repo_user ()
 }
 
 /////////////////////////////////////////////////////////////////////////
+int magrit::get_message_max_width ()
+{
+  int width = 60;
+
+  start_process
+  (
+    "git",
+    std::vector < std::string >
+    {
+      "config",
+      "--get",
+      "--int",
+      "magrit.log.maxWidth"
+    },
+    boost::process::inherit_stream(),
+    boost::process::capture_stream(),
+    boost::process::inherit_stream(),
+    [&width]( const std::string& line )
+    {
+      width = boost::lexical_cast<int> ( line );
+    },
+    false
+  );
+
+  return std::max ( 20, std::min ( 100, width ) );
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string magrit::cut_message ( const std::string& msg, uint width )
+{
+  if ( msg.size() <= width )
+  {
+    return msg;
+  }
+  else
+  {
+    std::string output ( msg, 0, width - 2 );
+
+    output += " \u2026";
+
+    return output;
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////
 std::vector < std::string >
 fix_args ( const std::string& program, const std::vector < std::string >& args )
 {
@@ -239,7 +284,7 @@ fix_args ( const std::string& program, const std::vector < std::string >& args )
 }
 
 /////////////////////////////////////////////////////////////////////////
-void magrit::start_process
+int magrit::start_process
 (
   const std::string& program,
   const std::vector< std::string >& arguments,
@@ -247,7 +292,7 @@ void magrit::start_process
   boost::process::stream_behavior _stdout,
   boost::process::stream_behavior _stderr,
   std::function<void (const std::string&)> line_processor,
-  size_t limit_num_lines
+  bool _throw
 )
 {
   boost::process::context context;
@@ -289,7 +334,7 @@ void magrit::start_process
     // Warning: errno is not guaranteed to be wait's one.
     throw std::runtime_error ( strerror ( errno ) );
   }
-  else if ( status.exit_status () != 0 )
+  else if ( status.exit_status () != 0 && _throw )
   {
     throw std::runtime_error
     ( 
@@ -299,6 +344,8 @@ void magrit::start_process
       boost::lexical_cast < std::string > ( status.exit_status() )
     );
   }
+
+  return status.exit_status(); 
 }
 
 /////////////////////////////////////////////////////////////////////////

@@ -297,14 +297,20 @@ namespace magrit
   std::string get_repo_user ();
 
   /**
-   * Print the status of the given revisions.
+   * Gets the maximum width from Git's options. 
    */
-  void print_status ( const std::vector< std::string >& sha1 );
+  int get_message_max_width ();
+
+  /**
+   * Returns an string no longer than width and with ellipsis if
+   * it was longer. 
+   */
+  std::string cut_message ( const std::string& msg, uint width );
 
   /**
    * Launches the given command line. 
    */
-  void start_process
+  int start_process
   (
     const std::string& program,
     const std::vector< std::string >& arguments,
@@ -312,7 +318,7 @@ namespace magrit
     boost::process::stream_behavior _stdout,
     boost::process::stream_behavior _stderr,
     std::function<void (const std::string&)> line_processor,
-    size_t limit_num_lines = std::numeric_limits<size_t>::max()
+    bool _throw = true
   );
 
   /**
