@@ -21,6 +21,8 @@
 // MAGRIT
 #ifdef MAGRIT_BUILD_LOG
 #include "build_log.hpp"
+#elif MAGRIT_WAIT
+#include "wait.hpp"
 #else
 #include "magrit.hpp"
 #endif
@@ -35,6 +37,8 @@ int main ( int argc, char** argv )
 
   #ifdef MAGRIT_BUILD_LOG
   magrit::log ma ( nullptr );
+  #elif MAGRIT_WAIT
+  magrit::wait ma ( nullptr );
   #else
   magrit::magrit ma;
   #endif

@@ -17,8 +17,8 @@
  * License along with Magrit.
  * If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __MAGRIT_LOG__
-#define __MAGRIT_LOG__
+#ifndef __MAGRIT_WAIT__
+#define __MAGRIT_WAIT__
 ///////////////////////////////////////////////////////////////////////////
 // MAGRIT 
 #include "generic_command.hpp"
@@ -26,11 +26,11 @@
 
 namespace magrit
 {
-  class log : public generic_command
+  class wait : public generic_command
   {
     public:
 
-      log ( generic_command* previous_subcommand );
+      wait ( generic_command* previous_subcommand );
 
       /**
        * @see generic_command::get_name
@@ -41,18 +41,6 @@ namespace magrit
        * @see generic_command::get_description
        */
       const char* get_description() const override;
-
-      void print_status ( const std::vector < std::string >& git_args ) const;
-
-      void
-      watch_status ( const std::vector < std::string >& git_args )
-      const;
-
-      /**
-       * Given a status code, returns the colorized version.
-       */
-      static std::string
-      colorize_linux ( const std::string& status, bool color );
 
     protected:
 
@@ -68,7 +56,7 @@ namespace magrit
 
     protected:
 
-      boost::program_options::options_description _log_options;
+      boost::program_options::options_description _wait_options;
   };
 };
 #endif

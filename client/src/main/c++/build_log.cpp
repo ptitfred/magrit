@@ -75,16 +75,26 @@ magrit::log::process_parsed_options
 )
 const
 {
-  generic_command::process_parsed_options ( arguments, vm, unrecognized_arguments, true );
-
-  std::vector< std::string > git_args;
+  generic_command::process_parsed_options
+    ( arguments, vm, unrecognized_arguments, true );
 
   if ( vm.count ( "watch" ) )
   {
-    clear_screen();
+    throw std::runtime_error ( "not implemented yet" );
+    watch_status ( unrecognized_arguments );
   }
+  else
+  {
+    print_status ( unrecognized_arguments );
+  }
+}
 
-  print_status ( unrecognized_arguments );
+/////////////////////////////////////////////////////////////////////////
+void
+magrit::log::watch_status ( const std::vector < std::string >& git_args )
+const
+{
+  clear_screen();
 }
 
 /////////////////////////////////////////////////////////////////////////
