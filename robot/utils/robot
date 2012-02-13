@@ -1,0 +1,119 @@
+function check {
+       if [ $1 -gt 0 ]; then
+               exit $1
+       fi
+}
+
+function assert {
+	test $1 -eq $2
+	local ec=$?
+	if [ $ec -gt 0 ]; then
+		echo "{assert} Expected $1 but was $2"
+		exit $ec
+	fi
+}
+
+function isAlive {
+	ps | grep $1 | wc -l
+}
+
+function now {
+	date +%s
+}
+
+function checkTimeout {
+	local timeout=$1
+	local startDate=$2
+	local elapsed=$(($(now) - $startDate))
+	if [ $timeout -le $elapsed ]; then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
+function safeKill {
+	local PID=$*
+	echo "Killing $PID" >&2
+	kill -15 $PID
+	# Give process time to terminate
+	if [ $(isAlive $PID) -eq 1 ]; then
+		(sleep 2; kill -1 $PID)
+	else
+		echo "Soft kill of $PID" >&2
+		return 0
+	fi
+	if [ $(isAlive $PID) -eq 1 ]; then
+		(sleep 2; kill -9 $PID)
+	else
+		echo "Insisting kill of $PID" >&2
+		return 0
+	fi
+	if [ $(isAlive $PID) -eq 1 ]; then
+		echo "Failed to kill $PID" >&2
+		return 255
+	else
+		echo "Hard kill of $PID" >&2
+		return 0
+	fi
+}
+
+function listChildren {
+	if [ $# -eq 0 ]
+	then
+		ppid=$$
+	else
+		ppid=$1
+	fi
+	children=$(ps h --ppid $ppid -o "%p")
+	for child in $children; do
+		if [ "$2" = "--" ]; then
+			echo $(listChildren $child)
+		fi
+		echo $child
+	done
+}
+
+function retain {
+	largeList=( $1 )
+	excludedList=( $2 )
+	OLDIFS="$IFS"
+	IFS=$'\n'
+	SET3=( $(grep -Fxv "${excludedList[*]}" <<< "${largeList[*]}") )
+	IFS="$OLDIFS"
+	echo "${SET3[*]}"
+}
+
+function runOrDie {
+	local timeout=0
+	if [ "$1" = "-t" ]; then
+		timeout=$2
+		shift 2
+	fi
+	local logs="/dev/null"
+	if [ "$1" = "-l" ]; then
+		logs=$2
+		shift 2
+	fi
+	local executable=$1
+	shift 1
+	elder=$(listChildren)
+	$executable $* | tee $logs &
+	PID=$!
+	local startDate=$(now)
+	while [ $(isAlive $PID) -eq 1 ]; do
+		hasTimeOut=$(checkTimeout $timeout $startDate)
+		if [ $hasTimeOut -eq 1 ]; then
+			echo "TIMEOUT $executable" >&2
+			newborns=$(listChildren $$ --)
+			newChildren=$(retain "$newborns" "$elder")
+			safeKill "$newChildren"
+			return 255
+		else
+			sleep 1s
+		fi
+	done
+	# exit with the error code of the spawned process
+	return $(wait $PID)
+}
+
