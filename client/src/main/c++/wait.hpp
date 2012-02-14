@@ -58,6 +58,6 @@ namespace magrit
 
       boost::program_options::options_description _wait_options;
   };
-};
+}
 #endif
 

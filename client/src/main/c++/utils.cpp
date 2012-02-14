@@ -174,7 +174,7 @@ std::string magrit::get_repo_host ()
   size_t pos_colon = url.find_first_of ( ':', pos_at );
   size_t pos_slash = url.find_first_of ( '/', pos_at );
 
-  size_t end = -1;
+  size_t end = 0;
 
   if ( pos_slash == std::string::npos )
   {
@@ -239,7 +239,7 @@ int magrit::get_message_max_width ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string magrit::cut_message ( const std::string& msg, uint width )
+std::string magrit::cut_message ( const std::string& msg, size_t width )
 {
   if ( msg.size() <= width )
   {
@@ -366,7 +366,7 @@ boost::process::children magrit::start_pipeline
   {
     std::vector < std::string > pipeline_elem;
 
-    for ( uint i = 0 ; i < pipeline.size() ; ++i )
+    for ( size_t i = 0 ; i < pipeline.size() ; ++i )
     {
       pipeline_elem.push_back
       ( 

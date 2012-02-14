@@ -397,7 +397,7 @@ const
 {
   return find_if ( 
                    arguments.begin(), arguments.end(),
-                   [](const std::string& elem)
+                   [](const std::string& elem) -> bool
                    {
                      if ( elem[0] == '-' )
                      {

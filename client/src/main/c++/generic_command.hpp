@@ -236,5 +236,5 @@ namespace magrit
 
       bool                                        _allow_positional;
   };
-};
+}
 #endif

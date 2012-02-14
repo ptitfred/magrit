@@ -389,7 +389,7 @@ private:
      * constant because, in the latter case, we cannot define it under 
      * Windows due to the value being of a complex type. 
      */ 
-    static const handle_type invalid_value() 
+    static handle_type invalid_value() 
     { 
 #if defined(BOOST_POSIX_API) 
         return -1; 

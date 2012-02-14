@@ -22,9 +22,6 @@
 #include "build_log.hpp"
 #include "utils.hpp"
 /////////////////////////////////////////////////////////////////////////
-// BOOST
-#include "boost/process.hpp" 
-/////////////////////////////////////////////////////////////////////////
 // STD 
 #include <iomanip>
 #include <unistd.h>
@@ -180,7 +177,7 @@ magrit::log::colorize_linux ( const std::string& status, bool color )
 {
   std::stringstream output;
 
-  for ( uint i = 0 ; i < status.size() ; ++i )
+  for ( size_t i = 0 ; i < status.size() ; ++i )
   {
     switch ( status[i] )
     {

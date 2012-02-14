@@ -99,13 +99,13 @@ public:
             boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category, "boost::process::detail::pipe::pipe: CreateNamedPipe failed")); 
         hs[1] = ::CreateFileA(pipe.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL); 
         if (hs[1] == INVALID_HANDLE_VALUE) 
-            boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category, "boost::process::detail::pipe::pipe: CreateFile failed")); 
+            boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category(), "boost::process::detail::pipe::pipe: CreateFile failed")); 
 
         OVERLAPPED overlapped; 
         ZeroMemory(&overlapped, sizeof(overlapped)); 
         overlapped.hEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL); 
         if (!overlapped.hEvent) 
-            boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category, "boost::process::detail::pipe::pipe: CreateEvent failed")); 
+            boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category(), "boost::process::detail::pipe::pipe: CreateEvent failed")); 
         BOOL b = ::ConnectNamedPipe(hs[0], &overlapped); 
         if (!b) 
         { 
@@ -114,19 +114,19 @@ public:
                 if (::WaitForSingleObject(overlapped.hEvent, INFINITE) == WAIT_FAILED) 
                 { 
                     ::CloseHandle(overlapped.hEvent); 
-                    boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category, "boost::process::detail::pipe::pipe: WaitForSingleObject failed")); 
+                    boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category(), "boost::process::detail::pipe::pipe: WaitForSingleObject failed")); 
                 } 
             } 
             else if (::GetLastError() != ERROR_PIPE_CONNECTED) 
             { 
                 ::CloseHandle(overlapped.hEvent); 
-                boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category, "boost::process::detail::pipe::pipe: ConnectNamedPipe failed")); 
+                boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category(), "boost::process::detail::pipe::pipe: ConnectNamedPipe failed")); 
             } 
         } 
         ::CloseHandle(overlapped.hEvent); 
 #  else 
         if (!::CreatePipe(&hs[0], &hs[1], &sa, 0)) 
-            boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category, "boost::process::detail::pipe::pipe: CreatePipe failed")); 
+            boost::throw_exception(boost::system::system_error(::GetLastError(), boost::system::system_category(), "boost::process::detail::pipe::pipe: CreatePipe failed")); 
 #  endif 
 #endif 
 

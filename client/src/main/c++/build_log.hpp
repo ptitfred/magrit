@@ -70,6 +70,6 @@ namespace magrit
 
       boost::program_options::options_description _log_options;
   };
-};
+}
 #endif
 

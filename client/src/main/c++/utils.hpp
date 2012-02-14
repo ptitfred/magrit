@@ -30,7 +30,7 @@
 /////////////////////////////////////////////////////////////////////////
 // BOOST
 #define BOOST_FILESYSTEM_VERSION 2
-#define BOOST_PROCESS_WINDOWS_USE_NAMED_PIPE
+//#define __CYGWIN__  <-- Needed to compile with mingw32
 #include "boost/process.hpp"
 /////////////////////////////////////////////////////////////////////////
 
@@ -305,7 +305,7 @@ namespace magrit
    * Returns an string no longer than width and with ellipsis if
    * it was longer. 
    */
-  std::string cut_message ( const std::string& msg, uint width );
+  std::string cut_message ( const std::string& msg, size_t width );
 
   /**
    * Launches the given command line. 
@@ -327,7 +327,6 @@ namespace magrit
   boost::process::children start_pipeline
   ( const std::vector < boost::process::pipeline_entry >& pipeline )
   throw ( pipeline_error );
-  ;
 
   /**
    * Adds a process to the pipeline.
@@ -341,5 +340,5 @@ namespace magrit
     boost::process::stream_behavior _stderr,
     std::vector < boost::process::pipeline_entry >& pipeline
   );
-};
+}
 #endif

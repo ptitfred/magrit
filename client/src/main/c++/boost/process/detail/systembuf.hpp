@@ -163,7 +163,7 @@ protected:
 
         if (!traits_type::eq_int_type(c, traits_type::eof())) 
         { 
-            traits_type::assign(*pptr(), c); 
+            traits_type::assign(*pptr(), (char)c); 
             pbump(1); 
         } 
 
@@ -190,7 +190,7 @@ protected:
 
         bool ok; 
 #if defined(BOOST_POSIX_API) 
-        ok = ::write(handle_, pbase(), cnt) == cnt; 
+        ok = ::write(handle_, pbase(), cnt > 0? (size_t)cnt:0 ) == cnt; 
 #elif defined(BOOST_WINDOWS_API) 
         DWORD rcnt; 
         BOOL res = ::WriteFile(handle_, pbase(), cnt, &rcnt, NULL); 
