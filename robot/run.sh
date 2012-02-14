@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source utils/robot
+
 function info {
 	echo "[INFO]" $*
 }
@@ -18,6 +20,13 @@ function lsTestCases {
 	find . -maxdepth 1 -regex "\./t[0-9]*" -type d
 }
 
+function killChildren {
+	children=$(ps h --ppid $1 -o "%p")
+	if [ "$children" != "" ]; then
+		safeKill $children
+	fi
+}
+
 function runTestCase {
 	local tc=$1
 	cd $tc
@@ -30,10 +39,13 @@ function runTestCase {
 	echo "/-- $tc --------------------------------------------------------------------------\\"
 	ts1=$(date +%s)
 	ns1=$(date +%N)
-	PATH=${BASEDIR}/${install_dir}/scripts:$PATH bash run.sh
+	PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
+	testPid=$!
+	wait $testPid
 	ec=$?
 	ts2=$(date +%s)
 	ns2=$(date +%N)
+	killChildren $testPid
 	echo "\\--$padding----------------------------------------------------------------------------/"
 	sec=$(echo "scale=3; ($ts2 - $ts1) * 1 + $ns2 / 1000000000 - $ns1 / 1000000000" | bc -l)
 	info "Took ${sec} sec"
