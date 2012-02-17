@@ -35,12 +35,13 @@ magrit::wait::wait ( generic_command* previous_subcommand )
   : generic_command ( previous_subcommand, true ),
     _wait_options ("Wait options")
 {
-  /*
   _wait_options.add_options()
-    ( "watch,w","activates the automatic refresh" );
+    ( "event-mask,e", boost::program_options::value<char>()->required(),
+      "Event to wait for: S(tart), E(nd) and P(ending)" )
+    ( "timeout,t",boost::program_options::value<size_t>(),
+      "Timeout in milliseconds" );
 
   get_options().add ( _wait_options );
-  */
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -64,6 +65,12 @@ const char* magrit::wait::get_description() const
 }
 
 /////////////////////////////////////////////////////////////////////////
+std::vector<std::string> get_commits ( const std::vector<std::string>& git_args )
+{
+  return std::vector<std::string>();
+}
+
+/////////////////////////////////////////////////////////////////////////
 void
 magrit::wait::process_parsed_options
 (
@@ -74,14 +81,48 @@ magrit::wait::process_parsed_options
 )
 const
 {
+  static std::string accepted_events = "SEP";
+
   generic_command::process_parsed_options
     ( arguments, vm, unrecognized_arguments, true );
 
-  if ( vm.count ( "watch" ) )
+  size_t timeout = 0;
+  char event = vm["event-mask"].as<char>();
+
+  if ( vm.count ( "timeout" ) )
   {
+    timeout = vm["timeout"].as<size_t>();
+  }
+
+  if ( std::string(accepted_events).find(event) == std::string::npos )
+  {
+    throw magrit::option_not_recognized
+    (
+      std::string("Event '") +
+      event +
+      std::string("' not recognized. Accepted values are: ") +
+      join (",",accepted_events.begin(),accepted_events.end() )
+    );
+  }
+
+  if ( unrecognized_arguments.size() == 0 )
+  {
+    wait_for
+    (
+      event, timeout,
+      get_commits ( std::vector<std::string>{ "HEAD" } )
+    );  
   }
   else
   {
+    wait_for ( event, timeout, get_commits ( unrecognized_arguments ) );  
   }
 }
 
+/////////////////////////////////////////////////////////////////////////
+void
+magrit::wait::wait_for
+( char event, size_t timeout, const std::vector<std::string>& git_options )
+const
+{
+}

@@ -52,7 +52,14 @@ namespace magrit
         const std::vector<std::string>& unrecognized_arguments,
         bool allow_zero_arguments
       )
-      const;
+      const override;
+
+      void wait_for
+      (
+        char event,
+        size_t timeout,
+        const std::vector<std::string>& git_options
+      ) const;
 
     protected:
 

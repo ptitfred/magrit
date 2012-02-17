@@ -45,5 +45,5 @@ magrit::build::get_name() const
 /////////////////////////////////////////////////////////////////////////
 const char* magrit::build::get_description() const
 {
-  return "<description to be written>";
+  return "Builds manipulation";
 }

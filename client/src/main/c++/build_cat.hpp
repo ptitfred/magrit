@@ -55,6 +55,6 @@ namespace magrit
 
       boost::program_options::options_description _positional_parameters_desc;
   };
-};
+}
 #endif
 

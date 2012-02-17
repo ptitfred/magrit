@@ -22,6 +22,7 @@
 #include "utils.hpp" 
 #include "magrit.hpp"
 #include "build.hpp"
+#include "wait.hpp"
 #include "config.hpp"
 #include "monitor.hpp"
 #include "share.hpp"
@@ -32,6 +33,7 @@
 magrit::magrit::magrit () : generic_command ( nullptr )
 {
   _subcommands.push_back ( sh_ptr<generic_command>( new build ( this ) ) );
+  _subcommands.push_back ( sh_ptr<generic_command>( new wait ( this ) ) );
   _subcommands.push_back ( sh_ptr<generic_command>( new config ( this ) ) );
   _subcommands.push_back ( sh_ptr<generic_command>( new monitor ( this ) ) );
   _subcommands.push_back ( sh_ptr<generic_command>( new share ( this ) ) );

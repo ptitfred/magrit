@@ -40,5 +40,5 @@ namespace magrit
      */
     const char* get_description() const override;
   };
-};
+}
 #endif
