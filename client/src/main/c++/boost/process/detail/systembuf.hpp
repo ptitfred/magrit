@@ -182,11 +182,7 @@ protected:
      */ 
     virtual int sync() 
     { 
-#if defined(BOOST_POSIX_API) 
-        ssize_t cnt = pptr() - pbase(); 
-#elif defined(BOOST_WINDOWS_API) 
-        long cnt = pptr() - pbase(); 
-#endif 
+        ptrdiff_t cnt = pptr() - pbase(); 
 
         bool ok; 
 #if defined(BOOST_POSIX_API) 
@@ -198,7 +194,7 @@ protected:
 #endif 
 
         if (ok) 
-            pbump(-cnt); 
+            pbump((int)-cnt); 
         return ok ? 0 : -1; 
     } 
 
