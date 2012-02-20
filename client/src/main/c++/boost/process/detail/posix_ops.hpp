@@ -233,7 +233,7 @@ struct posix_setup
  * \throw boost::system::system_error If any error occurs during the 
  *        configuration. 
  */ 
-inline void setup_input(info_map &info, bool *closeflags, int maxdescs) 
+inline void setup_input(info_map &info, bool *closeflags, long int maxdescs) 
 { 
     for (info_map::iterator it = info.begin(); it != info.end(); ++it) 
     { 
@@ -294,7 +294,7 @@ inline void setup_input(info_map &info, bool *closeflags, int maxdescs)
  * \throw boost::system::system_error If any error occurs during the 
  *        configuration. 
  */ 
-inline void setup_output(info_map &info, bool *closeflags, int maxdescs) 
+inline void setup_output(info_map &info, bool *closeflags, long int maxdescs) 
 { 
     for (info_map::iterator it = info.begin(); it != info.end(); ++it) 
     { 
@@ -388,23 +388,23 @@ inline pid_t posix_start(const Executable &exe, const Arguments &args, const env
         if (maxdescs == -1) 
             maxdescs = ::sysconf(_SC_OPEN_MAX); 
 #else 
-        int maxdescs = ::sysconf(_SC_OPEN_MAX); 
+        long int maxdescs = ::sysconf(_SC_OPEN_MAX); 
 #endif 
         if (maxdescs == -1) 
             maxdescs = 1024; 
         try 
         { 
             boost::scoped_array<bool> closeflags(new bool[maxdescs]); 
-            for (int i = 0; i < maxdescs; ++i) 
+            for (long int i = 0; i < maxdescs; ++i) 
                 closeflags[i] = true; 
 
             setup_input(infoin, closeflags.get(), maxdescs); 
             setup_output(infoout, closeflags.get(), maxdescs); 
 
-            for (int i = 0; i < maxdescs; ++i) 
+            for (long int i = 0; i < maxdescs; ++i) 
             { 
                 if (closeflags[i]) 
-                    ::close(i); 
+                    ::close((int)i); 
             } 
 
             setup(); 
