@@ -56,9 +56,9 @@ namespace magrit
 
       void wait_for
       (
-        char event,
+        const std::string& events,
         size_t timeout,
-        const std::vector<std::string>& git_options
+        const std::vector<std::string>& sha1s 
       ) const;
 
     protected:

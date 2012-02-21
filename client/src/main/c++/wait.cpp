@@ -23,11 +23,7 @@
 #include "utils.hpp"
 /////////////////////////////////////////////////////////////////////////
 // STD 
-#include <iomanip>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <algorithm>
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
@@ -36,7 +32,7 @@ magrit::wait::wait ( generic_command* previous_subcommand )
     _wait_options ("Wait options")
 {
   _wait_options.add_options()
-    ( "event-mask,e", boost::program_options::value<char>()->required(),
+    ( "event-mask,e", boost::program_options::value<std::string>()->required(),
       "Event to wait for: S(tart), E(nd) and P(ending)" )
     ( "timeout,t",boost::program_options::value<size_t>(),
       "Timeout in milliseconds" );
@@ -65,12 +61,6 @@ const char* magrit::wait::get_description() const
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::vector<std::string> get_commits ( const std::vector<std::string>& git_args )
-{
-  return std::vector<std::string>();
-}
-
-/////////////////////////////////////////////////////////////////////////
 void
 magrit::wait::process_parsed_options
 (
@@ -82,24 +72,23 @@ magrit::wait::process_parsed_options
 const
 {
   static std::string accepted_events = "SEP";
+  size_t timeout = 0;
+  std::string events = vm["event-mask"].as<std::string>();
 
   generic_command::process_parsed_options
     ( arguments, vm, unrecognized_arguments, true );
-
-  size_t timeout = 0;
-  char event = vm["event-mask"].as<char>();
 
   if ( vm.count ( "timeout" ) )
   {
     timeout = vm["timeout"].as<size_t>();
   }
 
-  if ( std::string(accepted_events).find(event) == std::string::npos )
+  if ( events.find_first_not_of ( accepted_events ) != std::string::npos )
   {
     throw magrit::option_not_recognized
     (
       std::string("Event '") +
-      event +
+      events[events.find_first_not_of ( accepted_events )] +
       std::string("' not recognized. Accepted values are: ") +
       join (",",accepted_events.begin(),accepted_events.end() )
     );
@@ -109,20 +98,85 @@ const
   {
     wait_for
     (
-      event, timeout,
-      get_commits ( std::vector<std::string>{ "HEAD" } )
+      events, timeout,
+      magrit::get_commits ( std::vector<std::string>{ "HEAD" } )
     );  
   }
   else
   {
-    wait_for ( event, timeout, get_commits ( unrecognized_arguments ) );  
+    wait_for ( events, timeout, get_commits ( unrecognized_arguments ) );  
   }
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string to_textual_events ( const std::string& input )
+{
+  std::vector<std::string> output;
+
+  std::transform
+  (
+    input.begin(), input.end(), std::back_inserter ( output ),
+    [] ( char event ) -> std::string
+    {
+      switch ( event )
+      {
+			  case 'S':
+          return "to start"; 
+			  case 'E':
+          return "to end";
+			  case 'P':
+          return "to be scheduled";
+        default:
+          throw std::logic_error 
+          (
+            std::string("Event '") +
+            event +
+            std::string("' not recognized. Only S, E or P are accepted")
+          );
+      }
+    }
+  );
+
+  return join ( " or ", output.begin(), output.end() );
 }
 
 /////////////////////////////////////////////////////////////////////////
 void
 magrit::wait::wait_for
-( char event, size_t timeout, const std::vector<std::string>& git_options )
+( 
+  const std::string& events,
+  size_t timeout,
+  const std::vector<std::string>& sha1s
+)
 const
 {
+  start_process
+  (
+    "ssh",
+    std::vector < std::string >
+    {
+      "-x",
+      "-p",
+      boost::lexical_cast < std::string > ( get_magrit_port() ),
+      get_repo_user() + std::string("@") + get_repo_host(),
+      "--raw",
+      std::string("magrit wait-for ")+
+      std::string("--event-mask=")+
+      events +
+      " " +
+      std::string("--timeout=")+
+      boost::lexical_cast<std::string> ( timeout ) +
+      " /" +
+      get_repo_name() + 
+      "/ " +
+      join ( " ", sha1s.begin(), sha1s.end() )
+    },
+    boost::process::close_stream(),
+    boost::process::capture_stream(),
+    boost::process::inherit_stream(),
+    [] ( const std::string& line )
+    {
+      std::cout << line << std::endl; 
+    }
+  );
 }

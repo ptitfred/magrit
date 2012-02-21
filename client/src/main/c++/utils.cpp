@@ -292,7 +292,7 @@ int magrit::start_process
   boost::process::stream_behavior _stdin,
   boost::process::stream_behavior _stdout,
   boost::process::stream_behavior _stderr,
-  std::function<void (const std::string&)> line_processor,
+  std::function<void (std::string&)> line_processor,
   bool _throw
 )
 {
@@ -386,14 +386,13 @@ boost::process::children magrit::start_pipeline
 }
 
 /////////////////////////////////////////////////////////////////////////
-void magrit::add_process_to_pipeline
+boost::process::pipeline_entry magrit::create_pipeline_member
 (
   const std::string& program,
   const std::vector< std::string >& arguments,
   boost::process::stream_behavior _stdin,
   boost::process::stream_behavior _stdout,
-  boost::process::stream_behavior _stderr,
-  std::vector < boost::process::pipeline_entry >& pipeline
+  boost::process::stream_behavior _stderr
 )
 {
   boost::process::context context;
@@ -405,14 +404,65 @@ void magrit::add_process_to_pipeline
   std::vector < std::string > workaround_args 
     = fix_args ( program, arguments );
 
-  pipeline.push_back
-  (
+  return
     boost::process::pipeline_entry
     (
       boost::process::find_executable_in_path ( program ),
       workaround_args,
       context
-    )
-  );
+    );
 }
+
+/////////////////////////////////////////////////////////////////////////
+boost::process::pipeline_entry magrit::get_commits_pipeline
+  ( const std::vector< std::string >& git_args )
+{
+
+  std::vector < std::string > git_log_arguments
+  {
+    "log",
+    "--format=%H",
+    join ( " ", git_args.begin(), git_args.end() )
+  };
+
+  return
+    create_pipeline_member
+    (
+      "git",
+      git_log_arguments,
+      boost::process::close_stream(),
+      boost::process::close_stream(),
+      boost::process::inherit_stream()
+    );
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::vector<std::string> magrit::get_commits
+  ( const std::vector<std::string>& git_args )
+{
+  std::vector<std::string> output;
+
+  std::vector < std::string > git_log_arguments
+  {
+    "log",
+    "--format=%H",
+    join ( " ", git_args.begin(), git_args.end() )
+  };
+
+  magrit::start_process
+  (
+    "git",
+    git_log_arguments,
+    boost::process::close_stream(),
+    boost::process::capture_stream(),
+    boost::process::inherit_stream(),
+    [&output] ( const std::string& line )
+    {
+      output.push_back ( line );
+    }
+  );
+
+  return output;
+}
+
 

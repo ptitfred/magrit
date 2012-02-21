@@ -30,7 +30,6 @@
 /////////////////////////////////////////////////////////////////////////
 // BOOST
 #define BOOST_FILESYSTEM_VERSION 2
-//#define __CYGWIN__  <-- Needed to compile with mingw32
 #include "boost/process.hpp"
 /////////////////////////////////////////////////////////////////////////
 
@@ -317,7 +316,7 @@ namespace magrit
     boost::process::stream_behavior _stdin,
     boost::process::stream_behavior _stdout,
     boost::process::stream_behavior _stderr,
-    std::function<void (const std::string&)> line_processor,
+    std::function<void (std::string&)> line_processor,
     bool _throw = true
   );
 
@@ -329,16 +328,30 @@ namespace magrit
   throw ( pipeline_error );
 
   /**
-   * Adds a process to the pipeline.
+   * Creates a pipeline process with the given arguments. 
    */
-  void add_process_to_pipeline
+  boost::process::pipeline_entry create_pipeline_member
   (
     const std::string& program,
     const std::vector< std::string >& arguments,
     boost::process::stream_behavior _stdin,
     boost::process::stream_behavior _stdout,
-    boost::process::stream_behavior _stderr,
-    std::vector < boost::process::pipeline_entry >& pipeline
+    boost::process::stream_behavior _stderr
   );
+
+  /**
+   * Returns a pipeline process printing to stdout the
+   * sha1 signatures with `git log` according to the
+   * given arguments.
+   */
+  boost::process::pipeline_entry get_commits_pipeline
+    ( const std::vector< std::string >& arguments );
+
+  /**
+   * Returns the sha1 signatures by using `git log` with the
+   * given git_args arguments.
+   */
+  std::vector<std::string> get_commits
+    ( const std::vector<std::string>& git_args );
 }
 #endif

@@ -24,10 +24,6 @@
 /////////////////////////////////////////////////////////////////////////
 // STD 
 #include <iomanip>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 /////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
@@ -104,36 +100,25 @@ const
   auto msg_width
     = color? get_message_max_width () + 8 : get_message_max_width();
 
-  add_process_to_pipeline
-  (
-    "git",
-    std::vector < std::string >
-    {
-      "log",
-      "--format=%H",
-      join ( " ", git_args.begin(), git_args.end() )
-    },
-    boost::process::close_stream(),
-    boost::process::close_stream(),
-    boost::process::inherit_stream(),
-    pipeline
-  );
-  
-  add_process_to_pipeline
+  pipeline.push_back ( get_commits_pipeline ( git_args ) ); 
+
+  pipeline.push_back
   ( 
-    "ssh",
-    std::vector < std::string >
-    {
-      "-x",
-      "-p",
-      boost::lexical_cast < std::string > ( get_magrit_port() ),
-      get_repo_user() + std::string("@") + get_repo_host(),
-      std::string("magrit status /") + get_repo_name() + std::string("/ -")
-    },
-    boost::process::close_stream(),
-    boost::process::capture_stream(),
-    boost::process::inherit_stream(),
-    pipeline
+    create_pipeline_member
+    (
+      "ssh",
+      std::vector < std::string >
+      {
+        "-x",
+        "-p",
+        boost::lexical_cast < std::string > ( get_magrit_port() ),
+        get_repo_user() + std::string("@") + get_repo_host(),
+        std::string("magrit status /") + get_repo_name() + std::string("/ -")
+      },
+      boost::process::close_stream(),
+      boost::process::capture_stream(),
+      boost::process::inherit_stream()
+    )
   );
 
   boost::process::children statuses = start_pipeline ( pipeline );
