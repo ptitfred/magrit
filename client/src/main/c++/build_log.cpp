@@ -30,7 +30,7 @@
 /////////////////////////////////////////////////////////////////////////
 void clear_screen_linux ()
 {
-  std::cout << "\x1B[2J\x1B[H";
+  std::cout << "\x1b[0;0H\x1b[2J";
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -38,6 +38,42 @@ void move_up_linux ( size_t num )
 {
   std::cout << "\x1b[" << num << "A";
 }
+
+/*
+/////////////////////////////////////////////////////////////////////////
+void move_left_linux ( size_t num )
+{
+  std::cout << "\x1b[" << num << "D";
+}
+
+/////////////////////////////////////////////////////////////////////////
+void move_right_linux ( size_t num )
+{
+  std::cout << "\x1b[" << num << "\x1b[K";
+}
+
+/////////////////////////////////////////////////////////////////////////
+void clear_to_end_of_line ()
+{
+  std::cout << "\x1b[" << num << "A";
+}
+
+/////////////////////////////////////////////////////////////////////////
+void
+move_cursor_to_status ( bool color )
+{
+  move_right_linux ( log_width );
+
+  if ( color )
+  {
+    move_left_linux ( 4 );
+  }
+  else
+  {
+    move_right_linux ( 4 );
+  }
+}
+*/
 
 /////////////////////////////////////////////////////////////////////////
 void print_date ()
@@ -91,13 +127,28 @@ const
 
   if ( vm.count ( "watch" ) )
   {
-    throw std::runtime_error ( "not implemented yet" );
     watch_status ( unrecognized_arguments );
   }
   else
   {
     print_status ( unrecognized_arguments );
   }
+}
+
+/////////////////////////////////////////////////////////////////////////
+void
+print_status_line ( const std::string& desc, const std::string& status, bool color )
+{
+  auto msg_width
+    = color? magrit::get_message_max_width () + 8
+           : magrit::get_message_max_width();
+
+  std::cout 
+    << std::left << std::setw ( msg_width )
+    << magrit::cut_message ( desc, msg_width ) << " | "
+    << magrit::log::colorize_linux ( status , color )
+    << std::endl;
+
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -113,9 +164,18 @@ const
 
     auto sha1s = get_commits ( git_args );
 
-    wait::wait_for ( "SEP", 30000, sha1s );
+    wait::wait_for ( "SEP", 30000, sha1s, true );
     
     move_up_linux ( sha1s.size() + 1 );
+
+    get_status
+    (
+      git_args,
+      [&] ( const std::string& commit_desc, const std::string& status )
+      {
+        print_status_line ( commit_desc, status, color ); 
+      }
+    );
   }
 }
 
@@ -190,20 +250,12 @@ void
 magrit::log::print_status ( const std::vector < std::string >& git_args )
 const
 {
-
-  auto msg_width
-    = color? get_message_max_width () + 8 : get_message_max_width();
-
   get_status
   (
     git_args, 
     [&] ( const std::string& commit_desc, const std::string& status )
     {
-      std::cout 
-        << std::left << std::setw ( msg_width )
-        << cut_message ( commit_desc, msg_width ) << " | "
-        << colorize_linux ( status , color )
-        << std::endl;
+      print_status_line ( commit_desc, status, color );
     }
   );
 }

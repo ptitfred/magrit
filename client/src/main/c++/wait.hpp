@@ -46,7 +46,8 @@ namespace magrit
       (
         const std::string& events,
         size_t timeout,
-        const std::vector<std::string>& sha1s 
+        const std::vector<std::string>& sha1s,
+        bool silent = false
       );
 
     protected:

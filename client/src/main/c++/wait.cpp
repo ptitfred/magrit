@@ -156,13 +156,17 @@ magrit::wait::wait_for
 ( 
   const std::string& events,
   size_t timeout,
-  const std::vector<std::string>& sha1s
+  const std::vector<std::string>& sha1s,
+  bool silent
 )
 {
-
-  std::cout << "Waiting the following commit(s) " 
-            << "build " << to_textual_events ( events ) << ": " << std::endl
-            << " " << join ( "\n ", sha1s.begin(), sha1s.end() ) << std::endl;
+  if ( !silent )
+  {
+    std::cout
+      << "Waiting the following commit(s) " 
+      << "build " << to_textual_events ( events ) << ": " << std::endl
+      << " " << join ( "\n ", sha1s.begin(), sha1s.end() ) << std::endl;
+  }
 
   start_process
   (
@@ -182,7 +186,7 @@ magrit::wait::wait_for
       join ( " ", sha1s.begin(), sha1s.end() )
     },
     boost::process::close_stream(),
-    boost::process::capture_stream(),
+    silent? boost::process::silence_stream() : boost::process::capture_stream(),
     boost::process::inherit_stream(),
     [] ( const std::string& line )
     {

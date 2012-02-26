@@ -307,19 +307,22 @@ int magrit::start_process
         context
       );
 
-  boost::process::pistream& is = ch.get_stdout();
-
-  std::string line; 
-
-  while ( std::getline ( is, line ) )
+  if ( context.stdout_behavior.get_type()
+      != boost::process::silence_stream().get_type() )
   {
-    line_processor ( line );
-  }
+    boost::process::pistream& is = ch.get_stdout();
 
-  if ( !is.eof() )
-  {
-    throw std::runtime_error
-          ( "An error occurred before reading all the stdout" );
+    std::string line; 
+
+    while ( std::getline ( is, line ) )
+    {
+      line_processor ( line );
+    }
+    if ( !is.eof() )
+    {
+      throw std::runtime_error
+            ( "An error occurred before reading all the stdout" );
+    }
   }
 
   auto status = ch.wait();
