@@ -42,8 +42,26 @@ namespace magrit
        */
       const char* get_description() const override;
 
+      /**
+       * Gets the status according to the given git log arguments.
+       * The result is piped to the given function.
+       */
+      void get_status
+      ( 
+        const std::vector < std::string >& git_args,
+        std::function
+          <void (const std::string& commit_desc,const std::string& status)>
+      ) const;
+
+      /**
+       * Prints the status of commits selected in git_args to stdout.
+       */
       void print_status ( const std::vector < std::string >& git_args ) const;
 
+      /**
+       * Prints the status of commits selected in git_args to stdout but
+       * updates the output as the status changes.
+       */
       void
       watch_status ( const std::vector < std::string >& git_args )
       const;

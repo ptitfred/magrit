@@ -42,6 +42,13 @@ namespace magrit
        */
       const char* get_description() const override;
 
+      static void wait_for
+      (
+        const std::string& events,
+        size_t timeout,
+        const std::vector<std::string>& sha1s 
+      );
+
     protected:
 
       void
@@ -53,13 +60,6 @@ namespace magrit
         bool allow_zero_arguments
       )
       const override;
-
-      void wait_for
-      (
-        const std::string& events,
-        size_t timeout,
-        const std::vector<std::string>& sha1s 
-      ) const;
 
     protected:
 

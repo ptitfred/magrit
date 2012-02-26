@@ -140,7 +140,8 @@ std::string to_textual_events ( const std::string& input )
           (
             std::string("Event '") +
             event +
-            std::string("' not recognized. Only S, E or P are accepted")
+            std::string("' not recognized. Accepted events: ") +
+            join ( " or ", accepted_events.begin(), accepted_events.end() )
           );
       }
     }
@@ -157,7 +158,6 @@ magrit::wait::wait_for
   size_t timeout,
   const std::vector<std::string>& sha1s
 )
-const
 {
 
   std::cout << "Waiting the following commit(s) " 

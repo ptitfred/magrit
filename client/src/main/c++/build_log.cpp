@@ -21,10 +21,28 @@
 // MAGRIT 
 #include "build_log.hpp"
 #include "utils.hpp"
+#include "wait.hpp"
 /////////////////////////////////////////////////////////////////////////
 // STD 
 #include <iomanip>
 /////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////
+void clear_screen_linux ()
+{
+  std::cout << "\x1B[2J\x1B[H";
+}
+
+/////////////////////////////////////////////////////////////////////////
+void move_up_linux ( size_t num )
+{
+  std::cout << "\x1b[" << num << "A";
+}
+
+/////////////////////////////////////////////////////////////////////////
+void print_date ()
+{
+}
 
 /////////////////////////////////////////////////////////////////////////
 magrit::log::log ( generic_command* previous_subcommand )
@@ -87,18 +105,30 @@ void
 magrit::log::watch_status ( const std::vector < std::string >& git_args )
 const
 {
-  clear_screen();
+  clear_screen_linux();
+
+  while ( true )
+  {
+    print_date();
+
+    auto sha1s = get_commits ( git_args );
+
+    wait::wait_for ( "SEP", 30000, sha1s );
+    
+    move_up_linux ( sha1s.size() + 1 );
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////
 void
-magrit::log::print_status ( const std::vector < std::string >& git_args )
-const
+magrit::log::get_status
+( 
+  const std::vector < std::string >& git_args,
+  std::function
+    <void (const std::string& commit_desc,const std::string& status)> func 
+) const
 {
   std::vector < boost::process::pipeline_entry > pipeline;
-
-  auto msg_width
-    = color? get_message_max_width () + 8 : get_message_max_width();
 
   pipeline.push_back ( get_commits_pipeline ( git_args ) ); 
 
@@ -113,7 +143,10 @@ const
         "-p",
         boost::lexical_cast < std::string > ( get_magrit_port() ),
         get_repo_user() + std::string("@") + get_repo_host(),
-        std::string("magrit status /") + get_repo_name() + std::string("/ -")
+        "magrit",
+        "status",
+        get_repo_name(),
+        "-"
       },
       boost::process::close_stream(),
       boost::process::capture_stream(),
@@ -147,12 +180,31 @@ const
      { 
        std::string status;
        std::getline( statuses.back().get_stdout(), status );
-       std::cout 
-         << std::left << std::setw ( msg_width )
-         << cut_message ( line, msg_width ) << " | "
-         << colorize_linux ( status , color )
-         << std::endl;
+       func ( line, status );
      }
+  );
+}
+
+/////////////////////////////////////////////////////////////////////////
+void
+magrit::log::print_status ( const std::vector < std::string >& git_args )
+const
+{
+
+  auto msg_width
+    = color? get_message_max_width () + 8 : get_message_max_width();
+
+  get_status
+  (
+    git_args, 
+    [&] ( const std::string& commit_desc, const std::string& status )
+    {
+      std::cout 
+        << std::left << std::setw ( msg_width )
+        << cut_message ( commit_desc, msg_width ) << " | "
+        << colorize_linux ( status , color )
+        << std::endl;
+    }
   );
 }
 

@@ -52,7 +52,7 @@
   #define nullptr NULL
 #endif
 
-std::string clear ();
+std::string clear_color ();
 
 template < class CharSeq >
 std::string colorize ( const char* num, const CharSeq& msg, bool color=true )
@@ -64,7 +64,7 @@ std::string colorize ( const char* num, const CharSeq& msg, bool color=true )
       std::string ( num ) +
       std::string ( "m" ) +
       msg +
-      clear();
+      clear_color();
   }
   else
   {
@@ -243,13 +243,6 @@ join
  * Splits the given string using the given delimiter.
  */
 std::vector < std::string > split ( const std::string& input, char delimiter );
-
-/**
- * Clears the console.
- *
- * @todo Make this portable.
- */
-void clear_screen ();
 
 namespace magrit
 {
