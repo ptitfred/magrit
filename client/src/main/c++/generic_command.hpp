@@ -42,6 +42,14 @@ namespace magrit
   {
   };
 
+  struct invalid_argument : public std::runtime_error
+  {
+    invalid_argument (const std::string& what)
+      : std::runtime_error ( what )
+    {
+    }
+  };
+
   struct option_not_recognized : public std::runtime_error
   {
     option_not_recognized (const std::string& what)

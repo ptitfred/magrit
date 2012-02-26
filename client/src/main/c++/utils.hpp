@@ -112,7 +112,8 @@ join
 ( 
   const T&      separator,
   InputIterator begin_input,
-  InputIterator end_input
+  InputIterator end_input,
+  bool          styled = false
 )
 { 
   std::string output;
@@ -123,7 +124,14 @@ join
 
     if ( ++begin_input != end_input )
     {
-      output += separator;
+      if ( styled )
+      {
+        output += ", ";
+      }
+      else
+      {
+        output += separator;
+      }
     }
 
     output += join ( separator, begin_input, end_input);

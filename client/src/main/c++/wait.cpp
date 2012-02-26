@@ -26,6 +26,8 @@
 #include <algorithm>
 /////////////////////////////////////////////////////////////////////////
 
+static std::string accepted_events = "SEP";
+
 /////////////////////////////////////////////////////////////////////////
 magrit::wait::wait ( generic_command* previous_subcommand )
   : generic_command ( previous_subcommand, true ),
@@ -71,7 +73,6 @@ magrit::wait::process_parsed_options
 )
 const
 {
-  static std::string accepted_events = "SEP";
   size_t timeout = 0;
   std::string events = vm["event-mask"].as<std::string>();
 
@@ -90,7 +91,15 @@ const
       std::string("Event '") +
       events[events.find_first_not_of ( accepted_events )] +
       std::string("' not recognized. Accepted values are: ") +
-      join (",",accepted_events.begin(),accepted_events.end() )
+      join (" or ",accepted_events.begin(),accepted_events.end(), true )
+    );
+  }
+  else if ( events.size() > accepted_events.size() )
+  {
+    throw magrit::invalid_argument
+    (
+      "Only " + boost::lexical_cast<std::string> ( accepted_events.size() ) +
+      " events are allowed"
     );
   }
 
@@ -137,7 +146,7 @@ std::string to_textual_events ( const std::string& input )
     }
   );
 
-  return join ( " or ", output.begin(), output.end() );
+  return join ( " or ", output.begin(), output.end(), true );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -150,6 +159,11 @@ magrit::wait::wait_for
 )
 const
 {
+
+  std::cout << "Waiting the following commit(s) " 
+            << "build " << to_textual_events ( events ) << ": " << std::endl
+            << " " << join ( "\n ", sha1s.begin(), sha1s.end() ) << std::endl;
+
   start_process
   (
     "ssh",
@@ -160,15 +174,11 @@ const
       boost::lexical_cast < std::string > ( get_magrit_port() ),
       get_repo_user() + std::string("@") + get_repo_host(),
       "--raw",
-      std::string("magrit wait-for ")+
-      std::string("--event-mask=")+
-      events +
-      " " +
-      std::string("--timeout=")+
-      boost::lexical_cast<std::string> ( timeout ) +
-      " /" +
-      get_repo_name() + 
-      "/ " +
+      "magrit",
+      "wait-for",
+      std::string("--event-mask=") + events,
+      "--timeout=" + boost::lexical_cast<std::string> ( timeout ),
+      get_repo_name(),
       join ( " ", sha1s.begin(), sha1s.end() )
     },
     boost::process::close_stream(),
