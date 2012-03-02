@@ -186,7 +186,7 @@ magrit::wait::wait_for
       join ( " ", sha1s.begin(), sha1s.end() )
     },
     boost::process::close_stream(),
-    silent? boost::process::silence_stream() : boost::process::capture_stream(),
+    boost::process::silence_stream(),
     boost::process::inherit_stream(),
     [] ( const std::string& line )
     {
