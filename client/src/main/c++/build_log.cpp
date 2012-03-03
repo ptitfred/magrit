@@ -82,7 +82,7 @@ void print_date ()
   time_t epoch_seconds = time ( NULL );
 
 	std::cout << "Last update: "
-            < asctime ( localtime ( &epoch_seconds ) ) ; 
+            << asctime ( localtime ( &epoch_seconds ) ) ; 
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -165,13 +165,7 @@ const
 
   while ( true )
   {
-    print_date();
-
     auto sha1s = get_commits ( git_args );
-
-    wait::wait_for ( "SEP", 30000, sha1s, true );
-    
-    move_up_linux ( sha1s.size() + 1 );
 
     get_status
     (
@@ -181,6 +175,12 @@ const
         print_status_line ( commit_desc, status, color ); 
       }
     );
+
+    print_date();
+
+    wait::wait_for ( "SEP", 0, sha1s, true );
+    
+    move_up_linux ( sha1s.size() + 1 );
   }
 }
 

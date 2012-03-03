@@ -181,7 +181,9 @@ magrit::wait::wait_for
       "magrit",
       "wait-for",
       std::string("--event-mask=") + events,
-      "--timeout=" + boost::lexical_cast<std::string> ( timeout ),
+      "--timeout=" + ( timeout == 0 ? 
+                       std::string("-1") :
+                       boost::lexical_cast<std::string> ( timeout ) ),
       get_repo_name(),
       join ( " ", sha1s.begin(), sha1s.end() )
     },
