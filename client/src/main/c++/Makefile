@@ -5,12 +5,12 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 # Linux
 LDFLAGS=-lpthread -lboost_program_options -lboost_filesystem -lboost_system -Wl,-rpath,'$$ORIGIN'
-CXXFLAGS=-std=c++0x -I. -pedantic -Wall -Werror -Wconversion -Wextra -Wno-unused -s -fPIC
+CXXFLAGS=-std=c++0x -I. -pedantic -Wall -Werror -Wconversion -Wextra -Wno-unused -s -fPIC -DMAGRIT_VERSION=\"$(MAGRIT_VERSION)\"
 CC=g++
 EXT=so
 
 # Win32 (Fedora 15 host)
-#CXXFLAGS=-std=c++0x -I. -pedantic -Wall -Werror -Wconversion -Wextra -Wno-unused -s -D__CYGWIN__
+#CXXFLAGS=-std=c++0x -I. -pedantic -Wall -Werror -Wconversion -Wextra -Wno-unused -s -D__CYGWIN__ -DMAGRIT_VERSION=$(MAGRIT_VERSION)
 #LDFLAGS=-enable-auto-import -lpthread -L/usr/i686-pc-mingw32/sys-root/mingw/bin/ -lboost_program_options-gcc45-1_46_1 -lboost_filesystem-gcc45-1_46_1 -lboost_system-gcc45-1_46_1 -Wl,-rpath,'$$ORIGIN'
 #CC=/usr/bin/i686-pc-mingw32-g++
 #EXT=dll
