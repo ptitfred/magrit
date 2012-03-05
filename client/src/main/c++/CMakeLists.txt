@@ -13,7 +13,7 @@ set ( magrit_FULL_VERSION
 # -------------------------------------------------------------------
 include ( InstallRequiredSystemLibraries )
 set ( CPACK_PACKAGE_DESCRIPTION_SUMMARY
-      "Magrit distributed compilation and integration" )
+      "Magrit distributed continuous integration" )
 set ( CPACK_PACKAGE_VENDOR "magrit.com" )
 set ( CPACK_PACKAGE_VERSION_MAJOR "${magrit_VERSION_MAJOR}" )
 set ( CPACK_PACKAGE_VERSION_MINOR "${magrit_VERSION_MINOR}" )
@@ -23,7 +23,7 @@ set ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING" )
 set ( CPACK_PACKAGE_FILE_NAME
       "${PROJECT_NAME}-${magrit_FULL_VERSION}" )
 set ( CPACK_RPM_PACKAGE_SUMMARY "${CPACK_PACKAGE_DESCRIPTION_SUMMARY}" )
-set ( CPACK_RPM_PACKAGE_DESCRIPTION "Magrit distributed compilation and integration" )
+set ( CPACK_RPM_PACKAGE_DESCRIPTION "Magrit distributed continuous integration" )
 set ( CPACK_RPM_PACKAGE_LICENSE "Gnu Affero General Public License" )
 set ( CPACK_RPM_PACKAGE_VENDOR "magrit.com" )
 set ( CPACK_RPM_PACKAGE_GROUP "Development/Tools" )
