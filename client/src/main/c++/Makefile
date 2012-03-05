@@ -1,4 +1,5 @@
 MAGRIT_TARGET=.
+MAGRIT_VERSION=unknown
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 
