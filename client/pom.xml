@@ -66,6 +66,7 @@
 							<workingDirectory>${basedir}/src/main/c++</workingDirectory>
 							<arguments>
 								<argument>MAGRIT_TARGET=${basedir}/target/native-binaries</argument>
+								<argument>MAGRIT_VERSION=${pom.version}</argument>
 								<argument>all</argument>
 							</arguments>
 						</configuration>
