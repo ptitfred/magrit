@@ -1,4 +1,5 @@
 MAGRIT_TARGET=.
+MAGRIT_VERSION=unknown
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 
@@ -18,11 +19,11 @@ all: magrit-build-log magrit-wait-for
 	
 magrit-build-log: libmagrit.$(EXT) 
 	mkdir -p $(MAGRIT_TARGET)
-	$(CC) -DMAGRIT_BUILD_LOG $(CXXFLAGS) main.cpp $(LDFLAGS) -L$(MAGRIT_TARGET) -lmagrit -o $(MAGRIT_TARGET)/$@
+	$(CC) -DMAGRIT_BUILD_LOG $(CXXFLAGS) main.cpp -L$(MAGRIT_TARGET) -lmagrit $(LDFLAGS) -o $(MAGRIT_TARGET)/$@
 
 magrit-wait-for: libmagrit.$(EXT) 
 	mkdir -p $(MAGRIT_TARGET)
-	$(CC) -DMAGRIT_WAIT $(CXXFLAGS) main.cpp $(LDFLAGS) -L$(MAGRIT_TARGET) -lmagrit -o $(MAGRIT_TARGET)/$@
+	$(CC) -DMAGRIT_WAIT $(CXXFLAGS) main.cpp -L$(MAGRIT_TARGET) -lmagrit $(LDFLAGS) -o $(MAGRIT_TARGET)/$@
 
 libmagrit.$(EXT): generic_command.o utils.o build_log.o wait.o
 	mkdir -p $(MAGRIT_TARGET)
