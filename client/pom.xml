@@ -46,11 +46,28 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<executable>make</executable>
-							<!-- optional -->
+							<executable>rm</executable>
 							<workingDirectory>${basedir}/src/main/c++</workingDirectory>
 							<arguments>
-								<argument>clean</argument>
+								<argument>build</argument>
+								<argument>-rf</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>CMake configure</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>cmake</executable>
+							<workingDirectory>${basedir}/src/main/c++/build/</workingDirectory>
+							<arguments>
+								<argument>-DMAGRIT_VERSION=${pom.version}</argument>
+								<argument>-DCMAKE_INSTALL_PREFIX=${basedir}/target/native-binaries</argument>
+								<argument>-DCMAKE_TOOLCHAIN_FILE=../toolchain/Linux-gcc-i686.cmake</argument>
+								<argument>../</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -62,12 +79,9 @@
 						</goals>
 						<configuration>
 							<executable>make</executable>
-							<!-- optional -->
-							<workingDirectory>${basedir}/src/main/c++</workingDirectory>
+							<workingDirectory>${basedir}/src/main/c++/build/</workingDirectory>
 							<arguments>
-								<argument>MAGRIT_TARGET=${basedir}/target/native-binaries</argument>
-								<argument>MAGRIT_VERSION=${pom.version}</argument>
-								<argument>all</argument>
+								<argument>install</argument>
 							</arguments>
 						</configuration>
 					</execution>

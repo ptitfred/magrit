@@ -37,6 +37,7 @@ set ( CPACK_GENERATOR "ZIP;RPM" )
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/conf/ )
 set ( CMAKE_CXX_FLAGS
       "-std=c++0x -pedantic -Wall -Werror -Wconversion -Wextra -Wno-unused -s -I${CMAKE_CURRENT_SOURCE_DIR}" )
+add_definitions ( -DMAGRIT_VERSION=${MAGRIT_VERSION} )
 # -------------------------------------------------------------------
 # Dependencies 
 # -------------------------------------------------------------------
@@ -73,6 +74,8 @@ set_target_properties ( magrit-wait-for PROPERTIES COMPILE_DEFINITIONS "MAGRIT_W
 # -------------------------------------------------------------------
 # Packaging (keep this last)
 # -------------------------------------------------------------------
+# TODO: allow RPM/DEB installations
+install ( TARGETS magritlib magrit-build-log magrit-wait-for DESTINATION "." ) 
 include ( CPack )
 
 
