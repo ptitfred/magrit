@@ -259,7 +259,7 @@ const
     "If not, see <http://www.gnu.org/licenses/>.                      \n";
 
     std::cout << LICENSE << std::endl;
-    std::cout << "Version " << MAGRIT_VERSION << std::endl;
+    std::cout << "Version " << QUOTE(MAGRIT_VERSION) << std::endl;
     throw success();
   }
   else if ( !allow_zero_arguments && arguments.size() == 0 )

@@ -5,7 +5,7 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 # Linux
 LDFLAGS=-lpthread -lboost_program_options -lboost_filesystem -lboost_system -Wl,-rpath,'$$ORIGIN'
-CXXFLAGS=-std=c++0x -I. -pedantic -Wall -Werror -Wconversion -Wextra -Wno-unused -s -fPIC -DMAGRIT_VERSION=\"$(MAGRIT_VERSION)\"
+CXXFLAGS=-std=c++0x -I. -pedantic -Wall -Werror -Wconversion -Wextra -Wno-unused -s -fPIC -DMAGRIT_VERSION=$(MAGRIT_VERSION)
 CC=g++
 EXT=so
 
