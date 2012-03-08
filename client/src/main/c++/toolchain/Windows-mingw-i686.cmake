@@ -6,7 +6,7 @@ IF ( EXISTS "/etc/fedora-release" )
     SET ( MINGW_PREFIX   i686-pc-mingw32 )
     SET ( Boost_COMPILER -gcc45          )
 ELSE ()
-    message ( SEND_ERROR "Unknown host platform" )
+    message ( FATAL_ERROR "Unknown host platform" )
 ENDIF()
 
 include(CMakeForceCompiler)
