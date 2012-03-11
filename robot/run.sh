@@ -53,7 +53,6 @@ function runTestCase {
 		let "oks ++"
 	fi
 	cd $BASEDIR
-	info "-----------------------------------"
 }
 
 info "-----------------------------------"
