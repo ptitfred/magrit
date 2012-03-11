@@ -17,6 +17,14 @@ errors=0
 oks=0
 
 function lsTestCases {
+	for dir in $(lsTestDirectories)
+	do
+		# Retains directories containing an executable run.sh file
+		[ -x $dir/run.sh ] && echo $dir;
+	done
+}
+
+function lsTestDirectories {
 	find . -maxdepth 1 -regex "\./t[0-9]*" -type d
 }
 
