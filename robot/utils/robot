@@ -32,6 +32,13 @@ function checkTimeout {
 	fi
 }
 
+function killChildren {
+	children=$(ps h --ppid $1 -o "%p")
+	if [ "$children" != "" ]; then
+		safeKill $children
+	fi
+}
+
 function safeKill {
 	local PID=$*
 	echo "Killing $PID" >&2
@@ -115,5 +122,17 @@ function runOrDie {
 	done
 	# exit with the error code of the spawned process
 	return $(wait $PID)
+}
+
+function strCpy {
+	local pattern=$1
+	local count=$2
+	local text=""
+	local i=0
+	while [ $i -lt $count ]; do
+		text="$pattern$text"
+		let "i ++"
+	done
+	echo $text
 }
 
