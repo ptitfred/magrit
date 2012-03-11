@@ -28,23 +28,11 @@ function lsTestDirectories {
 	find . -maxdepth 1 -regex "\./t[0-9]*" -type d
 }
 
-function killChildren {
-	children=$(ps h --ppid $1 -o "%p")
-	if [ "$children" != "" ]; then
-		safeKill $children
-	fi
-}
-
 function runTestCase {
 	local tc=$1
 	cd $tc
-	count=${#tc}
-	local i=0
-	while [ $i -lt $count ]; do
-		padding="-$padding"
-		let "i ++"
-	done
-	echo "/-- $tc --------------------------------------------------------------------------\\"
+	local padding=$(strCpy "-" ${#tc})
+	info "--- $tc ---------------------------------------------------------------"
 	ts1=$(date +%s)
 	ns1=$(date +%N)
 	PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
@@ -54,7 +42,7 @@ function runTestCase {
 	ts2=$(date +%s)
 	ns2=$(date +%N)
 	killChildren $testPid
-	echo "\\--$padding----------------------------------------------------------------------------/"
+	info "---$padding-----------------------------------------------------------------"
 	sec=$(echo "scale=3; ($ts2 - $ts1) * 1 + $ns2 / 1000000000 - $ns1 / 1000000000" | bc -l)
 	info "Took ${sec} sec"
 	if [ $ec -gt 0 ]; then
