@@ -222,7 +222,7 @@ public class Installer {
 
 			{ // Startup script for the server
 				PrintWriter pw2 = open(new File(magritDir, "start.sh"));
-				pw2.println("java -jar " + magritDir.getAbsolutePath() + "/" + p.getProperty("server.archive") + " -a none -s " + magritDir.getAbsolutePath());
+				pw2.println("java -jar " + magritDir.getAbsolutePath() + "/" + p.getProperty("server.archive") + " -a none -s " + magritDir.getAbsolutePath() + " $*");
 				pw2.close();
 			}
 			
