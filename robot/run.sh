@@ -30,12 +30,14 @@ function lsTestDirectories {
 
 function runTestCase {
 	local tc=$1
+	local localDir="$(pwd)/target/local/$tc"
+	mkdir -p $localDir
 	cd $tc
 	local padding=$(strCpy "-" ${#tc})
 	info "--- $tc ---------------------------------------------------------------"
 	ts1=$(date +%s)
 	ns1=$(date +%N)
-	PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
+	LOCAL_DIR=$localDir PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
 	testPid=$!
 	wait $testPid
 	ec=$?
