@@ -176,7 +176,7 @@ magrit::wait::wait_for
       "-x",
       "-p",
       boost::lexical_cast < std::string > ( get_magrit_port() ),
-      get_repo_user() + std::string("@") + get_repo_host(),
+      get_magrit_connection_info(),
       "--raw",
       "magrit",
       "wait-for",

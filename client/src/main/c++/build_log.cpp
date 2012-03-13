@@ -206,8 +206,8 @@ magrit::log::get_status
       {
         "-x",
         "-p",
-        boost::lexical_cast < std::string > ( get_magrit_port() ),
-        get_repo_user() + std::string("@") + get_repo_host(),
+        boost::lexical_cast<std::string>(get_magrit_port()),
+        get_magrit_connection_info(),
         "magrit",
         "status",
         get_repo_name(),

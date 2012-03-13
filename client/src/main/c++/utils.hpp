@@ -275,9 +275,14 @@ namespace magrit
   std::string get_repo_remote_name ();
 
   /**
-   * Gets the url of the git repository.
+   * Gets the url of the magrit server.
    */
-  std::string get_repo_url ();
+  std::string get_magrit_url ();
+
+  /**
+   * Like get_magrit_url but only user and host.
+   */
+  std::string get_magrit_connection_info ();
 
   /**
    * Name of the repository.
@@ -285,19 +290,20 @@ namespace magrit
   std::string get_repo_name ();
 
   /**
-   * Gets the host of the git repository .
+   * Gets the host of the magrit server .
    */
-  std::string get_repo_host ();
+  std::string get_magrit_host ();
+  std::string get_magrit_host_impl ( size_t* port = nullptr );
 
   /**
-   * Gets the port of the git repository .
+   * Gets the port of the magrit server .
    */
-  int get_magrit_port ();
+  size_t get_magrit_port ();
 
   /**
-   * Gets the user of the git repository .
+   * Gets the user of the magrit server .
    */
-  std::string get_repo_user ();
+  std::string get_magrit_user ();
 
   /**
    * Gets the maximum width from Git's options. 

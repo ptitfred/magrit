@@ -111,7 +111,13 @@ std::string magrit::get_repo_remote_name ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string magrit::get_repo_url ()
+std::string magrit::get_magrit_connection_info ()
+{
+  return get_magrit_user() + std::string("@") + get_magrit_host();
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string magrit::get_magrit_url ()
 {
   std::string var
     = std::string ( "remote." ) + get_repo_remote_name () + std::string ( ".url" );
@@ -144,7 +150,7 @@ std::string magrit::get_repo_url ()
 /////////////////////////////////////////////////////////////////////////
 std::string magrit::get_repo_name ()
 {
-  std::string url = get_repo_url ();
+  std::string url = get_magrit_url ();
 
   size_t pos = url.find_last_of ( '/' );
 
@@ -160,9 +166,9 @@ std::string magrit::get_repo_name ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string magrit::get_repo_host ()
+std::string magrit::get_magrit_host_impl ( size_t* port )
 {
-  std::string url = get_repo_url ();
+  std::string url = get_magrit_url ();
 
   size_t pos_at = url.find_first_of ( '@' );
 
@@ -180,9 +186,23 @@ std::string magrit::get_repo_host ()
   {
     throw std::runtime_error ( url + ": malformed url, no repo name supplied" );
   }
-  else if ( pos_colon != std::string::npos )
+  else if ( pos_colon != std::string::npos  )
   {
-    end = std::min ( pos_colon, pos_slash );
+    if ( pos_colon < pos_slash )
+    {
+      if ( port != nullptr )
+      {
+        *port = boost::lexical_cast<size_t> 
+                 ( url.substr ( pos_colon + 1, pos_slash - pos_colon - 1 ) );
+      }
+
+      end = pos_colon;
+    }
+    else
+    {
+      throw std::runtime_error
+        ( url + ": malformed url, ':' cannot appear in path" );
+    }
   }
   else
   {
@@ -198,13 +218,23 @@ std::string magrit::get_repo_host ()
 }
 
 /////////////////////////////////////////////////////////////////////////
-int magrit::get_magrit_port ()
+std::string magrit::get_magrit_host ()
 {
-  return 2022;
+  return get_magrit_host_impl ( nullptr );
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string magrit::get_repo_user ()
+size_t magrit::get_magrit_port ()
+{
+  size_t port = 2022;
+
+  get_magrit_host_impl ( &port );
+
+  return port;
+}
+
+/////////////////////////////////////////////////////////////////////////
+std::string magrit::get_magrit_user ()
 {
   return sanitize ( "git" );
 }
