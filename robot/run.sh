@@ -17,36 +17,34 @@ errors=0
 oks=0
 
 function lsTestCases {
-	find . -maxdepth 1 -regex "\./t[0-9]*" -type d
+	for dir in $(lsTestDirectories)
+	do
+		# Retains directories containing an executable run.sh file
+		[ -x $dir/run.sh ] && echo $dir;
+	done
 }
 
-function killChildren {
-	children=$(ps h --ppid $1 -o "%p")
-	if [ "$children" != "" ]; then
-		safeKill $children
-	fi
+function lsTestDirectories {
+	find . -maxdepth 1 -regex "\./t[0-9]*" -type d
 }
 
 function runTestCase {
 	local tc=$1
+	local localDir="$(pwd)/target/local/$tc"
+	mkdir -p $localDir
 	cd $tc
-	count=${#tc}
-	local i=0
-	while [ $i -lt $count ]; do
-		padding="-$padding"
-		let "i ++"
-	done
-	echo "/-- $tc --------------------------------------------------------------------------\\"
+	local padding=$(strCpy "-" ${#tc})
+	info "--- $tc ---------------------------------------------------------------"
 	ts1=$(date +%s)
 	ns1=$(date +%N)
-	PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
+	LOCAL_DIR=$localDir MAGRIT_TEST_PORT=${testPort} PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
 	testPid=$!
 	wait $testPid
 	ec=$?
 	ts2=$(date +%s)
 	ns2=$(date +%N)
 	killChildren $testPid
-	echo "\\--$padding----------------------------------------------------------------------------/"
+	info "---$padding-----------------------------------------------------------------"
 	sec=$(echo "scale=3; ($ts2 - $ts1) * 1 + $ns2 / 1000000000 - $ns1 / 1000000000" | bc -l)
 	info "Took ${sec} sec"
 	if [ $ec -gt 0 ]; then
@@ -57,7 +55,6 @@ function runTestCase {
 		let "oks ++"
 	fi
 	cd $BASEDIR
-	info "-----------------------------------"
 }
 
 info "-----------------------------------"
@@ -69,12 +66,14 @@ install_dir='target/local'
 rm -rf ${install_dir}
 mkdir -p ${install_dir}
 
+testPort=12022
+
 info "Installing..."
 java -jar ${installer} --install ${install_dir} > /dev/null
 bash ${install_dir}/setup.sh
 info "Starting..."
-bash ${install_dir}/start.sh > target/output.log &
-PID=$(wait-tcp 2022 5) || exit 2
+bash ${install_dir}/start.sh -p ${testPort} > target/output.log &
+PID=$(wait-tcp ${testPort} 5) || exit 2
 info "Server started"
 info "-----------------------------------"
 info "TESTS"

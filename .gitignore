@@ -3,6 +3,7 @@
 target
 
 client/target
+client/src/main/c++/build
 
 server/.classpath
 server/.project
