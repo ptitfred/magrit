@@ -43,7 +43,7 @@ set ( CMAKE_INSTALL_RPATH "\$ORIGIN" )
 # Dependencies 
 # -------------------------------------------------------------------
 # * BOOST
-find_package ( Boost 1.44.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package ( Boost 1.40.0 REQUIRED COMPONENTS program_options filesystem system )
 if ( Boost_FOUND )
     include_directories ( ${Boost_INCLUDE_DIRS} )
 endif ()

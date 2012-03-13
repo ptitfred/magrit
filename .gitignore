@@ -33,4 +33,5 @@ installer/.settings
 installer/target
 
 *.swp
+*.swo
 *.o
