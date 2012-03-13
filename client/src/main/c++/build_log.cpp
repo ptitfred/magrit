@@ -227,26 +227,26 @@ magrit::log::get_status
   // git log had less lines than the following one if a commit 
   // was pushed in between, but in practice the odds are very low
   // and the impact is very small.
-  start_process
+  start_git_process
   (
-    "git",
-     std::vector < std::string >
-     {
-       "log",
-       color?"--color=always":"--color=never",
-       "--oneline",
-       "-z",
-       join ( " ", git_args.begin(), git_args.end() )
-     },
-     boost::process::inherit_stream(),
-     boost::process::capture_stream(),
-     boost::process::inherit_stream(),
-     [&]( const std::string& line )
-     { 
-       std::string status;
-       std::getline( statuses.back().get_stdout(), status );
-       func ( line, status );
-     }
+    std::vector < std::string >
+    {
+      "log",
+      color?"--color=always":"--color=never",
+      "--oneline",
+      "-z",
+      join ( " ", git_args.begin(), git_args.end() )
+    },
+    boost::process::inherit_stream(),
+    boost::process::capture_stream(),
+    boost::process::inherit_stream(),
+    [&]( const std::string& line )
+    { 
+      std::string status;
+      std::getline( statuses.back().get_stdout(), status );
+      func ( line, status );
+    },
+    true
   );
 }
 

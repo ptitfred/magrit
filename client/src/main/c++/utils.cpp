@@ -26,10 +26,15 @@
 #include <string.h>
 #include <iterator>
 #include <istream>
+// stat()
+#include <sys/stat.h>
 //////////////////////////////////////////////////////////////////////////
 // BOOST
 #include <boost/lexical_cast.hpp> 
 /////////////////////////////////////////////////////////////////////////
+
+// Only checked once per run for the sake of the speed.
+static bool git_ok = false;
 
 /////////////////////////////////////////////////////////////////////////
 std::string clear_color ()
@@ -69,19 +74,19 @@ std::string sanitize_ssh_cmd ( const std::string& str )
 }
 
 /////////////////////////////////////////////////////////////////////////
-std::string magrit::read_one_output_line
-( const char* cmd, const std::vector < std::string >& args )
+std::string magrit::read_one_output_line_from_git
+( const std::vector < std::string >& args, bool _throw )
 {
   std::string output;
 
-  start_process
+  start_git_process
   (
-    cmd,
     args,
     boost::process::inherit_stream(),
     boost::process::capture_stream(),
     boost::process::inherit_stream(),
-    [&output]( const std::string& line ) { output = line; }
+    [&output]( const std::string& line ) { output = line; },
+    _throw
   );
 
   return sanitize ( output );
@@ -92,10 +97,11 @@ std::string magrit::get_repo_remote_name ()
 {
   try
   {
-    return read_one_output_line
+    return
+      read_one_output_line_from_git
       (
-        "git", 
-        std::vector < std::string > { "config", "--get", "magrit.remote" }
+        std::vector < std::string > { "config", "--get", "magrit.remote" },
+        true
       );
   }
   catch (...)
@@ -111,15 +117,15 @@ std::string magrit::get_repo_url ()
     = std::string ( "remote." ) + get_repo_remote_name () + std::string ( ".url" );
 
   std::string url 
-    = read_one_output_line 
+    = read_one_output_line_from_git
       ( 
-        "git",
         std::vector < std::string > 
         { 
           "config", 
           "--local",
           var
-        }
+        },
+        false
       );
 
   if ( url.empty () )
@@ -209,9 +215,8 @@ int magrit::get_message_max_width ()
   // 60 correspond to the messsage and 9 to the sha1 signature and spaces
   int width = 60 + 9;
 
-  start_process
+  start_git_process
   (
-    "git",
     std::vector < std::string >
     {
       "config",
@@ -423,9 +428,8 @@ boost::process::pipeline_entry magrit::get_commits_pipeline
   };
 
   return
-    create_pipeline_member
+    create_git_pipeline_member
     (
-      "git",
       git_log_arguments,
       boost::process::close_stream(),
       boost::process::close_stream(),
@@ -446,9 +450,8 @@ std::vector<std::string> magrit::get_commits
     join ( " ", git_args.begin(), git_args.end() )
   };
 
-  magrit::start_process
+  magrit::start_git_process
   (
-    "git",
     git_log_arguments,
     boost::process::close_stream(),
     boost::process::capture_stream(),
@@ -456,10 +459,79 @@ std::vector<std::string> magrit::get_commits
     [&output] ( const std::string& line )
     {
       output.push_back ( line );
-    }
+    },
+    true
   );
 
   return output;
+}
+
+/////////////////////////////////////////////////////////////////////////
+void check_git_sanity () 
+{
+  if ( !git_ok )
+  {
+    // git commands don't return any useful return code. Only 
+    // git rev-parse does, that's why we check if we're in a git
+    // folder before executing any git command.
+    int status
+      = magrit::start_process 
+        (
+          "git",
+          std::vector<std::string>{"rev-parse"},
+          boost::process::close_stream(),
+          boost::process::capture_stream(),
+          boost::process::capture_stream(),
+          [] ( const std::string& line ) {},
+          false
+        );
+    
+    if ( status == 128 )
+    {
+      throw std::runtime_error ( "not in a git folder" );
+    }
+    else {
+
+      git_ok = true;
+
+      return;
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////
+int magrit::start_git_process
+(
+  const std::vector< std::string >& arguments,
+  boost::process::stream_behavior _stdin,
+  boost::process::stream_behavior _stdout,
+  boost::process::stream_behavior _stderr,
+  std::function<void (std::string&)> line_processor,
+  bool _throw
+)
+{
+
+  check_git_sanity ();
+  
+  return
+    start_process
+      ( "git", arguments, _stdin, _stdout, _stderr, line_processor, _throw );
+}
+
+/////////////////////////////////////////////////////////////////////////
+boost::process::pipeline_entry magrit::create_git_pipeline_member
+(
+  const std::vector< std::string >& arguments,
+  boost::process::stream_behavior _stdin,
+  boost::process::stream_behavior _stdout,
+  boost::process::stream_behavior _stderr
+)
+{
+
+  check_git_sanity ();
+
+  return
+    create_pipeline_member ( "git", arguments, _stdin, _stdout, _stderr );
 }
 
 

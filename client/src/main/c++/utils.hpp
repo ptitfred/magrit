@@ -263,11 +263,11 @@ namespace magrit
   };
 
   /**
-   * Executes the given command with the given arguments and 
+   * Executes git with the given arguments and 
    * reads a single line of output.
    */
-  std::string read_one_output_line
-  ( const char* cmd, const std::vector < std::string >& args );
+  std::string read_one_output_line_from_git
+    ( const std::vector < std::string >& args, bool _throw );
 
   /**
    * Returns the magrit.repo config variable.
@@ -337,6 +337,32 @@ namespace magrit
   boost::process::pipeline_entry create_pipeline_member
   (
     const std::string& program,
+    const std::vector< std::string >& arguments,
+    boost::process::stream_behavior _stdin,
+    boost::process::stream_behavior _stdout,
+    boost::process::stream_behavior _stderr
+  );
+
+  /**
+   * Equals to start_process but implies launching a git process.
+   * Prettifies the potential errors.
+   */
+  int start_git_process
+  (
+    const std::vector< std::string >& arguments,
+    boost::process::stream_behavior _stdin,
+    boost::process::stream_behavior _stdout,
+    boost::process::stream_behavior _stderr,
+    std::function<void (std::string&)> line_processor,
+    bool _throw
+  );
+
+  /**
+   * Equals to create_pipeline_member but implies launching
+   * a git process. Prettifies the potential errors.
+   */
+  boost::process::pipeline_entry create_git_pipeline_member
+  (
     const std::vector< std::string >& arguments,
     boost::process::stream_behavior _stdin,
     boost::process::stream_behavior _stdout,
