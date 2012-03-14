@@ -72,10 +72,11 @@ add_executable ( magrit-wait-for main.cpp )
 target_link_libraries ( magrit-wait-for magritlib )
 set_target_properties ( magrit-wait-for PROPERTIES COMPILE_DEFINITIONS "MAGRIT_WAIT" )
 # -------------------------------------------------------------------
-# Packaging (keep this last)
+# Packaging
 # -------------------------------------------------------------------
 # TODO: allow RPM/DEB installations
-install ( TARGETS magritlib magrit-build-log magrit-wait-for DESTINATION "." ) 
+install ( TARGETS magritlib magrit-build-log magrit-wait-for DESTINATION "." COMPONENT maven_install )
+# (keep this last)
 include ( CPack )
 
 

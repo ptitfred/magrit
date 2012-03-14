@@ -371,10 +371,9 @@ int magrit::start_process
   {
     throw std::runtime_error
     ( 
-      std::string ( "[" ) + program + " " +
-      join ( " ",  arguments.begin(), arguments.end() ) +
-      std::string ( "] returned " ) +
-      boost::lexical_cast < std::string > ( status.exit_status() )
+      "[" + program +" "+ join (" ",  arguments.begin(), arguments.end()) + "]"
+      " returned " + boost::lexical_cast < std::string > ( status.exit_status() ) +
+      " (" + strerror(errno) + ")"
     );
   }
 
@@ -497,7 +496,7 @@ std::vector<std::string> magrit::get_commits
 }
 
 /////////////////////////////////////////////////////////////////////////
-void check_git_sanity () 
+void magrit::check_git_sanity () 
 {
   if ( !git_ok )
   {

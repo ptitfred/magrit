@@ -42,6 +42,8 @@ namespace magrit
        */
       const char* get_description() const override;
 
+    public:
+
       /**
        * Gets the status according to the given git log arguments.
        * The result is piped to the given function.
@@ -65,12 +67,6 @@ namespace magrit
       void
       watch_status ( const std::vector < std::string >& git_args )
       const;
-
-      /**
-       * Given a status code, returns the colorized version.
-       */
-      static std::string
-      colorize_linux ( const std::string& status, bool color );
 
     protected:
 

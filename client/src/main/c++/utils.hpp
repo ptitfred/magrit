@@ -33,6 +33,11 @@
 #include "boost/process.hpp"
 /////////////////////////////////////////////////////////////////////////
 
+#define bp_close boost::process::close_stream
+#define bp_capture boost::process::capture_stream
+#define bp_inherit boost::process::inherit_stream
+#define bp_silent boost::process::silence_stream
+
 #define Q(x) #x
 #define QUOTE(x) Q(x)
 
@@ -261,6 +266,11 @@ namespace magrit
     {
     }
   };
+
+  /**
+   * Checks if we're in a proper magrit project. Throws if we are not.
+   */
+  void check_git_sanity ();
 
   /**
    * Executes git with the given arguments and 

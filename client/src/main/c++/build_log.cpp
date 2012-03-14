@@ -40,42 +40,6 @@ void move_up_linux ( size_t num )
   std::cout << "\x1b[" << num << "A";
 }
 
-/*
-/////////////////////////////////////////////////////////////////////////
-void move_left_linux ( size_t num )
-{
-  std::cout << "\x1b[" << num << "D";
-}
-
-/////////////////////////////////////////////////////////////////////////
-void move_right_linux ( size_t num )
-{
-  std::cout << "\x1b[" << num << "\x1b[K";
-}
-
-/////////////////////////////////////////////////////////////////////////
-void clear_to_end_of_line ()
-{
-  std::cout << "\x1b[" << num << "A";
-}
-
-/////////////////////////////////////////////////////////////////////////
-void
-move_cursor_to_status ( bool color )
-{
-  move_right_linux ( log_width );
-
-  if ( color )
-  {
-    move_left_linux ( 4 );
-  }
-  else
-  {
-    move_right_linux ( 4 );
-  }
-}
-*/
-
 /////////////////////////////////////////////////////////////////////////
 void print_date ()
 {
@@ -141,6 +105,40 @@ const
 }
 
 /////////////////////////////////////////////////////////////////////////
+std::string
+colorize_linux ( const std::string& status, bool color )
+{
+  std::stringstream output;
+
+  for ( size_t i = 0 ; i < status.size() ; ++i )
+  {
+    switch ( status[i] )
+    {
+      case 'O':
+        output << cool ( status[i], color );
+        break;
+      case 'E':
+        output << error ( status[i], color );
+        break;
+      case 'R':
+        output << running ( status[i], color );
+        break;
+      case 'P':
+        output << pending ( status[i], color );
+        break;
+      case '?':
+        output << warning ( status[i], color );
+        break;
+      default:
+        output << status[i];
+        break;
+    }
+  }
+
+  return output.str();
+}
+
+/////////////////////////////////////////////////////////////////////////
 void
 print_status_line ( const std::string& desc, const std::string& status, bool color )
 {
@@ -151,7 +149,7 @@ print_status_line ( const std::string& desc, const std::string& status, bool col
   std::cout 
     << std::left << std::setw ( msg_width )
     << magrit::cut_message ( desc, msg_width ) << " | "
-    << magrit::log::colorize_linux ( status , color )
+    << colorize_linux ( status , color )
     << std::endl;
 
 }
@@ -184,6 +182,41 @@ const
   }
 }
 
+/** Used only by get_status */
+template < class Stream >
+void
+print_status_lines 
+(
+  const std::vector < std::string >& git_args,
+  Stream& status_output,
+  std::function
+    <void (const std::string& commit_desc,const std::string& status)> func,
+  bool color
+)
+{
+  // We issue again a git log with color and the commit message.
+  // For every line, we print the status previously fetched from
+  // server. Note: it's theoretically possible that the previous
+  // git log had less lines than the following one if a commit 
+  // was pushed in between, but in practice the odds are very low
+  // and the impact is very small.
+  magrit::start_git_process
+  (
+    std::vector < std::string >
+    {
+      "log", color?"--color=always":"--color=never", "--oneline", "-z",
+      join ( " ", git_args.begin(), git_args.end() )
+    },
+    bp_inherit(), bp_capture(), bp_inherit(),
+    [&]( const std::string& line )
+    { 
+      std::string status;
+      std::getline( status_output, status );
+      func ( line, status );
+    },
+    true
+  );
+}
 /////////////////////////////////////////////////////////////////////////
 void
 magrit::log::get_status
@@ -204,50 +237,18 @@ magrit::log::get_status
       "ssh",
       std::vector < std::string >
       {
-        "-x",
-        "-p",
-        boost::lexical_cast<std::string>(get_magrit_port()),
+        "-x", "-p",
+        boost::lexical_cast<std::string> ( get_magrit_port() ),
         get_magrit_connection_info(),
-        "magrit",
-        "status",
-        get_repo_name(),
-        "-"
+        "magrit", "status", get_repo_name(), "-"
       },
-      boost::process::close_stream(),
-      boost::process::capture_stream(),
-      boost::process::inherit_stream()
+      bp_close(), bp_capture(), bp_inherit()
     )
   );
 
   boost::process::children statuses = start_pipeline ( pipeline );
 
-  // We issue again a git log with color and the commit message.
-  // For every line, we print the status previously fetched from
-  // server. Note: it's theoretically possible that the previous
-  // git log had less lines than the following one if a commit 
-  // was pushed in between, but in practice the odds are very low
-  // and the impact is very small.
-  start_git_process
-  (
-    std::vector < std::string >
-    {
-      "log",
-      color?"--color=always":"--color=never",
-      "--oneline",
-      "-z",
-      join ( " ", git_args.begin(), git_args.end() )
-    },
-    boost::process::inherit_stream(),
-    boost::process::capture_stream(),
-    boost::process::inherit_stream(),
-    [&]( const std::string& line )
-    { 
-      std::string status;
-      std::getline( statuses.back().get_stdout(), status );
-      func ( line, status );
-    },
-    true
-  );
+  print_status_lines ( git_args, statuses.back().get_stdout(), func, color );
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -265,37 +266,4 @@ const
   );
 }
 
-/////////////////////////////////////////////////////////////////////////
-std::string
-magrit::log::colorize_linux ( const std::string& status, bool color )
-{
-  std::stringstream output;
-
-  for ( size_t i = 0 ; i < status.size() ; ++i )
-  {
-    switch ( status[i] )
-    {
-      case 'O':
-        output << cool ( status[i], color );
-        break;
-      case 'E':
-        output << error ( status[i], color );
-        break;
-      case 'R':
-        output << running ( status[i], color );
-        break;
-      case 'P':
-        output << pending ( status[i], color );
-        break;
-      case '?':
-        output << warning ( status[i], color );
-        break;
-      default:
-        output << status[i];
-        break;
-    }
-  }
-
-  return output.str();
-}
 
