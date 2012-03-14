@@ -1,5 +1,25 @@
 cmake_minimum_required ( VERSION 2.6 )
 # -------------------------------------------------------------------
+# Function 'add_test_suite'
+# -------------------------------------------------------------------
+function(
+            ## Function name 
+            add_test_suite 
+            ## Argument list
+            name           # Test name
+            source_list    # List of sources
+        )
+
+    add_executable ( ${name} ${source_list} )
+
+    #set_target_properties ( ${name} PROPERTIES COMPILE_FLAGS "-std=c++0x -Wall -Werror -g" )
+
+    add_test ( ${name} ${name} )
+
+    target_link_libraries (  ${name} ${Boost_LIBRARIES} magritlib )
+
+endfunction(add_test_suite)
+# -------------------------------------------------------------------
 # MAIN 
 # -------------------------------------------------------------------
 project ( magrit-client )
@@ -43,7 +63,7 @@ set ( CMAKE_INSTALL_RPATH "\$ORIGIN" )
 # Dependencies 
 # -------------------------------------------------------------------
 # * BOOST
-find_package ( Boost 1.40.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package ( Boost 1.40.0 REQUIRED COMPONENTS program_options filesystem system unit_test_framework )
 if ( Boost_FOUND )
     include_directories ( ${Boost_INCLUDE_DIRS} )
 endif ()
@@ -71,6 +91,21 @@ set_target_properties ( magrit-build-log PROPERTIES COMPILE_DEFINITIONS "MAGRIT_
 add_executable ( magrit-wait-for main.cpp )
 target_link_libraries ( magrit-wait-for magritlib )
 set_target_properties ( magrit-wait-for PROPERTIES COMPILE_DEFINITIONS "MAGRIT_WAIT" )
+# -------------------------------------------------------------------
+#  `---> tests 
+# -------------------------------------------------------------------
+enable_testing() 
+
+if ( Boost_FOUND )
+
+    add_test_suite ( TestSuite "tests/UtilsTest.cpp" )
+
+endif ()
+add_custom_target(
+              check
+              COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure 
+              DEPENDS TestSuite 
+             )
 # -------------------------------------------------------------------
 # Packaging
 # -------------------------------------------------------------------

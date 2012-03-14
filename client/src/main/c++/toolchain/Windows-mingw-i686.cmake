@@ -26,4 +26,4 @@ SET ( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
 SET ( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
 
 # No need to package boost dll's within.
-set ( Boost_USE_STATIC_LIBS ON)
+#set ( Boost_USE_STATIC_LIBS ON)
