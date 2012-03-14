@@ -57,8 +57,7 @@ add_library ( magritlib SHARED ${lib_SOURCES} )
 target_link_libraries ( magritlib ${Boost_LIBRARIES} )
 set_target_properties ( magritlib PROPERTIES 
                         OUTPUT_NAME magrit 
-                        VERSION ${magrit_FULL_VERSION} 
-                        # INSTALL_RPATH '$$ORIGIN'
+                        # VERSION ${magrit_FULL_VERSION} 
                       )
 # -------------------------------------------------------------------
 #  `---> magrit-build-log
