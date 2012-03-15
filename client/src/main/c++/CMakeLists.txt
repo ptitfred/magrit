@@ -18,6 +18,11 @@ function(
 
     target_link_libraries (  ${name} ${Boost_LIBRARIES} magritlib )
 
+    # Cross-testing win32 tests in linux works if .exe is omitted and wine is present.
+    if ( CMAKE_CROSSCOMPILING )
+      set_target_properties ( ${name} PROPERTIES SUFFIX "" )
+    endif()
+
 endfunction(add_test_suite)
 # -------------------------------------------------------------------
 # MAIN 
@@ -95,15 +100,15 @@ set_target_properties ( magrit-wait-for PROPERTIES COMPILE_DEFINITIONS "MAGRIT_W
 #  `---> tests 
 # -------------------------------------------------------------------
 enable_testing() 
-
 if ( Boost_FOUND )
 
     add_test_suite ( TestSuite "tests/UtilsTest.cpp" )
 
 endif ()
+
 add_custom_target(
               check
-              COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure 
+              COMMAND WINEPATH=${CMAKE_FIND_ROOT_PATH}/bin/ ${CMAKE_CTEST_COMMAND} --output-on-failure
               DEPENDS TestSuite 
              )
 # -------------------------------------------------------------------
