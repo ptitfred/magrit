@@ -24,3 +24,4 @@ If it's supported, congratulations! You can then do:
 If it's not, enabling support for your distro shouldn't be very difficult
 (have a look at the first lines of the toolchain file).
 
+[![Build Status](https://secure.travis-ci.org/daniperez/magrit.png?branch=master)](http://travis-ci.org/daniperez/magrit)
