@@ -8,7 +8,7 @@ script:
   - "cd client/src/main/c++/"
   - "mkdir build -p"
   - "cd build"
-  - "cmake -DBoost_DEBUG=1 -DCMAKE_TOOLCHAIN_FILE=../toolchain/Linux-gcc-i686.cmake ../" 
+  - "cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/Linux-gcc-i686.cmake ../" 
   - "make"
   - "make check"
 
