@@ -12,8 +12,6 @@ function(
 
     add_executable ( ${name} ${source_list} )
 
-    #set_target_properties ( ${name} PROPERTIES COMPILE_FLAGS "-std=c++0x -Wall -Werror -g" )
-
     add_test ( ${name} ${name} )
 
     target_link_libraries (  ${name} ${Boost_LIBRARIES} magritlib )
@@ -69,9 +67,7 @@ set ( CMAKE_INSTALL_RPATH "\$ORIGIN" )
 # -------------------------------------------------------------------
 # * BOOST
 find_package ( Boost 1.40.0 REQUIRED COMPONENTS program_options filesystem system unit_test_framework )
-if ( Boost_FOUND )
-    include_directories ( ${Boost_INCLUDE_DIRS} )
-endif ()
+include_directories ( ${Boost_INCLUDE_DIRS} )
 # -------------------------------------------------------------------
 # Targets 
 # -------------------------------------------------------------------

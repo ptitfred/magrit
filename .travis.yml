@@ -1,0 +1,11 @@
+language: node_js
+
+script:
+  - "cd client/src/main/c++/"
+  - "mkdir build -p"
+  - "cmake -DCMAKE_TOOLCHAIN_FILE=../Linux-gcc-i686.cmake ../" 
+  - "make"
+  - "make check"
+
+notifications:
+  email: false
