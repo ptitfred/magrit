@@ -2,7 +2,7 @@ language: node_js
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get install cmake libboost-dev
+  - sudo apt-get install cmake libboost-all-dev
 
 script:
   - "cd client/src/main/c++/"
