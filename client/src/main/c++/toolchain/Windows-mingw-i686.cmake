@@ -38,7 +38,7 @@ macro ( download_mingw_boost )
   if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/usr" ) 
     execute_process(
       #COMMAND ${CMAKE_COMMAND} -E tar xzf "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}"
-      COMMAND tar xzfj "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}"
+      COMMAND tar xvfj "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}"
       WORKING_DIRECTORY ${MINGW_BOOST_TMP_FOLDER} )
   endif()
 
