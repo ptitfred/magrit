@@ -2,7 +2,7 @@ language: node_js
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get install cmake libboost-all-dev gcc-mingw32
+  - sudo apt-get install cmake libboost-all-dev mingw-w64-dev mingw-w64
 
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686

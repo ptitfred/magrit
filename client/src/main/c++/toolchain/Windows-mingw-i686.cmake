@@ -16,7 +16,7 @@ macro ( download_mingw_boost )
 
   endif ()
 
-  set ( MINGW_BOOST_FILE "mingw32-boost-1.46.1-1.fc15.tar.gz" )
+  set ( MINGW_BOOST_FILE "ming32-boost-1.46.1.tar.bz2" )
 
   if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}" ) 
     file ( 
@@ -53,10 +53,10 @@ IF ( EXISTS "/etc/fedora-release" )
     SET ( Boost_COMPILER -gcc45 )
 ELSEIF ( EXISTS "/etc/debian_version" )
     download_mingw_boost ()
-    SET ( MINGW_PREFIX   "i586-mingw32msvc"     )
-    SET ( MINGW_BOOST_DOWNLOAD "${MINGW_BOOST_TMP_FOLDER}" )
-    SET ( MINGW_SYSROOT  "${MINGW_BOOST_TMP_FOLDER}/usr/i686-pc-mingw32/sys-root/mingw/" )
+    SET ( MINGW_PREFIX   "x86_64-w64-mingw32"     )
+    SET ( MINGW_SYSROOT  "/usr/${MINGW_PREFIX};${MINGW_BOOST_TMP_FOLDER}/usr/i686-pc-mingw32/sys-root/mingw/" )
     SET ( Boost_COMPILER -gcc45 )
+    SET ( BOOST_ROOT "${MINGW_BOOST_TMP_FOLDER}/usr/i686-pc-mingw32/sys-root/mingw/" )
 ELSE ()
     message ( FATAL_ERROR "Unknown host platform" )
 ENDIF()
