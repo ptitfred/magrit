@@ -1,3 +1,48 @@
+macro ( download_mingw_boost )
+
+  set ( HOME "$ENV{HOME}" )
+
+  if ( HOME )
+
+    set ( MINGW_BOOST_TMP_FOLDER "$ENV{HOME}/.cmake/mingw" )
+
+  elseif ( WIN32 )
+
+    set ( MINGW_BOOST_TMP_FOLDER "$ENV{APPDATA}/.cmake/mingw" ) 
+
+  else ()
+
+    message ( FATAL_ERROR "Cannot locate HOME folder" )
+
+  endif ()
+
+  set ( MINGW_BOOST_FILE "mingw32-boost-1.46.1-1.fc15.tar.gz" )
+
+  if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}" ) 
+    file ( 
+      DOWNLOAD "https://github.com/downloads/daniperez/magrit/${MINGW_BOOST_FILE}"
+      "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}"
+      STATUS status
+      SHOW_PROGRESS )
+
+    list( GET status 0 status_value )
+    list( GET status 1 status_error )
+
+    if ( NOT status_value EQUAL 0 )
+
+      message ( FATAL_ERROR "Couldn't download the module: ${status_error}" )
+
+    endif ()
+  endif()
+
+  if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/usr" ) 
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -E tar xzf "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}"
+      WORKING_DIRECTORY ${MINGW_BOOST_TMP_FOLDER} )
+  endif()
+
+endmacro()
+
 #
 # NOTE: These are distro-dependent. Add your favorite
 #       distro check & config parameters here.
@@ -7,11 +52,16 @@ IF ( EXISTS "/etc/fedora-release" )
     SET ( MINGW_SYSROOT  "/usr/${MINGW_PREFIX}/sys-root/mingw/" )
     SET ( Boost_COMPILER -gcc45 )
 ELSEIF ( EXISTS "/etc/debian_version" )
+    download_mingw_boost ()
     SET ( MINGW_PREFIX   "i586-mingw32msvc"     )
-    SET ( MINGW_SYSROOT  "/usr/${MINGW_PREFIX}" )
+    SET ( MINGW_BOOST_DOWNLOAD "${MINGW_BOOST_TMP_FOLDER}" )
+    SET ( MINGW_SYSROOT  "${MINGW_BOOST_TMP_FOLDER}/usr/i686-pc-mingw32/sys-root/mingw/" )
+    SET ( Boost_COMPILER -gcc45 )
 ELSE ()
     message ( FATAL_ERROR "Unknown host platform" )
 ENDIF()
+
+
 
 include(CMakeForceCompiler)
 
@@ -28,4 +78,5 @@ SET ( CMAKE_FIND_ROOT_PATH ${MINGW_SYSROOT} )
 SET ( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
 SET ( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
 SET ( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
+
 
