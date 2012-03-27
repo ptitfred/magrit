@@ -1,4 +1,4 @@
-macro ( download_mingw_boost )
+macro ( download_mingw_boost MINGW_PREFIX )
 
   set ( HOME "$ENV{HOME}" )
 
@@ -16,7 +16,7 @@ macro ( download_mingw_boost )
 
   endif ()
 
-  set ( MINGW_BOOST_FILE "ming32-boost-1.46.1.tar.bz2" )
+  set ( MINGW_BOOST_FILE "${MINGW_PREFIX}-boost-1.49.0.i686.tar.bz2" )
 
   if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}" ) 
     file ( 
@@ -35,11 +35,13 @@ macro ( download_mingw_boost )
     endif ()
   endif()
 
-  if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/usr" ) 
+  if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/${MINGW_PREFIX}" ) 
     execute_process(
+      # Cmake's tar is buggy
       #COMMAND ${CMAKE_COMMAND} -E tar xzf "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}"
       COMMAND tar xvfj "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}"
-      WORKING_DIRECTORY ${MINGW_BOOST_TMP_FOLDER} )
+      WORKING_DIRECTORY ${MINGW_BOOST_TMP_FOLDER}
+      OUTPUT_QUIET )
   endif()
 
 endmacro()
@@ -51,16 +53,16 @@ endmacro()
 IF ( EXISTS "/etc/fedora-release" )
     SET ( MINGW_PREFIX   "i686-pc-mingw32" )
     SET ( MINGW_SYSROOT  "/usr/${MINGW_PREFIX}/sys-root/mingw/" )
-    SET ( Boost_COMPILER -gcc45 )
+    SET ( Boost_COMPILER "-gcc45" )
 ELSEIF ( EXISTS "/etc/debian_version" )
-    download_mingw_boost ()
     IF (CMAKE_SIZEOF_VOID_P MATCHES "8")
       SET ( MINGW_PREFIX   "x86_64-w64-mingw32"     )
     ELSE ()
       SET ( MINGW_PREFIX   "i686-w64-mingw32"     )
     ENDIF ()
-    SET ( MINGW_SYSROOT  "/usr/${MINGW_PREFIX};${MINGW_BOOST_TMP_FOLDER}/usr/i686-pc-mingw32/sys-root/mingw/" )
-    SET ( Boost_COMPILER -gcc45 )
+    download_mingw_boost ( ${MINGW_PREFIX} )
+    SET ( MINGW_SYSROOT  "/usr/${MINGW_PREFIX};${MINGW_BOOST_TMP_FOLDER}/${MINGW_PREFIX}" )
+    SET ( Boost_COMPILER "-mgw46" )
     SET ( BOOST_ROOT "${MINGW_BOOST_TMP_FOLDER}/usr/i686-pc-mingw32/sys-root/mingw/" )
 ELSE ()
     message ( FATAL_ERROR "Unknown host platform" )

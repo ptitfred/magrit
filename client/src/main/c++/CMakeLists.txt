@@ -102,9 +102,15 @@ if ( Boost_FOUND )
 
 endif ()
 
+set ( WINEPATH )
+
+foreach ( wine_path ${CMAKE_FIND_ROOT_PATH} )
+  set ( WINEPATH "${WINEPATH}:${wine_path}/bin" )
+endforeach ()
+
 add_custom_target(
               check
-              COMMAND WINEPATH=${CMAKE_FIND_ROOT_PATH}/bin/ ${CMAKE_CTEST_COMMAND} --output-on-failure
+              COMMAND env "WINEPATH=\"${WINEPATH}\"" ${CMAKE_CTEST_COMMAND} --output-on-failure
               DEPENDS TestSuite 
              )
 # -------------------------------------------------------------------
