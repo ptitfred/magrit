@@ -16,7 +16,7 @@ macro ( download_mingw_boost MINGW_PREFIX )
 
   endif ()
 
-  set ( MINGW_BOOST_FILE "${MINGW_PREFIX}-boost-1.49.0.i686.tar.bz2" )
+  set ( MINGW_BOOST_FILE "${MINGW_PREFIX}-boost-1.49.0.tar.bz2" )
 
   if ( NOT EXISTS "${MINGW_BOOST_TMP_FOLDER}/${MINGW_BOOST_FILE}" ) 
     file ( 

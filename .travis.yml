@@ -13,7 +13,6 @@ script:
   - "mkdir build -p"
   - "cd build"
   - "cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/$TOOLCHAIN_FILE.cmake ../" 
-  - "make"
   - "make check"
 
 notifications:
