@@ -12,6 +12,7 @@ script:
   - "cd client/src/main/c++/"
   - "mkdir build -p"
   - "cd build"
+  - "sudo dpkg-reconfigure  -fnoninteractive   ttf-mscorefonts-installer"
   - "cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/$TOOLCHAIN_FILE.cmake ../" 
   - "make check"
 
