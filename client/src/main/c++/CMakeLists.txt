@@ -105,7 +105,7 @@ endif ()
 set ( WINEPATH )
 
 foreach ( wine_path ${CMAKE_FIND_ROOT_PATH} )
-  set ( WINEPATH "${WINEPATH}:${wine_path}/bin" )
+  set ( WINEPATH "${WINEPATH};${wine_path}/bin" )
 endforeach ()
 
 add_custom_target(
