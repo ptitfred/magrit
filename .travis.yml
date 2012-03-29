@@ -1,8 +1,8 @@
 language: node_js
 
 before_install:
-  - DEBIAN_FRONTEND=noninteractive sudo apt-get -y update
-  - DEBIAN_FRONTEND=noninteractive sudo apt-get -y install cmake libboost-all-dev mingw-w64 wine # binutils-mingw-w64 gcc-mingw-w64 binutils-mingw-w64 gcc-mingw-w64 # mingw-w64-dev
+  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake libboost-all-dev mingw-w64 wine # binutils-mingw-w64 gcc-mingw-w64 binutils-mingw-w64 gcc-mingw-w64 # mingw-w64-dev
 
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686
