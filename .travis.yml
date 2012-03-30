@@ -1,7 +1,7 @@
 language: node_js
 
 before_install:
-  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw-w64
+  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw32
 
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686
