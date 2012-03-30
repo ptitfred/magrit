@@ -55,7 +55,7 @@ IF ( EXISTS "/etc/fedora-release" )
     SET ( MINGW_SYSROOT  "/usr/${MINGW_PREFIX}/sys-root/mingw/" )
     SET ( Boost_COMPILER "-gcc45" )
 ELSEIF ( EXISTS "/etc/debian_version" )
-    IF ( TRUE ) # Put here "if debian natty"
+    IF ( EXISTS "/usr" ) # Put here "if debian natty"
       IF (CMAKE_SIZEOF_VOID_P MATCHES "8")
         SET ( MINGW_PREFIX   "amd64-mingw32msvc"     )
       ELSE ()
