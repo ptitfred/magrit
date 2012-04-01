@@ -5,9 +5,9 @@ before_install:
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw32
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw32
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install  mingw-w64 wine gcc-mingw32
-  - git submodule add git://github.com/daniperez/$MINGW_ARCH-boost.git client/src/main/c++/toolchain/$MINGW_ARCH
   - mkdir -p ~/.cmake/mingw/
-  - tar xvfj $MINGW_ARCH-boost-1.49.0.tar.bz2 -C ~/.cmake/mingw/ 
+  - git submodule add git://github.com/daniperez/$MINGW_ARCH-boost.git ~/.cmake/mingw/
+  - tar xvfj $MINGW_ARCH-boost-1.49.0.tar.bz2 -C ~/.cmake/mingw/
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686
   - TOOLCHAIN_FILE=Windows-mingw-i686 MINGW_ARCH=i686-w64-mingw32
