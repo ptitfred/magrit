@@ -5,6 +5,8 @@ before_install:
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw32
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw32
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install  mingw-w64 wine gcc-mingw32
+  - git submodule add git://@github.com/daniperez/i686-w64-mingw32-boost.git client/src/main/c++/toolchain/i686-w64-mingw32
+  - git submodule add git://@github.com/daniperez/x86_64-w64-mingw32-boost.git client/src/main/c++/toolchain/x86_64-w64-mingw32
 
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686
