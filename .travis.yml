@@ -3,21 +3,23 @@ language: node_js
 before_install:
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw32
-  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev mingw-w64 wine gcc-mingw32
-  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install  mingw-w64 wine gcc-mingw32
-  - mkdir -p ~/.cmake/
-  - git clone git://github.com/daniperez/$MINGW_ARCH-boost.git ~/.cmake/mingw/
-  - tar xvfj ~/.cmake/mingw/$MINGW_ARCH-boost-1.49.0.tar.bz2 -C ~/.cmake/mingw/
+  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install cmake libboost-system-dev libboost-program-options-dev libboost-filesystem-dev libboost-test-dev
+  #- sudo DEBIAN_FRONTEND=noninteractive apt-get -y install  mingw-w64 wine gcc-mingw32
+  #- mkdir -p ~/.cmake/
+  #- git clone git://github.com/daniperez/$MINGW_ARCH-boost.git ~/.cmake/mingw/
+  #- tar xvfj ~/.cmake/mingw/$MINGW_ARCH-boost-1.49.0.tar.bz2 -C ~/.cmake/mingw/
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686
-  - TOOLCHAIN_FILE=Windows-mingw-i686 MINGW_ARCH=i686-w64-mingw32
+  #- TOOLCHAIN_FILE=Windows-mingw-i686 MINGW_ARCH=i686-w64-mingw32
 script:
   - "cd client/src/main/c++/"
   - "mkdir build -p"
   - "cd build"
   # Dunno why but I have to define BOOST_ROOT here and in the toolchain file.
-  - "cmake -DBOOST_ROOT=~/.cmake/mingw/$MINGW_ARCH -DCMAKE_TOOLCHAIN_FILE=../toolchain/$TOOLCHAIN_FILE.cmake ../" 
+  #- "cmake -DBOOST_ROOT=~/.cmake/mingw/$MINGW_ARCH -DCMAKE_TOOLCHAIN_FILE=../toolchain/$TOOLCHAIN_FILE.cmake ../" 
+  - "cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain/$TOOLCHAIN_FILE.cmake ../" 
   - "make check"
 
 notifications:
-  email: false
+  # email: false
+  on_failure: change
