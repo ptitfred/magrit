@@ -10,9 +10,7 @@ before_install:
   - tar -C ~/.cmake/mingw/ xvfj $MINGW_ARCHi686-boost-1.49.0.tar.bz2
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686
-  - TOOLCHAIN_FILE=Windows-mingw-i686
-  - MINGW_ARCH=i686-w64-mingw32
-
+  - TOOLCHAIN_FILE=Windows-mingw-i686 MINGW_ARCH=i686-w64-mingw32
 script:
   - "cd client/src/main/c++/"
   - "mkdir build -p"
