@@ -7,7 +7,7 @@ before_install:
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install  mingw-w64 wine gcc-mingw32
   - mkdir -p ~/.cmake/
   - git clone git://github.com/daniperez/$MINGW_ARCH-boost.git ~/.cmake/mingw/
-  - tar xvfj $MINGW_ARCH-boost-1.49.0.tar.bz2 -C ~/.cmake/mingw/
+  - tar xvfj ~/.cmake/mingw/$MINGW_ARCH-boost-1.49.0.tar.bz2 -C ~/.cmake/mingw/
 env:
   - TOOLCHAIN_FILE=Linux-gcc-i686
   - TOOLCHAIN_FILE=Windows-mingw-i686 MINGW_ARCH=i686-w64-mingw32
