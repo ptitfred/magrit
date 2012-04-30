@@ -30,12 +30,14 @@ function lsTestDirectories {
 
 function runTestCase {
 	local tc=$1
+	local localDir="$(pwd)/target/local/$tc"
+	mkdir -p $localDir
 	cd $tc
 	local padding=$(strCpy "-" ${#tc})
 	info "--- $tc ---------------------------------------------------------------"
 	ts1=$(date +%s)
 	ns1=$(date +%N)
-	PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
+	LOCAL_DIR=$localDir MAGRIT_TEST_PORT=${testPort} PATH=${BASEDIR}/${install_dir}/scripts:${BASEDIR}/utils:$PATH bash run.sh &
 	testPid=$!
 	wait $testPid
 	ec=$?
@@ -64,12 +66,14 @@ install_dir='target/local'
 rm -rf ${install_dir}
 mkdir -p ${install_dir}
 
+testPort=12022
+
 info "Installing..."
 java -jar ${installer} --install ${install_dir} > /dev/null
 bash ${install_dir}/setup.sh
 info "Starting..."
-bash ${install_dir}/start.sh > target/output.log &
-PID=$(wait-tcp 2022 5) || exit 2
+bash ${install_dir}/start.sh -p ${testPort} > target/output.log &
+PID=$(wait-tcp ${testPort} 5) || exit 2
 info "Server started"
 info "-----------------------------------"
 info "TESTS"

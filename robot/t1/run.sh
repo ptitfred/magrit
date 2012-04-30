@@ -8,5 +8,5 @@ check $?
 
 lines=$(wc -l <output.log)
 
-assert 4 $lines
+assert 3 $lines
 

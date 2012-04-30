@@ -3,6 +3,7 @@
 target
 
 client/target
+client/src/main/c++/build
 
 server/.classpath
 server/.project
@@ -31,3 +32,6 @@ installer/.project
 installer/.settings
 installer/target
 
+*.swp
+*.swo
+*.o
