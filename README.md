@@ -76,6 +76,16 @@ Screenshots:
 
 ![magrit build-log](https://github.com/ptitfred/magrit/raw/resources/images/magrit-build-log.png)
 
+Maintainers:
+------------
+
+See MAINTAINERS file.
+
+Credits:
+--------
+
+See AUTHORS file.
+
 Participate:
 ----------
 You can beta test this on you projects!

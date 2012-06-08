@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 Frederic Menou
+# Copyright 2011-2012 Frederic Menou and others referred in AUTHORS file.
 #
 # This file is part of Magrit.
 #
@@ -20,7 +20,7 @@
 function help() {
 	echo Magrit ${project.version}
 	cat <<LICENSE
-Copyright 2011 Frederic Menou
+Copyright 2011-2012 Frederic Menou and others referred in AUTHORS file.
 
 Magrit is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

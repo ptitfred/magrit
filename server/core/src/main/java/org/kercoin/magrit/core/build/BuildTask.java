@@ -1,5 +1,5 @@
 /*
-Copyright 2011 Frederic Menou
+Copyright 2011-2012 Frederic Menou and others referred in AUTHORS file.
 
 This file is part of Magrit.
 
